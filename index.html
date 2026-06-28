@@ -120,6 +120,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 .tab-btn.active{color:var(--accent);}
 .tab-icon{font-size:22px;line-height:1;}
 .empty-state{color:var(--muted);font-size:13px;padding:28px 0;text-align:center;}
+.ai-card{background:linear-gradient(135deg,rgba(124,58,237,.12),rgba(96,165,250,.08));border:0.5px solid rgba(167,139,250,.25);border-radius:12px;padding:14px 16px;margin-bottom:10px;}.ai-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;}.ai-label{font-size:11px;font-weight:700;color:var(--accent);letter-spacing:.05em;text-transform:uppercase;}.ai-body{font-size:13px;color:var(--text);line-height:1.65;white-space:pre-wrap;}.btn-coach{background:rgba(167,139,250,.1);border:0.5px solid rgba(167,139,250,.3);border-radius:8px;padding:5px 11px;font-size:11px;font-weight:600;color:var(--accent);cursor:pointer;font-family:inherit;display:inline-block;margin-top:6px;}
 </style>
 </head>
 <body>
@@ -146,6 +147,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 
 <div id="screen-today" class="screen active">
   <div id="alert" class="alert">⚠️ 3 jours sans activité — protocole minimum : 20 min.</div>
+  <div id="ai-welcome" class="ai-card" style="display:none"><div class="ai-header"><span style="font-size:16px">🤖</span><span class="ai-label">Coach IA</span></div><div class="ai-body" id="ai-welcome-text"></div></div>
   <div id="phase-banner" class="phase-banner ph1">
     <div class="phase-icon">🌱</div>
     <div class="phase-info">
@@ -230,6 +232,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
     <textarea id="rv-change" placeholder="Un ajustement concret..."></textarea>
   </div>
   <button class="btn-main" onclick="sauvegarderRevue()">Sauvegarder +100 XP</button>
+  <div id="ai-bilan" class="ai-card" style="display:none;margin-top:12px;"><div class="ai-header"><span style="font-size:16px">🧠</span><span class="ai-label">Bilan IA</span></div><div class="ai-body" id="ai-bilan-text"></div></div>
 </div>
 
 <div class="tab-bar">
@@ -432,6 +435,7 @@ function renderQuetes(){
         <div class="q-name">${q.name}</div>
         <div class="q-desc">${q.desc}</div>
         <div class="q-tags">${minTag}${phTag}</div>
+        ${inPhase?'<button class="btn-coach" onclick="event.stopPropagation();coachQuete(\'${q.id}\',\'${q.name}\',\'${q.desc}\')">💡 Coach</button>':''}
       </div>
       <div class="q-xp">+${q.xp}</div>
     </div>`;
@@ -555,7 +559,7 @@ function renderStats(){
   const xpLabels=sorted.map(h=>h.created_at?h.created_at.slice(5,10):'');
   const xpData=sorted.map(h=>h.xp);
   if(chartXp)chartXp.destroy();
-  chartXp=new Chart(xpCtx,{type:'line',data:{labels:xpLabels.length?xpLabels:['—'],datasets:[{data:xpData.length?xpData:[],borderColor:'#a78bfa',backgroundColor:'rgba(124,58,237,0.15)',borderWidth:2,pointRadius:3,pointBackgroundColor:'#a78bfa',fill:true,tension:.4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#555',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'}},y:{ticks:{color:'#555',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'},beginAtZero:true}}}});
+  chartXp=new Chart(xpCtx,{type:'line',data:{labels:xpLabels.length?xpLabels:['—'],datasets:[{data:xpData.length?xpData:[0],borderColor:'#a78bfa',backgroundColor:'rgba(124,58,237,0.15)',borderWidth:2,pointRadius:3,pointBackgroundColor:'#a78bfa',fill:true,tension:.4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#555',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'}},y:{ticks:{color:'#555',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'},beginAtZero:true}}}});
 
   const rCtx=document.getElementById('chart-radar').getContext('2d');
   const rLabels=PILLARS.map(p=>p.icon+' '+p.name.split(' ')[0]);
@@ -581,7 +585,7 @@ async function sauvegarderRevue(){
   ['rv-bien','rv-resist','rv-change'].forEach(id=>document.getElementById(id).value='');
   starVal=0;
   document.querySelectorAll('.star').forEach(s=>s.classList.remove('on'));
-  alert('Revue sauvegardée ✓  +100 XP');
+  genererBilanRevue(document.getElementById('rv-bien').value,document.getElementById('rv-resist').value,document.getElementById('rv-change').value,starVal);
 }
 
 function goTab(id,btn){
@@ -597,6 +601,7 @@ async function init(){
   await loadFromSupabase();
   updateHeader();
   renderQuetes();
+  loadWelcomeMessage();
 }
 
 if(!UID){
@@ -604,6 +609,63 @@ if(!UID){
 }else{
   init();
 }
+
+const GEMINI_KEY='GEMINI_KEY_HERE';
+const GEMINI_URL='https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+GEMINI_KEY;
+
+async function callGemini(prompt){
+  try{
+    const r=await fetch(GEMINI_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:400,temperature:0.7}})});
+    const d=await r.json();
+    return d?.candidates?.[0]?.content?.parts?.[0]?.text||'Indisponible.';
+  }catch(e){return 'Indisponible pour le moment.';}
+}
+
+function buildCtx(){
+  const ph=getCurrentPhase();
+  const ps=PILLARS.map(function(p){return p.name.split(' ')[0]+': '+(S[p.id+'_xp']||0)+'XP';}).join(', ');
+  return 'Profil: '+UID+'. Phase '+ph.id+' ('+ph.name+'), mois '+S.current_month+'/12. XP total: '+S.total_xp+'. Streak: '+S.streak+'j. Piliers: '+ps+'.';
+}
+
+async function loadWelcomeMessage(){
+  if(!UID||GEMINI_KEY==='GEMINI_KEY_HERE')return;
+  var el=document.getElementById('ai-welcome');
+  var txt=document.getElementById('ai-welcome-text');
+  el.style.display='block';
+  txt.textContent='Chargement...';
+  var checked=Object.keys(checkedToday).length;
+  var prompt=buildCtx()+' Quetes du jour cochees: '+checked+'. Ecris un message d accueil motivant de 2-3 phrases, direct et humain, adapte au profil. Pas de markdown.';
+  txt.textContent=await callGemini(prompt);
+}
+
+async function coachQuete(qId,qName,qDesc){
+  var existingId='coach-'+qId;
+  var existing=document.getElementById(existingId);
+  if(existing){existing.remove();return;}
+  var card=document.createElement('div');
+  card.className='ai-card';
+  card.id=existingId;
+  card.style.marginTop='6px';
+  card.innerHTML='<div class="ai-header"><span style="font-size:16px">💡</span><span class="ai-label">Conseils</span></div><div class="ai-body" id="txt-'+qId+'">Chargement...</div>';
+  var quests=document.querySelectorAll('.quest');
+  var target=null;
+  quests.forEach(function(q){if(q.getAttribute('onclick')&&q.getAttribute('onclick').indexOf(qId)>-1)target=q;});
+  if(target)target.after(card);
+  var prompt=buildCtx()+' Quete: "'+qName+'" ('+qDesc+'). Donne 3 conseils pratiques et concrets pour bien realiser cette quete aujourd hui. 4 lignes max. Pas de markdown ni tirets.';
+  var bodyEl=document.getElementById('txt-'+qId);
+  if(bodyEl)bodyEl.textContent=await callGemini(prompt);
+}
+
+async function genererBilanRevue(bien,resist,change,stars){
+  var el=document.getElementById('ai-bilan');
+  var txt=document.getElementById('ai-bilan-text');
+  el.style.display='block';
+  txt.textContent='Analyse de ta semaine...';
+  var prompt=buildCtx()+' Revue ('+stars+'/5 etoiles). Ce qui a marche: "'+bien+'". Ce qui a resiste: "'+resist+'". Changement prevu: "'+change+'". Donne un bilan structure: 1 point fort a consolider, 1 conseil precis sur le point de friction, 1 suggestion d evolution concrete pour la semaine prochaine. 5-6 lignes max. Direct. Pas de markdown.';
+  txt.textContent=await callGemini(prompt);
+}
+
 </script>
 </body>
 </html>
