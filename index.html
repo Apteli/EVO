@@ -423,19 +423,21 @@ function updateHeader(){
 
 function renderQuetes(){
   const phase=getCurrentPhase();
-  const allQ=[...QUETES.min,...QUETES.opt];
   function qHTML(q,isMin){
     const done=!!checkedToday[q.id];
     const inPhase=q.phases.includes(phase.id);
     const phTag=!inPhase?`<span class="tag tag-ph">Phase ${q.phases[0]}+</span>`:'';
     const minTag=isMin?`<span class="tag tag-min">minimum</span>`:'';
+    const safeN=q.name.replace(/"/g,'&quot;');
+    const safeD=q.desc.replace(/"/g,'&quot;');
+    const coachBtn=inPhase?`<button class="btn-coach" data-qid="${q.id}" data-qname="${safeN}" data-qdesc="${safeD}" onclick="event.stopPropagation();coachQuete(this)">💡 Coach</button>`:'';
     return `<div class="quest${done?' done':''}${!inPhase?' locked':''}" onclick="toggleQuete('${q.id}')">
       <div class="check">${done?'✓':''}</div>
       <div class="q-info">
         <div class="q-name">${q.name}</div>
         <div class="q-desc">${q.desc}</div>
         <div class="q-tags">${minTag}${phTag}</div>
-        ${inPhase?'<button class="btn-coach" onclick="event.stopPropagation();coachQuete(\'${q.id}\',\'${q.name}\',\'${q.desc}\')">💡 Coach</button>':''}
+        ${coachBtn}
       </div>
       <div class="q-xp">+${q.xp}</div>
     </div>`;
@@ -585,7 +587,7 @@ async function sauvegarderRevue(){
   ['rv-bien','rv-resist','rv-change'].forEach(id=>document.getElementById(id).value='');
   starVal=0;
   document.querySelectorAll('.star').forEach(s=>s.classList.remove('on'));
-  genererBilanRevue(document.getElementById('rv-bien').value,document.getElementById('rv-resist').value,document.getElementById('rv-change').value,starVal);
+  alert('Revue sauvegardée ✓  +100 XP');
 }
 
 function goTab(id,btn){
@@ -610,13 +612,13 @@ if(!UID){
   init();
 }
 
-const GEMINI_KEY='GEMINI_KEY_HERE';
+const GEMINI_KEY='AQ.Ab8RN6ImIAjKuXnMc7UBGit8vm7WuX78erGs5r1r4aTBhCp_WA';
 const GEMINI_URL='https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+GEMINI_KEY;
 
 async function callGemini(prompt){
   try{
     const r=await fetch(GEMINI_URL,{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:400,temperature:0.7}})});
+      body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:400,temperature:0.7}})});
     const d=await r.json();
     return d?.candidates?.[0]?.content?.parts?.[0]?.text||'Indisponible.';
   }catch(e){return 'Indisponible pour le moment.';}
@@ -625,44 +627,44 @@ async function callGemini(prompt){
 function buildCtx(){
   const ph=getCurrentPhase();
   const ps=PILLARS.map(function(p){return p.name.split(' ')[0]+': '+(S[p.id+'_xp']||0)+'XP';}).join(', ');
-  return 'Profil: '+UID+'. Phase '+ph.id+' ('+ph.name+'), mois '+S.current_month+'/12. XP total: '+S.total_xp+'. Streak: '+S.streak+'j. Piliers: '+ps+'.';
+  return 'Profil: '+UID+'. Phase '+ph.id+' ('+ph.name+'), mois '+S.current_month+'/12. XP: '+S.total_xp+'. Streak: '+S.streak+'j. Piliers: '+ps+'.';
 }
 
 async function loadWelcomeMessage(){
-  if(!UID||GEMINI_KEY==='GEMINI_KEY_HERE')return;
-  var el=document.getElementById('ai-welcome');
-  var txt=document.getElementById('ai-welcome-text');
+  if(!UID||GEMINI_KEY==='AQ.Ab8RN6ImIAjKuXnMc7UBGit8vm7WuX78erGs5r1r4aTBhCp_WA')return;
+  const el=document.getElementById('ai-welcome');
+  const txt=document.getElementById('ai-welcome-text');
   el.style.display='block';
   txt.textContent='Chargement...';
-  var checked=Object.keys(checkedToday).length;
-  var prompt=buildCtx()+' Quetes du jour cochees: '+checked+'. Ecris un message d accueil motivant de 2-3 phrases, direct et humain, adapte au profil. Pas de markdown.';
+  const checked=Object.keys(checkedToday).length;
+  const prompt=buildCtx()+' Quetes cochees aujourd hui: '+checked+'. Ecris un message d accueil motivant de 2-3 phrases, direct, humain, adapte au profil. Pas de markdown.';
   txt.textContent=await callGemini(prompt);
 }
 
-async function coachQuete(qId,qName,qDesc){
-  var existingId='coach-'+qId;
-  var existing=document.getElementById(existingId);
+async function coachQuete(btn){
+  const qId=btn.getAttribute('data-qid');
+  const qName=btn.getAttribute('data-qname');
+  const qDesc=btn.getAttribute('data-qdesc');
+  const existingId='coach-'+qId;
+  const existing=document.getElementById(existingId);
   if(existing){existing.remove();return;}
-  var card=document.createElement('div');
+  const card=document.createElement('div');
   card.className='ai-card';
   card.id=existingId;
   card.style.marginTop='6px';
   card.innerHTML='<div class="ai-header"><span style="font-size:16px">💡</span><span class="ai-label">Conseils</span></div><div class="ai-body" id="txt-'+qId+'">Chargement...</div>';
-  var quests=document.querySelectorAll('.quest');
-  var target=null;
-  quests.forEach(function(q){if(q.getAttribute('onclick')&&q.getAttribute('onclick').indexOf(qId)>-1)target=q;});
-  if(target)target.after(card);
-  var prompt=buildCtx()+' Quete: "'+qName+'" ('+qDesc+'). Donne 3 conseils pratiques et concrets pour bien realiser cette quete aujourd hui. 4 lignes max. Pas de markdown ni tirets.';
-  var bodyEl=document.getElementById('txt-'+qId);
+  btn.closest('.quest').after(card);
+  const prompt=buildCtx()+' Quete: "'+qName+'" ('+qDesc+'). Donne 3 conseils pratiques et concrets pour bien realiser cette quete aujourd hui. 4 lignes max. Pas de markdown ni tirets.';
+  const bodyEl=document.getElementById('txt-'+qId);
   if(bodyEl)bodyEl.textContent=await callGemini(prompt);
 }
 
 async function genererBilanRevue(bien,resist,change,stars){
-  var el=document.getElementById('ai-bilan');
-  var txt=document.getElementById('ai-bilan-text');
+  const el=document.getElementById('ai-bilan');
+  const txt=document.getElementById('ai-bilan-text');
   el.style.display='block';
   txt.textContent='Analyse de ta semaine...';
-  var prompt=buildCtx()+' Revue ('+stars+'/5 etoiles). Ce qui a marche: "'+bien+'". Ce qui a resiste: "'+resist+'". Changement prevu: "'+change+'". Donne un bilan structure: 1 point fort a consolider, 1 conseil precis sur le point de friction, 1 suggestion d evolution concrete pour la semaine prochaine. 5-6 lignes max. Direct. Pas de markdown.';
+  const prompt=buildCtx()+' Revue ('+stars+'/5). Ce qui a marche: "'+bien+'". Ce qui a resiste: "'+resist+'". Changement prevu: "'+change+'". Bilan: 1 point fort a consolider, 1 conseil sur le point de friction, 1 suggestion concrete pour la semaine prochaine. 5-6 lignes. Direct. Pas de markdown.';
   txt.textContent=await callGemini(prompt);
 }
 
