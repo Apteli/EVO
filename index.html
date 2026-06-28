@@ -612,7 +612,7 @@ if(!UID){
   init();
 }
 
-const GEMINI_KEY='AQ.Ab8RN6ImIAjKuXnMc7UBGit8vm7WuX78erGs5r1r4aTBhCp_WA';
+const GEMINI_KEY='GEMINI_KEY_HERE';
 const GEMINI_URL='https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+GEMINI_KEY;
 
 async function callGemini(prompt){
@@ -631,7 +631,7 @@ function buildCtx(){
 }
 
 async function loadWelcomeMessage(){
-  if(!UID||GEMINI_KEY==='AQ.Ab8RN6ImIAjKuXnMc7UBGit8vm7WuX78erGs5r1r4aTBhCp_WA')return;
+  if(!UID||GEMINI_KEY==='GEMINI_KEY_HERE')return;
   const el=document.getElementById('ai-welcome');
   const txt=document.getElementById('ai-welcome-text');
   el.style.display='block';
