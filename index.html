@@ -544,10 +544,6 @@ async function toggleQuete(id) {
     if(LOG.length>60)LOG.pop();
     // insert log in background
     sbInsert('sys_log', entry).catch(()=>{});
-    // insert xp history point
-    const histEntry = {user_id:UID, xp:S.total_xp, created_at:new Date().toISOString()};
-    XP_HISTORY.unshift(histEntry);
-    sbInsert('sys_xp_history', histEntry).catch(()=>{});
   }
   scheduleSave();
   renderQuetes();
@@ -567,6 +563,11 @@ async function validerJour() {
     } else { S.streak = 1; }
     S.last_day = today;
     S.days_total++;
+    // Enregistrer le point XP uniquement à la validation du jour
+    const histEntry = {user_id:UID, xp:S.total_xp, created_at:new Date().toISOString()};
+    XP_HISTORY.unshift(histEntry);
+    if(XP_HISTORY.length>60)XP_HISTORY.pop();
+    sbInsert('sys_xp_history', histEntry).catch(()=>{});
   }
   scheduleSave();
   updateHeader();
