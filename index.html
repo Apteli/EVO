@@ -612,26 +612,48 @@ if(!UID){
   init();
 }
 
-const GEMINI_KEY='GEMINI_KEY_HERE';
-const GEMINI_URL='https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+GEMINI_KEY;
+const WORKER_URL='https://evolution-ai.eliseobuti.workers.dev';
 
 async function callGemini(prompt){
   try{
-    const r=await fetch(GEMINI_URL,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:400,temperature:0.7}})});
+    const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({prompt:prompt})});
     const d=await r.json();
-    return d?.candidates?.[0]?.content?.parts?.[0]?.text||'Indisponible.';
+    return d?.text||'Indisponible.';
   }catch(e){return 'Indisponible pour le moment.';}
 }
 
 function buildCtx(){
   const ph=getCurrentPhase();
   const ps=PILLARS.map(function(p){return p.name.split(' ')[0]+': '+(S[p.id+'_xp']||0)+'XP';}).join(', ');
-  return 'Profil: '+UID+'. Phase '+ph.id+' ('+ph.name+'), mois '+S.current_month+'/12. XP: '+S.total_xp+'. Streak: '+S.streak+'j. Piliers: '+ps+'.';
+  const dynamicCtx='Progression actuelle — Phase '+ph.id+' ('+ph.name+'), mois '+S.current_month+'/12. XP total: '+S.total_xp+'. Streak: '+S.streak+' jours consecutifs. Piliers: '+ps+'.';
+  return SYSTEM_CONTEXT+'\n\n'+dynamicCtx;
 }
 
+const SYSTEM_CONTEXT=`Tu es le coach personnel d'Eliseo, 19 ans, etudiant suisse en annee sabbatique apres sa maturite gymnasiale (moyenne 5.0). Il envisage des etudes de medecine. Il a 4 mois d'armee en fevrier. Il voyage parfois.
+
+PROFIL PHYSIQUE: Nageur regulier (2x/semaine, 1h15, ~3km/session). Bonne base physique (pompes, tractions faciles). Cardio ameliorable.
+
+SYSTEME 12 MOIS — 5 PILIERS:
+1. Metacognition & apprentissage (memoire, calcul mental, biais cognitifs, methode Feynman, transfert inter-domaines)
+2. Regulation psychophysiologique (respiration, Wim Hof, sommeil, stress, controle emotionnel)
+3. Presence & observation (microexpressions, conscience spatiale, detection comportements, visages)
+4. Condition physique (force, endurance zone 2, proprioception, reflexes, coordination)
+5. Influence & communication (rhetorique, langues, negociation, echecs/strategie)
+
+3 PHASES:
+- Phase 1 (mois 1-3): Fondations — installer les routines a friction minimale
+- Phase 2 (mois 4-8): Intensification — integration des satellites, armee comme laboratoire social
+- Phase 3 (mois 9-12): Consolidation — mesure, ajustement, extension
+
+PHILOSOPHIE: Pratique deliberee > repetition passive. Stress + recuperation = croissance. Identite stable bat motivation fluctuante. Seuil minimum (20 min/jour) non-negociable meme les mauvais jours.
+
+PASSIONS: Piano, dessin (decompress), cinema (Wes Anderson, Jim Jarmusch, Jake Gyllenhaal), mode streetwear/vintage/gorpcore, vie sociale.
+
+Reponds toujours en francais, de facon directe, concrete et adaptee au niveau actuel d'Eliseo. Pas de markdown.`;
+
 async function loadWelcomeMessage(){
-  if(!UID||GEMINI_KEY==='GEMINI_KEY_HERE')return;
+  if(!UID)return;
   const el=document.getElementById('ai-welcome');
   const txt=document.getElementById('ai-welcome-text');
   el.style.display='block';
