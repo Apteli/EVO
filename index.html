@@ -584,10 +584,14 @@ async function sauvegarderRevue(){
   sbInsert('sys_reviews',rev).catch(()=>{});
   scheduleSave();
   updateHeader();
+  const _bien=document.getElementById('rv-bien').value;
+  const _resist=document.getElementById('rv-resist').value;
+  const _change=document.getElementById('rv-change').value;
+  const _stars=starVal;
   ['rv-bien','rv-resist','rv-change'].forEach(id=>document.getElementById(id).value='');
   starVal=0;
   document.querySelectorAll('.star').forEach(s=>s.classList.remove('on'));
-  alert('Revue sauvegardée ✓  +100 XP');
+  genererBilanRevue(_bien,_resist,_change,_stars);
 }
 
 function goTab(id,btn){
@@ -623,13 +627,6 @@ async function callGemini(prompt){
   }catch(e){return 'Indisponible pour le moment.';}
 }
 
-function buildCtx(){
-  const ph=getCurrentPhase();
-  const ps=PILLARS.map(function(p){return p.name.split(' ')[0]+': '+(S[p.id+'_xp']||0)+'XP';}).join(', ');
-  const dynamicCtx='Progression actuelle — Phase '+ph.id+' ('+ph.name+'), mois '+S.current_month+'/12. XP total: '+S.total_xp+'. Streak: '+S.streak+' jours consecutifs. Piliers: '+ps+'.';
-  return SYSTEM_CONTEXT+'\n\n'+dynamicCtx;
-}
-
 const SYSTEM_CONTEXT=`Tu es le coach personnel d'Eliseo, 19 ans, etudiant suisse en annee sabbatique apres sa maturite gymnasiale (moyenne 5.0). Il envisage des etudes de medecine. Il a 4 mois d'armee en fevrier. Il voyage parfois.
 
 PROFIL PHYSIQUE: Nageur regulier (2x/semaine, 1h15, ~3km/session). Bonne base physique (pompes, tractions faciles). Cardio ameliorable.
@@ -651,6 +648,13 @@ PHILOSOPHIE: Pratique deliberee > repetition passive. Stress + recuperation = cr
 PASSIONS: Piano, dessin (decompress), cinema (Wes Anderson, Jim Jarmusch, Jake Gyllenhaal), mode streetwear/vintage/gorpcore, vie sociale.
 
 Reponds toujours en francais, de facon directe, concrete et adaptee au niveau actuel d'Eliseo. Pas de markdown.`;
+
+function buildCtx(){
+  const ph=getCurrentPhase();
+  const ps=PILLARS.map(function(p){return p.name.split(' ')[0]+': '+(S[p.id+'_xp']||0)+'XP';}).join(', ');
+  const dynamicCtx='Progression actuelle — Phase '+ph.id+' ('+ph.name+'), mois '+S.current_month+'/12. XP total: '+S.total_xp+'. Streak: '+S.streak+' jours consecutifs. Piliers: '+ps+'.';
+  return SYSTEM_CONTEXT+'\n\n'+dynamicCtx;
+}
 
 async function loadWelcomeMessage(){
   if(!UID)return;
