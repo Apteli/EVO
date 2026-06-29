@@ -50,6 +50,10 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .quest:active{transform:scale(0.99);opacity:.9;}
 .quest.done{border-color:rgba(52,211,153,0.3);background:rgba(24,24,28,0.7);}
 .quest.locked{opacity:.25;cursor:default;pointer-events:none;}
+.screen-locked .quest { pointer-events: none; opacity: 0.6; }
+.screen-locked .bonus-select { pointer-events: none; opacity: 0.5; }
+.screen-locked .levelup-btn { pointer-events: none; opacity: 0.5; }
+.screen-locked .btn-coach { pointer-events: none; opacity: 0.5; }
 .check{width:22px;height:22px;border-radius:7px;border:1.5px solid rgba(255,255,255,0.2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .2s;}
 .quest.done .check{background:var(--green);border-color:var(--green);}
 .q-info{flex:1;min-width:0;}
@@ -73,6 +77,8 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .bonus-select{background:var(--bg);color:var(--text);border:0.5px solid var(--border);border-radius:6px;padding:4px 8px;font-size:12px;outline:none;font-family:inherit;}
 .btn-main{width:100%;background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;border:none;border-radius:14px;padding:16px;font-size:16px;font-weight:700;cursor:pointer;margin-top:14px;transition:opacity .15s;font-family:inherit;}
 .btn-main:active{opacity:.8;}
+.btn-sec{width:100%;background:rgba(255,255,255,0.08);color:var(--text);border:0.5px solid var(--border);border-radius:14px;padding:14px;font-size:14px;font-weight:600;cursor:pointer;margin-top:10px;transition:all .15s;font-family:inherit;}
+.btn-sec:active{background:rgba(255,255,255,0.12);}
 .alert{background:rgba(251,191,36,.1);border:0.5px solid rgba(251,191,36,.3);border-radius:10px;padding:12px 14px;font-size:13px;color:#fbbf24;margin-bottom:12px;display:none;}
 .alert.show{display:block;}
 .pillar{background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;}
@@ -182,11 +188,18 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
       <div class="streak-lbl">jours actifs</div>
     </div>
   </div>
-  <div class="section-title">Minimum — 20 min</div>
-  <div id="quetes-min"></div>
-  <div class="section-title">Optimal</div>
-  <div id="quetes-opt"></div>
-  <button class="btn-main" onclick="validerJour()">✓ Valider la journée</button>
+  
+  <div id="today-container">
+    <div class="section-title">Minimum — 20 min</div>
+    <div id="quetes-min"></div>
+    <div class="section-title">Optimal</div>
+    <div id="quetes-opt"></div>
+    
+    <div id="action-zone" style="margin-top:14px;">
+      <button id="btn-valider" class="btn-main" onclick="validerJour()">✓ Valider la journée</button>
+      <button id="btn-modifier" class="btn-sec" style="display:none;" onclick="modifierJour()">⚙️ Modifier la journée</button>
+    </div>
+  </div>
 </div>
 
 <div id="screen-piliers" class="screen">
@@ -286,7 +299,6 @@ const PHASES=[
   {id:3,months:[9,10,11,12],name:'Consolidation',desc:'Mesure, ajustement, extension du système',icon:'💎',cls:'ph3'},
 ];
 
-// Arbre de complexité croissante (Level Up) axé sur la complexité/technique
 const EVOLUTIONS = {
   q1: [
     {lv:1, name:'Respiration / cohérence cardiaque', desc:'5 min box breathing (4s-4s-4s-4s) au calme', threshold:5},
@@ -368,16 +380,15 @@ const PCOLS={p1:'#a78bfa',p2:'#34d399',p3:'#60a5fa',p4:'#fb923c',p5:'#fbbf24'};
 
 let UID=localStorage.getItem('sys12_uid')||null;
 let checkedToday={}; 
-let S={total_xp:0,streak:0,last_day:null,days_total:0,start_date:new Date().toISOString().slice(0,10),current_month:1,p1_xp:0,p2_xp:0,p3_xp:0,p4_xp:0,p5_xp:0};
+let S={total_xp:0,streak:0,last_day:null,days_total:0,start_date:new Date().toISOString().slice(0,10),current_month:1,p1_xp:0,p2_xp:0,p3_xp:0,p4_xp:0,p5_xp:0,is_locked_today:false};
 let LOG=[];
 let XP_HISTORY=[];
 let starVal=0;
 let chartXp=null,chartRadar=null;
 let syncTimer=null;
 
-// Nouveaux objets de stockage locaux & Supabase pour le suivi de la difficulté
-let Q_COUNTS={}; // {qid: nombre_total_reussites}
-let Q_LEVELS={}; // {qid: niveau_actuel}
+let Q_COUNTS={}; 
+let Q_LEVELS={}; 
 
 async function loadFromSupabase(){
   setSyncState('syncing');
@@ -394,9 +405,14 @@ async function loadFromSupabase(){
       const md=(now.getFullYear()-start.getFullYear())*12+(now.getMonth()-start.getMonth())+1;
       S.current_month=Math.max(1,Math.min(12,md));
       
-      // Chargement des niveaux et compteurs depuis l'extension de S
       Q_COUNTS = S.quest_counts || {};
       Q_LEVELS = S.quest_levels || {};
+      
+      // Vérifier si le dernier jour verrouillé est bien aujourd'hui
+      const today=todayKey();
+      if(S.last_day !== today) {
+        S.is_locked_today = false;
+      }
     }
     if(Array.isArray(logRaw))LOG=logRaw;
     if(Array.isArray(histRaw))XP_HISTORY=histRaw;
@@ -417,7 +433,6 @@ async function loadFromSupabase(){
 async function saveProgress(){
   setSyncState('syncing');
   try{
-    // On injecte les données de niveau de quêtes dans l'objet global avant envoi
     S.quest_counts = Q_COUNTS;
     S.quest_levels = Q_LEVELS;
     await sbUpsert('sys_progress',{...S,user_id:UID,updated_at:new Date().toISOString()});
@@ -431,17 +446,8 @@ function scheduleSave(){
 }
 
 function todayKey(){return new Date().toISOString().slice(0,10);}
-
-function getCurrentPhase(){
-  const m=S.current_month||1;
-  return PHASES.find(p=>p.months.includes(m))||PHASES[0];
-}
-
-function getLv(xp){
-  let l=0;
-  for(let i=0;i<LEVELS.length;i++){if(xp>=LEVELS[i].min)l=i;}
-  return l;
-}
+function getCurrentPhase(){const m=S.current_month||1; return PHASES.find(p=>p.months.includes(m))||PHASES[0];}
+function getLv(xp){let l=0; for(let i=0;i<LEVELS.length;i++){if(xp>=LEVELS[i].min)l=i;} return l;}
 
 function updateHeader(){
   const xp=S.total_xp,lv=getLv(xp),nl=Math.min(lv+1,LEVELS.length-1);
@@ -464,21 +470,28 @@ function updateHeader(){
   document.getElementById('phase-prog').textContent='Mois '+S.current_month;
   const missed=S.last_day&&(new Date()-new Date(S.last_day))/86400000>3;
   document.getElementById('alert').classList.toggle('show',!!missed&&S.days_total>0);
+
+  // Gestion de l'état graphique du verrouillage
+  const container = document.getElementById('today-container');
+  if(S.is_locked_today) {
+    container.classList.add('screen-locked');
+    document.getElementById('btn-valider').style.display = 'none';
+    document.getElementById('btn-modifier').style.display = 'block';
+  } else {
+    container.classList.remove('screen-locked');
+    document.getElementById('btn-valider').style.display = 'block';
+    document.getElementById('btn-modifier').style.display = 'none';
+  }
 }
 
 function getDynamicQuestSpecs(q){
-  let name = q.name;
-  let desc = q.desc;
+  let name = q.name; let desc = q.desc;
   let currentLevel = Q_LEVELS[q.id] || 1;
-  let xpBonusMultiplier = 1 + ((currentLevel - 1) * 0.2); // +20% d'XP par niveau supérieur
+  let xpBonusMultiplier = 1 + ((currentLevel - 1) * 0.2);
   let finalXp = Math.round(q.xp * xpBonusMultiplier);
-
   if(EVOLUTIONS[q.id]) {
     const activeData = EVOLUTIONS[q.id].find(e => e.lv === currentLevel);
-    if(activeData) {
-      name = activeData.name;
-      desc = activeData.desc;
-    }
+    if(activeData) { name = activeData.name; desc = activeData.desc; }
   }
   return {name, desc, currentLevel, finalXp};
 }
@@ -489,8 +502,6 @@ function renderQuetes(){
     const done=!!checkedToday[q.id];
     const bonusVal=typeof checkedToday[q.id]==='number'?checkedToday[q.id]:0;
     const inPhase=q.phases.includes(phase.id);
-    
-    // Application dynamique des specs de niveau
     const specs = getDynamicQuestSpecs(q);
     
     const phTag=!inPhase?`<span class="tag tag-ph">Phase ${q.phases[0]}+</span>`:'';
@@ -516,12 +527,10 @@ function renderQuetes(){
       <div class="q-xp" id="qxp-${q.id}">+${totalXpDisplay}</div>
     </div>`;
 
-    // Boîte de Level Up si un palier technique est atteint
     if(inPhase && EVOLUTIONS[q.id]) {
       const nextEv = EVOLUTIONS[q.id].find(e => e.lv === specs.currentLevel + 1);
       const currentEv = EVOLUTIONS[q.id].find(e => e.lv === specs.currentLevel);
       const totalValidations = Q_COUNTS[q.id] || 0;
-      
       if(currentEv && nextEv && totalValidations >= currentEv.threshold) {
         html += `<div class="levelup-box">
           <span class="levelup-txt">🚀 Évolution vers "${nextEv.name}" disponible ! (${totalValidations}/${currentEv.threshold} faits)</span>
@@ -532,7 +541,7 @@ function renderQuetes(){
 
     if(!isMin && inPhase){
       html+=`<div class="bonus-selector">
-        <span>Surcharge (au-delà requis) :</span>
+        <span>Surcharge :</span>
         <select class="bonus-select" onclick="event.stopPropagation()" onchange="ajusterBonus('${q.id}', this.value)">
           <option value="0">Pas de dépassement</option>
           <option value="5" ${bonusVal===5?'selected':''}>+5 ${q.unit||'min'} (+10 XP)</option>
@@ -551,15 +560,15 @@ function renderQuetes(){
 }
 
 function triggerLevelUp(qid) {
+  if(S.is_locked_today) return;
   event.stopPropagation();
   let cur = Q_LEVELS[qid] || 1;
   Q_LEVELS[qid] = cur + 1;
-  scheduleSave();
-  renderQuetes();
-  updateHeader();
+  scheduleSave(); renderQuetes(); updateHeader();
 }
 
 async function toggleQuete(id){
+  if(S.is_locked_today) return;
   const all=[...QUETES.min,...QUETES.opt];
   const q=all.find(x=>x.id===id);
   if(!q)return;
@@ -585,13 +594,11 @@ async function toggleQuete(id){
     if(LOG.length>60)LOG.pop();
     sbInsert('sys_log',entry).catch(()=>{});
   }
-  scheduleSave();
-  renderQuetes();
-  updateHeader();
-  renderPiliers();
+  scheduleSave(); renderQuetes(); updateHeader(); renderPiliers();
 }
 
 async function ajusterBonus(id, valeurStr){
+  if(S.is_locked_today) return;
   const valeur=parseInt(valeurStr);
   const all=[...QUETES.min,...QUETES.opt];
   const q=all.find(x=>x.id===id);
@@ -622,18 +629,15 @@ async function ajusterBonus(id, valeurStr){
   scheduleSave();
   document.getElementById(`qxp-${id}`).textContent=`+${finalXp}`;
   const tagB=document.getElementById(`btag-${id}`);
-  if(valeur>0){
-    tagB.textContent=`+${valeur} ${q.unit||'min'}`;
-    tagB.className='tag tag-bonus has-bonus';
-  }else{
-    tagB.className='tag tag-bonus';
-  }
-  updateHeader();
-  renderPiliers();
+  if(valeur>0){ tagB.textContent=`+${valeur} ${q.unit||'min'}`; tagB.className='tag tag-bonus has-bonus'; }
+  else{ tagB.className='tag tag-bonus'; }
+  updateHeader(); renderPiliers();
 }
 
 async function validerJour(){
   const today=todayKey();
+  
+  // Si ce n'est pas le même jour, on incrémente les statistiques de jours cumulés
   if(S.last_day!==today){
     if(S.last_day){
       const diff=(new Date(today)-new Date(S.last_day))/86400000;
@@ -641,14 +645,28 @@ async function validerJour(){
     }else{S.streak=1;}
     S.last_day=today;
     S.days_total++;
-    const histEntry={user_id:UID,xp:S.total_xp,created_at:new Date().toISOString()};
-    XP_HISTORY.unshift(histEntry);
-    if(XP_HISTORY.length>60)XP_HISTORY.pop();
-    sbInsert('sys_xp_history',histEntry).catch(()=>{});
+  } else {
+    // Si on ré-enregistre une modification du même jour, on nettoie l'ancien point d'historique de ce jour pour éviter les doublons
+    XP_HISTORY=XP_HISTORY.filter(h=>!(h.created_at&&h.created_at.slice(0,10)===today));
   }
-  scheduleSave();
+
+  // Enregistrer le nouvel état d'XP à cette validation précise
+  const histEntry={user_id:UID,xp:S.total_xp,created_at:new Date().toISOString()};
+  XP_HISTORY.unshift(histEntry);
+  if(XP_HISTORY.length>60)XP_HISTORY.pop();
+  sbInsert('sys_xp_history',histEntry).catch(()=>{});
+
+  S.is_locked_today = true;
+  
+  saveProgress();
   updateHeader();
   goTab('stats',document.querySelectorAll('.tab-btn')[2]);
+}
+
+function modifierJour(){
+  S.is_locked_today = false;
+  updateHeader();
+  renderQuetes();
 }
 
 function renderPiliers(){
@@ -716,7 +734,7 @@ function renderStats(){
   const xpLabels=sorted.map(h=>h.created_at?h.created_at.slice(5,10):'');
   const xpData=sorted.map(h=>h.xp);
   if(chartXp)chartXp.destroy();
-  chartXp=new Chart(xpCtx,{type:'line',data:{labels:xpLabels.length?xpLabels:['—'],datasets:[{data:xpData.length?xpData:[0],borderColor:'#a78bfa',backgroundColor:'rgba(124,58,237,0.15)',borderWidth:2,pointRadius:3,pointBackgroundColor:'#a78bfa',fill:true,tension:.4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#555',font:{size:10}},grid:{color='rgba(255,255,255,0.04)'}},y:{ticks:{color:'#555',font:{size:10}},grid:{color='rgba(255,255,255,0.04)'},beginAtZero:true}}}});
+  chartXp=new Chart(xpCtx,{type:'line',data:{labels:xpLabels.length?xpLabels:['—'],datasets:[{data:xpData.length?xpData:[0],borderColor:'#a78bfa',backgroundColor:'rgba(124,58,237,0.15)',borderWidth:2,pointRadius:3,pointBackgroundColor:'#a78bfa',fill:true,tension:.4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#555',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'}},y:{ticks:{color:'#555',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'},beginAtZero:true}}}});
 
   const rCtx=document.getElementById('chart-radar').getContext('2d');
   const rLabels=PILLARS.map(p=>p.icon+' '+p.name.split(' ')[0]);
@@ -725,29 +743,22 @@ function renderStats(){
   chartRadar=new Chart(rCtx,{type:'radar',data:{labels:rLabels,datasets:[{data:rData,borderColor:'#a78bfa',backgroundColor:'rgba(124,58,237,0.18)',borderWidth:2,pointBackgroundColor:'#a78bfa',pointRadius:4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{r:{min:0,max:100,ticks:{display:false},grid:{color:'rgba(255,255,255,0.07)'},pointLabels:{color:'#999',font:{size:11}},angleLines:{color:'rgba(255,255,255,0.06)'}}}}});
 }
 
-function setStar(v){
-  starVal=v;
-  document.querySelectorAll('.star').forEach((s,i)=>s.classList.toggle('on',i<v));
-}
+function setStar(v){ starVal=v; document.querySelectorAll('.star').forEach((s,i)=>s.classList.toggle('on',i<v)); }
 
 async function sauvegarderRevue(){
   const bien=document.getElementById('rv-bien').value;
   const resist=document.getElementById('rv-resist').value;
   const change=document.getElementById('rv-change').value;
   const stars=starVal;
-
   const rev={user_id:UID,stars:stars,went_well:bien,resisted:resist,next_change:change,created_at:new Date().toISOString()};
   S.total_xp+=100;
   const entry={user_id:UID,quest_id:'review',quest_name:'Revue hebdomadaire',xp:100,pillar_id:'p1',created_at:new Date().toISOString()};
   LOG.unshift(entry);
   sbInsert('sys_log',entry).catch(()=>{});
   sbInsert('sys_reviews',rev).catch(()=>{});
-  scheduleSave();
-  updateHeader();
-  
+  saveProgress(); updateHeader();
   ['rv-bien','rv-resist','rv-change'].forEach(id=>document.getElementById(id).value='');
-  starVal=0;
-  document.querySelectorAll('.star').forEach(s=>s.classList.remove('on'));
+  starVal=0; document.querySelectorAll('.star').forEach(s=>s.classList.remove('on'));
   genererBilanRevue(bien,resist,change,stars);
 }
 
@@ -760,6 +771,19 @@ function goTab(id,btn){
   if(id==='piliers')renderPiliers();
 }
 
+function setSyncState(st){
+  const dot=document.getElementById('sync-dot'); if(!dot)return;
+  dot.className='sync-dot '+st;
+}
+
+async function setupUser(){
+  const name=document.getElementById('setup-name').value.trim().toLowerCase();
+  if(!name||!/^[a-z0-9]+$/.test(name)){document.getElementById('setup-err').classList.add('show');return;}
+  UID=name; localStorage.setItem('sys12_uid',UID);
+  document.getElementById('setup-overlay').style.display='none';
+  await init();
+}
+
 async function init(){
   await loadFromSupabase();
   updateHeader();
@@ -767,14 +791,9 @@ async function init(){
   loadWelcomeMessage();
 }
 
-if(!UID){
-  document.getElementById('setup-overlay').style.display='flex';
-}else{
-  init();
-}
+if(!UID){ document.getElementById('setup-overlay').style.display='flex'; }else{ init(); }
 
 const WORKER_URL='https://evolution-ai.eliseobuti.workers.dev';
-
 function callGemini(prompt){
   return new Promise(function(resolve){
     try{
@@ -783,10 +802,8 @@ function callGemini(prompt){
       xhr.setRequestHeader('Content-Type','application/json');
       xhr.timeout=15000;
       xhr.onload=function(){
-        try{
-          const d=JSON.parse(xhr.responseText);
-          resolve(d.text||'Réponse invalide.');
-        }catch(e){resolve('Erreur parsing: '+xhr.responseText.slice(0,80));}
+        try{const d=JSON.parse(xhr.responseText); resolve(d.text||'Réponse invalide.');}
+        catch(e){resolve('Erreur parsing: '+xhr.responseText.slice(0,80));}
       };
       xhr.onerror=function(){resolve('Erreur réseau XHR.');};
       xhr.ontimeout=function(){resolve('Timeout — réessaie.');};
@@ -796,72 +813,48 @@ function callGemini(prompt){
 }
 
 const SYSTEM_CONTEXT=`Tu es le coach personnel d'Eliseo, 19 ans, etudiant suisse en annee sabbatique apres sa maturite gymnasiale (moyenne 5.0). Il envisage des etudes de medecine. Il a 4 mois d'armee en fevrier. Il voyage parfois.
-
 PROFIL PHYSIQUE: Nageur regulier (2x/semaine, 1h15, ~3km/session). Bonne base physique (pompes, tractions faciles). Cardio ameliorable.
-
 SYSTEME 12 MOIS — 5 PILIERS:
 1. Metacognition & apprentissage (memoire, calcul mental, biais cognitifs, methode Feynman, transfert inter-domaines)
 2. Regulation psychophysiologique (respiration, Wim Hof, sommeil, stress, controle emotionnel)
 3. Presence & observation (microexpressions, conscience spatiale, detection comportements, visages)
 4. Condition physique (force, endurance zone 2, proprioception, reflexes, coordination)
 5. Influence & communication (rhetorique, langues, negociation, echecs/strategie)
-
-3 PHASES:
-- Phase 1 (mois 1-3): Fondations — installer les routines a friction minimale
-- Phase 2 (mois 4-8): Intensification — integration des satellites, armee comme laboratoire social
-- Phase 3 (mois 9-12): Consolidation — mesure, ajustement, extension
-
 PHILOSOPHIE: Pratique deliberee > repetition passive. Stress + recuperation = croissance. Identite stable bat motivation fluctuante. Seuil minimum (20 min/jour) non-negociable meme les mauvais jours.
-
 PASSIONS: Piano, dessin (decompress), cinema (Wes Anderson, Jim Jarmusch, Jake Gyllenhaal), mode streetwear/vintage/gorpcore, vie sociale.
-
 Reponds toujours en francais, de facon directe, concrete et adaptee au niveau actuel d'Eliseo. Pas de markdown.`;
 
 function buildCtx(){
   const ph=getCurrentPhase();
   const ps=PILLARS.map(function(p){return p.name.split(' ')[0]+': '+(S[p.id+'_xp']||0)+'XP';}).join(', ');
-  const dynamicCtx='Progression actuelle — Phase '+ph.id+' ('+ph.name+'), mois '+S.current_month+'/12. XP total: '+S.total_xp+'. Streak: '+S.streak+' jours consecutifs. Piliers: '+ps+'.';
-  return SYSTEM_CONTEXT+'\n\n'+dynamicCtx;
+  return SYSTEM_CONTEXT+'\n\nProgression actuelle — Phase '+ph.id+' ('+ph.name+'), mois '+S.current_month+'/12. XP total: '+S.total_xp+'. Streak: '+S.streak+' jours consecutifs. Piliers: '+ps+'.';
 }
 
 async function loadWelcomeMessage(){
   if(!UID)return;
-  const el=document.getElementById('ai-welcome');
-  const txt=document.getElementById('ai-welcome-text');
-  el.style.display='block';
-  txt.textContent='Chargement...';
+  const el=document.getElementById('ai-welcome'); const txt=document.getElementById('ai-welcome-text');
+  el.style.display='block'; txt.textContent='Chargement...';
   const checked=Object.keys(checkedToday).length;
   const prompt=buildCtx()+' Quetes cochees aujourd hui: '+checked+'. Ecris un message d accueil motivant de 2-3 sentences, direct, humain, adapte au profil. Pas de markdown.';
   txt.textContent=await callGemini(prompt);
 }
 
 async function coachQuete(btn){
-  const qId=btn.getAttribute('data-qid');
-  const qName=btn.getAttribute('data-qname');
-  const qDesc=btn.getAttribute('data-qdesc');
-  const existingId='coach-'+qId;
-  const existing=document.getElementById(existingId);
-  if(existing){existing.remove();return;}
-  const card=document.createElement('div');
-  card.className='ai-card';
-  card.id=existingId;
-  card.style.marginTop='6px';
+  const qId=btn.getAttribute('data-qid'); const qName=btn.getAttribute('data-qname'); const qDesc=btn.getAttribute('data-qdesc');
+  const existingId='coach-'+qId; const existing=document.getElementById(existingId); if(existing){existing.remove();return;}
+  const card=document.createElement('div'); card.className='ai-card'; card.id=existingId; card.style.marginTop='6px';
   card.innerHTML='<div class="ai-header"><span style="font-size:16px">💡</span><span class="ai-label">Conseils</span></div><div class="ai-body" id="txt-'+qId+'">Chargement...</div>';
   btn.closest('.quest').after(card);
   const prompt=buildCtx()+' Quete: "'+qName+'" ('+qDesc+'). Donne 3 conseils pratiques et concrets pour bien realiser cette quete aujourd hui et monter en competence technique. 4 lignes max. Pas de markdown ni tirets.';
-  const bodyEl=document.getElementById('txt-'+qId);
-  if(bodyEl)bodyEl.textContent=await callGemini(prompt);
+  const bodyEl=document.getElementById('txt-'+qId); if(bodyEl)bodyEl.textContent=await callGemini(prompt);
 }
 
 async function genererBilanRevue(bien,resist,change,stars){
-  const el=document.getElementById('ai-bilan');
-  const txt=document.getElementById('ai-bilan-text');
-  el.style.display='block';
-  txt.textContent='Analyse de ta semaine et calcul du durcissement...';
+  const el=document.getElementById('ai-bilan'); const txt=document.getElementById('ai-bilan-text');
+  el.style.display='block'; txt.textContent='Analyse de ta semaine et calcul du durcissement...';
   const prompt=buildCtx()+' Tu dois agir comme son coach et appliquer le principe de surcharge progressive. Analyse sa revue de semaine : Note sur 5 : '+stars+'/5. Succes : "'+bien+'". Points de friction : "'+resist+'". Changement declare : "'+change+'". Calcule et formule obligatoirement : 1) Un bilan ultra-direct sur sa discipline. 2) Une proposition de "durcissement" (surcharge progressive) de ses exercices reussis pour la semaine prochaine (ex: ajouter du temps, augmenter la difficulte ou passer un cap technique). 3) Une strategie pour briser le point de friction. Sois exigeant mais constructif. 5-6 lignes max. Pas de markdown.';
   txt.textContent=await callGemini(prompt);
 }
-
 </script>
 </body>
 </html>
