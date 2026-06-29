@@ -116,6 +116,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 .setup-err{font-size:12px;color:var(--coral);margin-bottom:12px;display:none;}
 .setup-err.show{display:block;}
 .tab-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(14,14,16,.94);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:0.5px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:100;}
+.tab-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(14,14,16,.94);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:0.5px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:100;}
 .tab-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:10px 4px;border:none;background:none;color:var(--muted);font-size:10px;font-family:inherit;cursor:pointer;transition:color .15s;min-height:56px;}
 .tab-btn.active{color:var(--accent);}
 .tab-icon{font-size:22px;line-height:1;}
@@ -176,6 +177,18 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
   <div id="quetes-min"></div>
   <div class="section-title">Optimal</div>
   <div id="quetes-opt"></div>
+
+  <div class="section-title">Discuter avec le Coach</div>
+  <div class="chart-card" style="margin-bottom:14px;">
+    <div id="chat-box" style="max-height: 200px; overflow-y: auto; margin-bottom: 10px; font-size: 13px; line-height: 1.5; display: flex; flex-direction: column; gap: 8px;">
+      <div style="color: var(--accent); font-weight: 600;">🤖 Coach: Pose-moi tes questions sur ton entraînement ou tes objectifs d'aujourd'hui.</div>
+    </div>
+    <div style="display: flex; gap: 8px;">
+      <input type="text" id="chat-input" placeholder="Tu as des questions, Eliseo ?" style="flex: 1; background: rgba(255,255,255,.05); border: 0.5px solid var(--border); border-radius: 10px; padding: 10px 12px; color: var(--text); font-family: inherit; font-size: 13px; outline: none;">
+      <button onclick="envoyerMessageChat()" style="background: linear-gradient(135deg,var(--accent2),var(--accent)); color: #fff; border: none; border-radius: 10px; padding: 0 16px; font-size: 13px; font-weight: 700; cursor: pointer;">Envoyer</button>
+    </div>
+  </div>
+
   <button class="btn-main" onclick="validerJour()">✓ Valider la journée</button>
 </div>
 
@@ -705,6 +718,45 @@ async function genererBilanRevue(bien,resist,change,stars){
   txt.textContent=await callGemini(prompt);
 }
 
+// FONCTION POUR ENVOYER UN MESSAGE DANS LE CHAT INTERACTIF
+async function envoyerMessageChat() {
+  const inputEl = document.getElementById('chat-input');
+  const boxEl = document.getElementById('chat-box');
+  if(!inputEl || !boxEl) return;
+  const message = inputEl.value.trim();
+  
+  if (!message) return;
+
+  // 1. Afficher le message d'Eliseo dans la bulle
+  boxEl.innerHTML += `<div style="align-self: flex-end; background: rgba(167,139,250,.15); padding: 8px 12px; border-radius: 10px; max-width: 85%; font-size: 13px;">😎 <b>Toi:</b> ${message}</div>`;
+  inputEl.value = '';
+  boxEl.scrollTop = boxEl.scrollHeight;
+
+  // 2. Afficher un statut de chargement
+  const loadingId = 'loading-' + Date.now();
+  boxEl.innerHTML += `<div id="${loadingId}" style="color: var(--muted); font-style: italic; font-size: 13px;">🤖 Coach écrit...</div>`;
+  boxEl.scrollTop = boxEl.scrollHeight;
+
+  // 3. Fabriquer le prompt contextuel complet
+  const promptComplet = buildCtx() + `\n\nL'utilisateur te pose cette question en direct : "${message}". Réponds de manière concise (maximum 3-4 lignes), percutante, sans aucun markdown ni tirets, en restant parfaitement dans ton rôle de coach personnel.`;
+
+  // 4. Appeler le Cloudflare Worker
+  const reponseIA = await callGemini(promptComplet);
+
+  // 5. Supprimer l'indicateur de chargement et ajouter la réponse officielle
+  const loadingEl = document.getElementById(loadingId);
+  if(loadingEl) loadingEl.remove();
+  
+  boxEl.innerHTML += `<div style="background: rgba(255,255,255,.03); border: 0.5px solid var(--border); padding: 8px 12px; border-radius: 10px; max-width: 85%; font-size: 13px;">🤖 <b>Coach:</b> ${reponseIA}</div>`;
+  boxEl.scrollTop = boxEl.scrollHeight;
+}
+
+// Gérer l'envoi lors de l'appui sur la touche Entrée
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('chat-input')?.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') envoyerMessageChat();
+  });
+});
 </script>
 </body>
 </html>
