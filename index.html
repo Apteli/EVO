@@ -622,9 +622,14 @@ async function callGemini(prompt){
   try{
     const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({prompt:prompt})});
+    if(!r.ok) return 'Erreur HTTP '+r.status+' — Worker inaccessible.';
     const d=await r.json();
-    return d?.text||'Indisponible.';
-  }catch(e){return 'Indisponible pour le moment.';}
+    if(!d) return 'Réponse vide du Worker.';
+    if(!d.text) return 'Champ text manquant. Reçu: '+JSON.stringify(d).slice(0,100);
+    return d.text;
+  }catch(e){
+    return 'Erreur réseau: '+e.message;
+  }
 }
 
 const SYSTEM_CONTEXT=`Tu es le coach personnel d'Eliseo, 19 ans, etudiant suisse en annee sabbatique apres sa maturite gymnasiale (moyenne 5.0). Il envisage des etudes de medecine. Il a 4 mois d'armee en fevrier. Il voyage parfois.
