@@ -60,11 +60,15 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .tag{font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;}
 .tag-min{background:rgba(167,139,250,.15);color:var(--accent);}
 .tag-ph{background:rgba(255,255,255,.07);color:var(--muted);}
+.tag-lv{background:rgba(124,58,237,.2);color:var(--accent);border:0.5px solid rgba(167,139,250,.4);}
 .tag-bonus{background:rgba(52,211,153,.15);color:var(--green);display:none;}
 .quest.done .tag-bonus.has-bonus{display:inline-block;}
 .q-xp{font-size:13px;font-weight:700;color:var(--accent);flex-shrink:0;text-align:right;}
-.bonus-selector{display:none;background:var(--card2);border:0.5px solid var(--border);border-top:none;border-radius:0 0 12px 12px;padding:10px 14px;margin-top:-12px;margin-bottom:8px;align-items:center;justify-content:between;gap:10px;font-size:12px;animation:slideDown 0.2s ease;}
+.bonus-selector{display:none;background:var(--card2);border:0.5px solid var(--border);border-top:none;border-radius:0 0 12px 12px;padding:10px 14px;margin-top:-12px;margin-bottom:8px;align-items:center;justify-content:space-between;gap:10px;font-size:12px;animation:slideDown 0.2s ease;}
 .quest.done + .bonus-selector{display:flex;}
+.levelup-box{background:rgba(124,58,237,0.12);border:0.5px solid rgba(167,139,250,0.3);border-radius:8px;padding:8px 12px;margin-top:-4px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;animation:slideDown 0.2s ease;}
+.levelup-txt{font-size:11px;font-weight:600;color:var(--accent);}
+.levelup-btn{background:var(--accent2);color:#fff;border:none;border-radius:4px;padding:3px 8px;font-size:10px;font-weight:700;cursor:pointer;}
 @keyframes slideDown{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
 .bonus-select{background:var(--bg);color:var(--text);border:0.5px solid var(--border);border-radius:6px;padding:4px 8px;font-size:12px;outline:none;font-family:inherit;}
 .btn-main{width:100%;background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;border:none;border-radius:14px;padding:16px;font-size:16px;font-weight:700;cursor:pointer;margin-top:14px;transition:opacity .15s;font-family:inherit;}
@@ -281,14 +285,53 @@ const PHASES=[
   {id:2,months:[4,5,6,7,8],name:'Intensification',desc:'Intégration des satellites, armée comme labo',icon:'⚡',cls:'ph2'},
   {id:3,months:[9,10,11,12],name:'Consolidation',desc:'Mesure, ajustement, extension du système',icon:'💎',cls:'ph3'},
 ];
+
+// Arbre de complexité croissante (Level Up) axé sur la complexité/technique
+const EVOLUTIONS = {
+  q1: [
+    {lv:1, name:'Respiration / cohérence cardiaque', desc:'5 min box breathing (4s-4s-4s-4s) au calme', threshold:5},
+    {lv:2, name:'Cohérence Cardiaque Avancée', desc:'5 min résonance fréquentielle (inspiration 5s, expiration 5s) debout', threshold:8},
+    {lv:3, name:'Régulation Hypoxique', desc:'5 min protocole de rétention poumons vides contrôlée', threshold:999}
+  ],
+  q2: [
+    {lv:1, name:'Anki — cartes du jour', desc:'10 min, minimum 10 cartes de révision', threshold:7},
+    {lv:2, name:'Anki Maillage Conceptuel', desc:'Créer 2 cartes croisées complexes relisant 2 chapitres différents', threshold:10},
+    {lv:3, name:'Anki Encodage Élite', desc:'Expliquer de mémoire la carte la plus complexe sans aucune hésitation', threshold:999}
+  ],
+  q3: [
+    {lv:1, name:'Observation active', desc:'1 comportement ou micro-expression noté mentalement', threshold:5},
+    {lv:2, name:'Analyse Profiling Flash', desc:'Détailler 3 éléments vestimentaires ou postures d un inconnu en 10 sec', threshold:7},
+    {lv:3, name:'Détection Micro-Frictions', desc:'Repérer une asymétrie faciale ou une hésitation verbale lors d un échange réel', threshold:999}
+  ],
+  q4: [
+    {lv:1, name:'Bloc cognitif profond', desc:'45 min lecture technique, calcul ou méthode Feynman', threshold:6},
+    {lv:2, name:'Feynman sans filet', desc:'Expliquer un concept difficile sur feuille blanche sans regarder de notes', threshold:9},
+    {lv:3, name:'Synthèse Cross-Domain', desc:'Appliquer une règle physique ou biologique à un concept économique', threshold:999}
+  ],
+  q5: [
+    {lv:1, name:'Entraînement physique', desc:'30 min force, natation ou zone 2', threshold:6},
+    {lv:2, name:'Surcharge Métabolique', desc:'Intégrer des séries pyramidales ou diviser les temps de repos par deux', threshold:10},
+    {lv:3, name:'Haute Performance Dégradée', desc:'Séance intense axée sur la proprioception ou l agilité complexe', threshold:999}
+  ],
+  q6: [
+    {lv:1, name:'Wim Hof / douche froide', desc:'Protocole respiration + exposition au froid', threshold:5},
+    {lv:2, name:'Exposition Mentale Froide', desc:'3 min sous l eau gelée en restant immobile et sans hyperventiler', threshold:999}
+  ],
+  q12: [
+    {lv:1, name:'Calcul mental chronométré', desc:'10 min — vitesse et chunking', threshold:5},
+    {lv:2, name:'Calcul Mental Multi-Couches', desc:'10 min de multiplications à deux chiffres complexes de tête', threshold:8},
+    {lv:3, name:'Algorithme Mental Élite', desc:'Calculer de tête des pourcentages croisés ou carrés d affilée', threshold:999}
+  ]
+};
+
 const QUETES={
   min:[
-    {id:'q1',name:'Respiration / cohérence cardiaque',desc:'5 min box breathing ou cohérence cardiaque',xp:30,pid:'p2',phases:[1,2,3],unit:'minutes'},
+    {id:'q1',name:'Respiration / coherence cardiaque',desc:'5 min box breathing',xp:30,pid:'p2',phases:[1,2,3],unit:'minutes'},
     {id:'q2',name:'Anki — cartes du jour',desc:'10 min, minimum 10 cartes',xp:40,pid:'p1',phases:[1,2,3],unit:'cartes'},
     {id:'q3',name:'Observation active',desc:'1 comportement ou micro-expression noté mentalement',xp:20,pid:'p3',phases:[1,2,3],unit:'obs'},
   ],
   opt:[
-    {id:'q4',name:'Bloc cognitif profond',desc:'45 min lecture technique, calcul ou méthode Feynman',xp:80,pid:'p1',phases:[1,2,3],unit:'minutes'},
+    {id:'q4',name:'Bloc cognitif profond',desc:'45 min lecture technique ou méthode Feynman',xp:80,pid:'p1',phases:[1,2,3],unit:'minutes'},
     {id:'q5',name:'Entraînement physique',desc:'30 min force, natation ou zone 2',xp:70,pid:'p4',phases:[1,2,3],unit:'minutes'},
     {id:'q6',name:'Wim Hof / douche froide',desc:'Protocole respiration + exposition au froid',xp:50,pid:'p2',phases:[1,2,3],unit:'minutes'},
     {id:'q7',name:'Langue ou rhétorique',desc:'30 min Pimsleur, Assimil ou débat oral',xp:60,pid:'p5',phases:[2,3],unit:'minutes'},
@@ -324,7 +367,7 @@ const MILESTONES=[
 const PCOLS={p1:'#a78bfa',p2:'#34d399',p3:'#60a5fa',p4:'#fb923c',p5:'#fbbf24'};
 
 let UID=localStorage.getItem('sys12_uid')||null;
-let checkedToday={}; // {qid: true ou valeur du bonus}
+let checkedToday={}; 
 let S={total_xp:0,streak:0,last_day:null,days_total:0,start_date:new Date().toISOString().slice(0,10),current_month:1,p1_xp:0,p2_xp:0,p3_xp:0,p4_xp:0,p5_xp:0};
 let LOG=[];
 let XP_HISTORY=[];
@@ -332,21 +375,9 @@ let starVal=0;
 let chartXp=null,chartRadar=null;
 let syncTimer=null;
 
-function setupUser(){
-  const name=document.getElementById('setup-name').value.trim().toLowerCase().replace(/[^a-z0-9_]/g,'');
-  const errEl=document.getElementById('setup-err');
-  if(!name||name.length<2){errEl.classList.add('show');return;}
-  errEl.classList.remove('show');
-  UID=name;
-  localStorage.setItem('sys12_uid',UID);
-  document.getElementById('setup-overlay').style.display='none';
-  init();
-}
-
-function setSyncState(st){
-  const dot=document.getElementById('sync-dot');
-  dot.className='sync-dot'+(st==='syncing'?' syncing':st==='error'?' error':'');
-}
+// Nouveaux objets de stockage locaux & Supabase pour le suivi de la difficulté
+let Q_COUNTS={}; // {qid: nombre_total_reussites}
+let Q_LEVELS={}; // {qid: niveau_actuel}
 
 async function loadFromSupabase(){
   setSyncState('syncing');
@@ -362,6 +393,10 @@ async function loadFromSupabase(){
       const now=new Date();
       const md=(now.getFullYear()-start.getFullYear())*12+(now.getMonth()-start.getMonth())+1;
       S.current_month=Math.max(1,Math.min(12,md));
+      
+      // Chargement des niveaux et compteurs depuis l'extension de S
+      Q_COUNTS = S.quest_counts || {};
+      Q_LEVELS = S.quest_levels || {};
     }
     if(Array.isArray(logRaw))LOG=logRaw;
     if(Array.isArray(histRaw))XP_HISTORY=histRaw;
@@ -369,7 +404,6 @@ async function loadFromSupabase(){
     checkedToday={};
     LOG.forEach(l=>{
       if(l.quest_id&&l.quest_id!=='review'&&l.created_at&&l.created_at.slice(0,10)===today){
-        // Extraction de l'XP bonus éventuel enregistré dans le log
         const all=[...QUETES.min,...QUETES.opt];
         const baseQ=all.find(x=>x.id===l.quest_id);
         const extraXp=l.xp-(baseQ?baseQ.xp:0);
@@ -383,6 +417,9 @@ async function loadFromSupabase(){
 async function saveProgress(){
   setSyncState('syncing');
   try{
+    // On injecte les données de niveau de quêtes dans l'objet global avant envoi
+    S.quest_counts = Q_COUNTS;
+    S.quest_levels = Q_LEVELS;
     await sbUpsert('sys_progress',{...S,user_id:UID,updated_at:new Date().toISOString()});
     setSyncState('ok');
   }catch(e){setSyncState('error');}
@@ -429,35 +466,70 @@ function updateHeader(){
   document.getElementById('alert').classList.toggle('show',!!missed&&S.days_total>0);
 }
 
+function getDynamicQuestSpecs(q){
+  let name = q.name;
+  let desc = q.desc;
+  let currentLevel = Q_LEVELS[q.id] || 1;
+  let xpBonusMultiplier = 1 + ((currentLevel - 1) * 0.2); // +20% d'XP par niveau supérieur
+  let finalXp = Math.round(q.xp * xpBonusMultiplier);
+
+  if(EVOLUTIONS[q.id]) {
+    const activeData = EVOLUTIONS[q.id].find(e => e.lv === currentLevel);
+    if(activeData) {
+      name = activeData.name;
+      desc = activeData.desc;
+    }
+  }
+  return {name, desc, currentLevel, finalXp};
+}
+
 function renderQuetes(){
   const phase=getCurrentPhase();
   function qHTML(q,isMin){
     const done=!!checkedToday[q.id];
     const bonusVal=typeof checkedToday[q.id]==='number'?checkedToday[q.id]:0;
     const inPhase=q.phases.includes(phase.id);
+    
+    // Application dynamique des specs de niveau
+    const specs = getDynamicQuestSpecs(q);
+    
     const phTag=!inPhase?`<span class="tag tag-ph">Phase ${q.phases[0]}+</span>`:'';
     const minTag=isMin?`<span class="tag tag-min">minimum</span>`:'';
-    const totalXpDisplay=q.xp+(bonusVal*2);
+    const lvTag=specs.currentLevel > 1 ? `<span class="tag tag-lv">Niv. ${specs.currentLevel}</span>` : '';
     
+    const totalXpDisplay=specs.finalXp+(bonusVal*2);
     const bonusText=bonusVal>0?`+${bonusVal} ${q.unit||'min'}`:'';
     const bonusClass=bonusVal>0?'tag tag-bonus has-bonus':'tag tag-bonus';
     
-    const safeN=q.name.replace(/"/g,'&quot;');
-    const safeD=q.desc.replace(/"/g,'&quot;');
+    const safeN=specs.name.replace(/"/g,'&quot;');
+    const safeD=specs.desc.replace(/"/g,'&quot;');
     const coachBtn=inPhase?`<button class="btn-coach" data-qid="${q.id}" data-qname="${safeN}" data-qdesc="${safeD}" onclick="event.stopPropagation();coachQuete(this)">💡 Coach</button>`:'';
     
     let html=`<div class="quest${done?' done':''}${!inPhase?' locked':''}" onclick="toggleQuete('${q.id}')">
       <div class="check">${done?'✓':''}</div>
       <div class="q-info">
-        <div class="q-name">${q.name}</div>
-        <div class="q-desc">${q.desc}</div>
-        <div class="q-tags">${minTag}${phTag}<span class="${bonusClass}" id="btag-${q.id}">${bonusText}</span></div>
+        <div class="q-name">${specs.name}</div>
+        <div class="q-desc">${specs.desc}</div>
+        <div class="q-tags">${minTag}${phTag}${lvTag}<span class="${bonusClass}" id="btag-${q.id}">${bonusText}</span></div>
         ${coachBtn}
       </div>
       <div class="q-xp" id="qxp-${q.id}">+${totalXpDisplay}</div>
     </div>`;
 
-    // Si c'est une quête optimale, on ajoute le sélecteur de dépassement
+    // Boîte de Level Up si un palier technique est atteint
+    if(inPhase && EVOLUTIONS[q.id]) {
+      const nextEv = EVOLUTIONS[q.id].find(e => e.lv === specs.currentLevel + 1);
+      const currentEv = EVOLUTIONS[q.id].find(e => e.lv === specs.currentLevel);
+      const totalValidations = Q_COUNTS[q.id] || 0;
+      
+      if(currentEv && nextEv && totalValidations >= currentEv.threshold) {
+        html += `<div class="levelup-box">
+          <span class="levelup-txt">🚀 Évolution vers "${nextEv.name}" disponible ! (${totalValidations}/${currentEv.threshold} faits)</span>
+          <button class="levelup-btn" onclick="triggerLevelUp('${q.id}')">Accepter</button>
+        </div>`;
+      }
+    }
+
     if(!isMin && inPhase){
       html+=`<div class="bonus-selector">
         <span>Surcharge (au-delà requis) :</span>
@@ -478,25 +550,37 @@ function renderQuetes(){
   document.getElementById('quetes-opt').innerHTML=QUETES.opt.map(q=>qHTML(q,false)).join('');
 }
 
+function triggerLevelUp(qid) {
+  event.stopPropagation();
+  let cur = Q_LEVELS[qid] || 1;
+  Q_LEVELS[qid] = cur + 1;
+  scheduleSave();
+  renderQuetes();
+  updateHeader();
+}
+
 async function toggleQuete(id){
   const all=[...QUETES.min,...QUETES.opt];
   const q=all.find(x=>x.id===id);
   if(!q)return;
   const today=todayKey();
+  const specs = getDynamicQuestSpecs(q);
 
   if(checkedToday[id]){
     const currentBonus=typeof checkedToday[id]==='number'?checkedToday[id]:0;
-    const totalToDeduct=q.xp+(currentBonus*2);
+    const totalToDeduct=specs.finalXp+(currentBonus*2);
     delete checkedToday[id];
     S.total_xp=Math.max(0,S.total_xp-totalToDeduct);
     S[q.pid+'_xp']=Math.max(0,(S[q.pid+'_xp']||0)-totalToDeduct);
+    Q_COUNTS[id] = Math.max(0, (Q_COUNTS[id]||0)-1);
     LOG=LOG.filter(l=>!(l.quest_id===id&&l.created_at&&l.created_at.slice(0,10)===today));
     sbDelete('sys_log',UID,id,today).catch(()=>{});
   } else {
     checkedToday[id]=true;
-    S.total_xp+=q.xp;
-    S[q.pid+'_xp']=Math.min(3000,(S[q.pid+'_xp']||0)+q.xp);
-    const entry={user_id:UID,quest_id:id,quest_name:q.name,xp:q.xp,pillar_id:q.pid,created_at:new Date().toISOString()};
+    S.total_xp+=specs.finalXp;
+    S[q.pid+'_xp']=Math.min(3000,(S[q.pid+'_xp']||0)+specs.finalXp);
+    Q_COUNTS[id] = (Q_COUNTS[id]||0) + 1;
+    const entry={user_id:UID,quest_id:id,quest_name:specs.name,xp:specs.finalXp,pillar_id:q.pid,created_at:new Date().toISOString()};
     LOG.unshift(entry);
     if(LOG.length>60)LOG.pop();
     sbInsert('sys_log',entry).catch(()=>{});
@@ -513,6 +597,7 @@ async function ajusterBonus(id, valeurStr){
   const q=all.find(x=>x.id===id);
   if(!q||!checkedToday[id])return;
   
+  const specs = getDynamicQuestSpecs(q);
   const ancienBonus=typeof checkedToday[id]==='number'?checkedToday[id]:0;
   const ancienXpBonus=ancienBonus*2;
   const nouvelXpBonus=valeur*2;
@@ -526,8 +611,8 @@ async function ajusterBonus(id, valeurStr){
   LOG=LOG.filter(l=>!(l.quest_id===id&&l.created_at&&l.created_at.slice(0,10)===today));
   await sbDelete('sys_log',UID,id,today).catch(()=>{});
   
-  const finalXp=q.xp+nouvelXpBonus;
-  let labelNom=q.name;
+  const finalXp=specs.finalXp+nouvelXpBonus;
+  let labelNom=specs.name;
   if(valeur>0)labelNom+=` (Dépassement +${valeur} ${q.unit||'min'})`;
   
   const entry={user_id:UID,quest_id:id,quest_name:labelNom,xp:finalXp,pillar_id:q.pid,created_at:new Date().toISOString()};
@@ -631,7 +716,7 @@ function renderStats(){
   const xpLabels=sorted.map(h=>h.created_at?h.created_at.slice(5,10):'');
   const xpData=sorted.map(h=>h.xp);
   if(chartXp)chartXp.destroy();
-  chartXp=new Chart(xpCtx,{type:'line',data:{labels:xpLabels.length?xpLabels:['—'],datasets:[{data:xpData.length?xpData:[0],borderColor:'#a78bfa',backgroundColor:'rgba(124,58,237,0.15)',borderWidth:2,pointRadius:3,pointBackgroundColor:'#a78bfa',fill:true,tension:.4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#555',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'}},y:{ticks:{color:'#555',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'},beginAtZero:true}}}});
+  chartXp=new Chart(xpCtx,{type:'line',data:{labels:xpLabels.length?xpLabels:['—'],datasets:[{data:xpData.length?xpData:[0],borderColor:'#a78bfa',backgroundColor:'rgba(124,58,237,0.15)',borderWidth:2,pointRadius:3,pointBackgroundColor:'#a78bfa',fill:true,tension:.4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#555',font:{size:10}},grid:{color='rgba(255,255,255,0.04)'}},y:{ticks:{color:'#555',font:{size:10}},grid:{color='rgba(255,255,255,0.04)'},beginAtZero:true}}}});
 
   const rCtx=document.getElementById('chart-radar').getContext('2d');
   const rLabels=PILLARS.map(p=>p.icon+' '+p.name.split(' ')[0]);
@@ -763,7 +848,7 @@ async function coachQuete(btn){
   card.style.marginTop='6px';
   card.innerHTML='<div class="ai-header"><span style="font-size:16px">💡</span><span class="ai-label">Conseils</span></div><div class="ai-body" id="txt-'+qId+'">Chargement...</div>';
   btn.closest('.quest').after(card);
-  const prompt=buildCtx()+' Quete: "'+qName+'" ('+qDesc+'). Donne 3 conseils pratiques et concrets pour bien realiser cette quete aujourd hui. 4 lignes max. Pas de markdown ni tirets.';
+  const prompt=buildCtx()+' Quete: "'+qName+'" ('+qDesc+'). Donne 3 conseils pratiques et concrets pour bien realiser cette quete aujourd hui et monter en competence technique. 4 lignes max. Pas de markdown ni tirets.';
   const bodyEl=document.getElementById('txt-'+qId);
   if(bodyEl)bodyEl.textContent=await callGemini(prompt);
 }
@@ -773,10 +858,7 @@ async function genererBilanRevue(bien,resist,change,stars){
   const txt=document.getElementById('ai-bilan-text');
   el.style.display='block';
   txt.textContent='Analyse de ta semaine et calcul du durcissement...';
-  
-  // Prompt enrichi spécifiquement axé sur la surcharge progressive et le durcissement des quêtes
   const prompt=buildCtx()+' Tu dois agir comme son coach et appliquer le principe de surcharge progressive. Analyse sa revue de semaine : Note sur 5 : '+stars+'/5. Succes : "'+bien+'". Points de friction : "'+resist+'". Changement declare : "'+change+'". Calcule et formule obligatoirement : 1) Un bilan ultra-direct sur sa discipline. 2) Une proposition de "durcissement" (surcharge progressive) de ses exercices reussis pour la semaine prochaine (ex: ajouter du temps, augmenter la difficulte ou passer un cap technique). 3) Une strategie pour briser le point de friction. Sois exigeant mais constructif. 5-6 lignes max. Pas de markdown.';
-  
   txt.textContent=await callGemini(prompt);
 }
 
