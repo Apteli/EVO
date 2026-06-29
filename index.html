@@ -618,18 +618,24 @@ if(!UID){
 
 const WORKER_URL='https://evolution-ai.eliseobuti.workers.dev';
 
-async function callGemini(prompt){
-  try{
-    const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({prompt:prompt})});
-    if(!r.ok) return 'Erreur HTTP '+r.status+' — Worker inaccessible.';
-    const d=await r.json();
-    if(!d) return 'Réponse vide du Worker.';
-    if(!d.text) return 'Champ text manquant. Reçu: '+JSON.stringify(d).slice(0,100);
-    return d.text;
-  }catch(e){
-    return 'Erreur réseau: '+e.message;
-  }
+function callGemini(prompt){
+  return new Promise(function(resolve){
+    try{
+      const xhr=new XMLHttpRequest();
+      xhr.open('POST', WORKER_URL, true);
+      xhr.setRequestHeader('Content-Type','application/json');
+      xhr.timeout=15000;
+      xhr.onload=function(){
+        try{
+          const d=JSON.parse(xhr.responseText);
+          resolve(d.text||'Réponse invalide.');
+        }catch(e){resolve('Erreur parsing: '+xhr.responseText.slice(0,80));}
+      };
+      xhr.onerror=function(){resolve('Erreur réseau XHR.');};
+      xhr.ontimeout=function(){resolve('Timeout — réessaie.');};
+      xhr.send(JSON.stringify({prompt:prompt}));
+    }catch(e){resolve('Erreur: '+e.message);}
+  });
 }
 
 const SYSTEM_CONTEXT=`Tu es le coach personnel d'Eliseo, 19 ans, etudiant suisse en annee sabbatique apres sa maturite gymnasiale (moyenne 5.0). Il envisage des etudes de medecine. Il a 4 mois d'armee en fevrier. Il voyage parfois.
