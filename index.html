@@ -29,6 +29,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .phase-icon{font-size:20px;}
 .phase-info{flex:1;}
 .phase-name{font-size:13px;font-weight:700;}
+.phase-desc覆{font-size:11px;color:var(--muted);margin-top:1px;}
 .phase-desc{font-size:11px;color:var(--muted);margin-top:1px;}
 .phase-prog{font-size:11px;font-weight:600;margin-left:auto;}
 .ph1 .phase-prog{color:var(--green);}
@@ -137,6 +138,20 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 .tab-icon{font-size:22px;line-height:1;}
 .empty-state{color:var(--muted);font-size:13px;padding:28px 0;text-align:center;}
 .ai-card{background:linear-gradient(135deg,rgba(124,58,237,.12),rgba(96,165,250,.08));border:0.5px solid rgba(167,139,250,.25);border-radius:12px;padding:14px 16px;margin-bottom:10px;}.ai-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;}.ai-label{font-size:11px;font-weight:700;color:var(--accent);letter-spacing:.05em;text-transform:uppercase;}.ai-body{font-size:13px;color:var(--text);line-height:1.65;white-space:pre-wrap;}.btn-coach{background:rgba(167,139,250,.1);border:0.5px solid rgba(167,139,250,.3);border-radius:8px;padding:5px 11px;font-size:11px;font-weight:600;color:var(--accent);cursor:pointer;font-family:inherit;display:inline-block;margin-top:6px;}
+
+.tab-btn { position: relative; }
+.tab-badge {
+  position: absolute;
+  top: 6px;
+  right: 25%;
+  width: 8px;
+  height: 8px;
+  background-color: var(--orange);
+  border-radius: 50%;
+  display: none;
+  box-shadow: 0 0 6px var(--orange);
+}
+.tab-btn.urgent .tab-badge { display: block; }
 </style>
 </head>
 <body>
@@ -262,7 +277,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
   <button class="tab-btn active" onclick="goTab('today',this)"><span class="tab-icon">☀️</span>Aujourd'hui</button>
   <button class="tab-btn" onclick="goTab('piliers',this)"><span class="tab-icon">🧱</span>Piliers</button>
   <button class="tab-btn" onclick="goTab('stats',this)"><span class="tab-icon">📈</span>Stats</button>
-  <button class="tab-btn" onclick="goTab('revue',this)"><span class="tab-icon">📋</span>Revue</button>
+  <button id="tab-revue-btn" class="tab-btn" onclick="goTab('revue',this)"><div class="tab-badge"></div><span class="tab-icon">📋</span>Revue</button>
 </div>
 
 <script>
@@ -358,7 +373,7 @@ const PILLARS=[
   {id:'p1',name:'Métacognition & apprentissage',icon:'🧠',color:'#a78bfa',satellites:'Mémoire · Calcul · Biais · Feynman'},
   {id:'p2',name:'Régulation psychophysio',icon:'🫁',color:'#34d399',satellites:'Stress · Wim Hof · Sommeil · Récupération'},
   {id:'p3',name:'Présence & observation',icon:'👁',color:'#60a5fa',satellites:'Microexpressions · Espace · Visages · Détails'},
-  {id:'p4',name:'Condition physique',icon:'⚡',color:'#fb923c',satellites:'Force · Endurance · Proprio · Réflexes'},
+  {id:'p4',name:'Condition physique',icon:'⚡',color:'#fb923c',satellites:'Force · Endurance · Zone 2 · Réflexes'},
   {id:'p5',name:'Influence & communication',icon:'🎯',color:'#fbbf24',satellites:'Rhétorique · Langues · Négociation · Stratégie'},
 ];
 const CAPS=[
@@ -408,7 +423,6 @@ async function loadFromSupabase(){
       Q_COUNTS = S.quest_counts || {};
       Q_LEVELS = S.quest_levels || {};
       
-      // Vérifier si le dernier jour verrouillé est bien aujourd'hui
       const today=todayKey();
       if(S.last_day !== today) {
         S.is_locked_today = false;
@@ -471,7 +485,6 @@ function updateHeader(){
   const missed=S.last_day&&(new Date()-new Date(S.last_day))/86400000>3;
   document.getElementById('alert').classList.toggle('show',!!missed&&S.days_total>0);
 
-  // Gestion de l'état graphique du verrouillage
   const container = document.getElementById('today-container');
   if(S.is_locked_today) {
     container.classList.add('screen-locked');
@@ -637,7 +650,6 @@ async function ajusterBonus(id, valeurStr){
 async function validerJour(){
   const today=todayKey();
   
-  // Si ce n'est pas le même jour, on incrémente les statistiques de jours cumulés
   if(S.last_day!==today){
     if(S.last_day){
       const diff=(new Date(today)-new Date(S.last_day))/86400000;
@@ -646,11 +658,9 @@ async function validerJour(){
     S.last_day=today;
     S.days_total++;
   } else {
-    // Si on ré-enregistre une modification du même jour, on nettoie l'ancien point d'historique de ce jour pour éviter les doublons
     XP_HISTORY=XP_HISTORY.filter(h=>!(h.created_at&&h.created_at.slice(0,10)===today));
   }
 
-  // Enregistrer le nouvel état d'XP à cette validation précise
   const histEntry={user_id:UID,xp:S.total_xp,created_at:new Date().toISOString()};
   XP_HISTORY.unshift(histEntry);
   if(XP_HISTORY.length>60)XP_HISTORY.pop();
@@ -762,7 +772,20 @@ async function sauvegarderRevue(){
   genererBilanRevue(bien,resist,change,stars);
 }
 
+function verifierRappelRevue() {
+  const aujourdhui = new Date();
+  const boutonRevue = document.getElementById('tab-revue-btn');
+  if (aujourdhui.getDay() === 0) {
+    boutonRevue.classList.add('urgent');
+  } else {
+    boutonRevue.classList.remove('urgent');
+  }
+}
+
 function goTab(id,btn){
+  if (id === 'revue') {
+    btn.classList.remove('urgent');
+  }
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('screen-'+id).classList.add('active');
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
@@ -789,6 +812,7 @@ async function init(){
   updateHeader();
   renderQuetes();
   loadWelcomeMessage();
+  verifierRappelRevue();
 }
 
 if(!UID){ document.getElementById('setup-overlay').style.display='flex'; }else{ init(); }
@@ -822,7 +846,7 @@ SYSTEME 12 MOIS — 5 PILIERS:
 5. Influence & communication (rhetorique, langues, negociation, echecs/strategie)
 PHILOSOPHIE: Pratique deliberee > repetition passive. Stress + recuperation = croissance. Identite stable bat motivation fluctuante. Seuil minimum (20 min/jour) non-negociable meme les mauvais jours.
 PASSIONS: Piano, dessin (decompress), cinema (Wes Anderson, Jim Jarmusch, Jake Gyllenhaal), mode streetwear/vintage/gorpcore, vie sociale.
-Reponds toujours en francais, de facon directe, concrete et adaptee au niveau actuel d'Eliseo. Pas de markdown.`;
+Reponds toujours en francais, de facon directe, concrete et adaptea au niveau actuel d'Eliseo. Pas de markdown.`;
 
 function buildCtx(){
   const ph=getCurrentPhase();
