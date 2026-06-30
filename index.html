@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Évolution">
 <title>Projet Évolution</title>
-<link rel="icon" type="image/jpeg" href="https://raw.githubusercontent.com/apteli/EVO/main/favicon.jpg?v=2">
-<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/apteli/EVO/main/favicon.jpg?v=2">
+<link rel="icon" type="image/jpeg" href="favicon.jpg?v=3">
+<link rel="apple-touch-icon" href="favicon.jpg?v=3">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root{--bg:#0e0e10;--card:#18181c;--card2:#222228;--border:rgba(255,255,255,0.07);--text:#f0f0f0;--muted:#777;--accent:#a78bfa;--accent2:#7c3aed;--green:#34d399;--amber:#fbbf24;--coral:#f87171;--blue:#60a5fa;--orange:#fb923c;--r:14px;}
@@ -123,7 +123,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 .tab-icon{font-size:22px;line-height:1;}
 .empty-state{color:var(--muted);font-size:13px;padding:28px 0;text-align:center;}
 
-/* Interface Chat Coach Améliorée */
+/* Interface Chat Coach & Outils Améliorée */
 .ai-card{background:linear-gradient(135deg,rgba(124,58,237,.12),rgba(96,165,250,.08));border:0.5px solid rgba(167,139,250,.25);border-radius:12px;padding:14px 16px;margin-bottom:10px;}
 .ai-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
 .ai-label{font-size:11px;font-weight:700;color:var(--accent);letter-spacing:.05em;text-transform:uppercase;}
@@ -138,6 +138,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 .coach-send{background:var(--accent2);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;}
 .coach-send:active{opacity:0.8;}
 .btn-coach{background:rgba(167,139,250,.1);border:0.5px solid rgba(167,139,250,.3);border-radius:8px;padding:5px 11px;font-size:11px;font-weight:600;color:var(--accent);cursor:pointer;font-family:inherit;display:inline-block;margin-top:6px;}
+.coach-select{background:rgba(24,24,28,0.9);border:0.5px solid rgba(255,255,255,0.15);color:var(--text);border-radius:6px;padding:4px 8px;font-size:11px;font-family:inherit;outline:none;margin-top:6px;vertical-align:middle;}
 </style>
 </head>
 <body>
@@ -165,10 +166,12 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 <div id="screen-today" class="screen active">
   <div id="alert" class="alert">⚠️ 3 jours sans activité — protocole minimum : 20 min.</div>
   
+  <!-- Bloc Coach IA avec Historique Défilant Intégré -->
   <div id="ai-welcome" class="ai-card" style="display:none">
     <div class="ai-header"><span style="font-size:16px">🤖</span><span class="ai-label">Coach IA</span></div>
     <div class="ai-body" id="ai-welcome-text"></div>
     
+    <!-- Zone d'historique des messages de discussion -->
     <div id="coach-chat-messages" class="chat-messages-box" style="display:none"></div>
     
     <div class="coach-chat-wrap">
@@ -457,7 +460,21 @@ function renderQuetes(){
     const minTag=isMin?`<span class="tag tag-min">minimum</span>`:'';
     const safeN=q.name.replace(/"/g,'&quot;');
     const safeD=q.desc.replace(/"/g,'&quot;');
-    const coachBtn=inPhase?`<button class="btn-coach" data-qid="${q.id}" data-qname="${safeN}" data-qdesc="${safeD}" onclick="event.stopPropagation();coachQuete(this)">💡 Coach</button>`:'';
+    
+    let coachBtn=inPhase?`<button class="btn-coach" data-qid="${q.id}" data-qname="${safeN}" data-qdesc="${safeD}" onclick="event.stopPropagation();coachQuete(this)">💡 Coach</button>`:'';
+    
+    // SÉLECTEUR DE DOMAINE POUR L'ENTRAÎNEMENT PHYSIQUE (q5)
+    if(q.id === 'q5' && inPhase) {
+      coachBtn += `
+      <select class="coach-select" id="workout-type" onclick="event.stopPropagation();">
+        <option value="bodyweight">🧱 Poids du corps</option>
+        <option value="swim">🏊 Natation</option>
+        <option value="run">🏃 Course à pied</option>
+        <option value="auto">🎲 Choix du coach</option>
+      </select>
+      <button class="btn-coach" style="background:rgba(96,165,250,.1);border-color:rgba(96,165,250,.3);color:var(--blue);margin-left:4px;" onclick="event.stopPropagation();genererEntrainement(this)">🏋️ Générer</button>`;
+    }
+
     return `<div class="quest${done?' done':''}${!inPhase?' locked':''}" onclick="toggleQuete('${q.id}')">
       <div class="check">${done?'✓':''}</div>
       <div class="q-info">
@@ -690,8 +707,7 @@ function buildCtx(){
   return SYSTEM_CONTEXT+'\n\n'+dynamicCtx;
 }
 
-// 1. Message de bienvenue unique et statique (Zéro jeton consommé au démarrage !)
-async function loadWelcomeMessage(){
+function loadWelcomeMessage(){
   if(!UID)return;
   const el=document.getElementById('ai-welcome');
   const txt=document.getElementById('ai-welcome-text');
@@ -699,37 +715,29 @@ async function loadWelcomeMessage(){
   txt.textContent="Bonjour Eliseo ! Ravi de te retrouver. Ta configuration actuelle est chargée. Prêt à passer à l'action ? Tu peux utiliser la zone de chat ci-dessous pour débriefer tes séances ou me poser des questions.";
 }
 
-// 2. Logique interactive de discussion cumulative (Vrai chat historique continu)
 async function envoyerMessageCoach(){
   const input=document.getElementById('coach-free-input');
   const chatBox=document.getElementById('coach-chat-messages');
   const msg=input.value.trim();
   if(!msg)return;
   
-  // Rendre visible la boîte des messages accumulés
   chatBox.style.display='flex';
-  
-  // Écrire le message de l'utilisateur
   const userEl=document.createElement('div');
   userEl.className='chat-msg user';
   userEl.textContent='👉 Toi : '+msg;
   chatBox.appendChild(userEl);
   
-  // Créer l'élément de chargement temporaire du coach
   const coachEl=document.createElement('div');
   coachEl.className='chat-msg coach';
   coachEl.textContent='🤖 Coach : Réflexion...';
   chatBox.appendChild(coachEl);
   
-  // Ajuster le scroll automatique vers le bas
   chatBox.scrollTop=chatBox.scrollHeight;
   input.value='';
   
-  // Construire le prompt et interroger Gemini
   const prompt=buildCtx()+'\n\nVoici le message d\'Eliseo: "'+msg+'". Réponds de manière directe, personnalisée et motivante. Sans markdown.';
   const responseText=await callGemini(prompt);
   
-  // Mettre à jour le message du coach avec la vraie réponse
   coachEl.textContent='🤖 Coach : '+responseText;
   chatBox.scrollTop=chatBox.scrollHeight;
 }
@@ -752,6 +760,54 @@ async function coachQuete(btn){
   if(bodyEl)bodyEl.textContent=await callGemini(prompt);
 }
 
+// LOGIQUE DE GÉNÉRATION ADAPTATIVE ET SÉLECTIVE D'ENTRAÎNEMENT
+async function genererEntrainement(btn) {
+  const existingId = 'workout-generated';
+  const existing = document.getElementById(existingId);
+  if(existing){existing.remove(); return;}
+  
+  const selectEl = document.getElementById('workout-type');
+  const selectedDomain = selectEl ? selectEl.value : 'auto';
+  
+  const card = document.createElement('div');
+  card.className = 'ai-card';
+  card.id = existingId;
+  card.style.marginTop = '6px';
+  card.style.border = '0.5px solid rgba(96,165,250,.3)';
+  card.style.background = 'linear-gradient(135deg,rgba(96,165,250,.12),rgba(14,14,16,.08))';
+  card.innerHTML = '<div class="ai-header"><span style="font-size:16px">🏋️</span><span class="ai-label" style="color:var(--blue)">Séance sur-mesure</span></div><div class="ai-body" id="txt-workout">Analyse du domaine choisi et calcul du protocole adaptatif...</div>';
+  btn.closest('.quest').after(card);
+  
+  const historiquesRecents = LOG.slice(0, 10).map(l => l.quest_name).join(', ');
+  
+  let domaineInstructions = "";
+  if(selectedDomain === "bodyweight") {
+    domaineInstructions = "L'entraînement DOIT obligatoirement être axé sur le POIDS DU CORPS / CALISTHÉNIE (en utilisant sa bonne base en pompes, tractions, ou des variantes complexes comme du tempo ou de la pliométrie).";
+  } else if(selectedDomain === "swim") {
+    domaineInstructions = "L'entraînement DOIT obligatoirement être un protocole de NATATION en piscine (séries en mètres, nages, allures, ou exercices techniques, adapté à sa capacité de faire 3km par session).";
+  } else if(selectedDomain === "run") {
+    domaineInstructions = "L'entraînement DOIT obligatoirement être de la COURSE À PIED / CARDIO EXTÉRIEUR (axé soit sur son point faible à améliorer : le foncier en zone 2, soit du fractionné/HIIT haute intensité).";
+  } else {
+    domaineInstructions = "Laisse libre cours à ton expertise de coach pour choisir le domaine (natation, course ou poids du corps) le plus pertinent selon son historique récent.";
+  }
+
+  const prompt = buildCtx() + `
+  En tant que coach sportif, génère un entraînement physique précis de 30 à 45 minutes pour Eliseo.
+  CONTRAINTE DE SÉLECTION : ${domaineInstructions}
+  
+  Prends également en compte son profil général et son historique récent d'actions: [${historiquesRecents}].
+  
+  Format de réponse obligatoire (sois hyper concis, direct et condensé) :
+  1. Domaine et Objectif ciblé (ex: Natation - Vitesse explosive ou Calisthénie - Volume de force)
+  2. Échauffement rapide
+  3. Corps de séance : Exercices/Séries exactes, répétitions ou distances, temps de récupération très précis.
+  
+  Maximum 7 lignes. Pas de markdown, pas de listes à puces ou tirets (sauts de ligne simples).`;
+  
+  const bodyEl = document.getElementById('txt-workout');
+  if(bodyEl) bodyEl.textContent = await callGemini(prompt);
+}
+
 async function genererBilanRevue(bien,resist,change,stars){
   const el=document.getElementById('ai-bilan');
   const txt=document.getElementById('ai-bilan-text');
@@ -760,7 +816,6 @@ async function genererBilanRevue(bien,resist,change,stars){
   const prompt=buildCtx()+' Revue ('+stars+'/5). Ce qui a marche: "'+bien+'". Ce qui a resiste: "'+resist+'". Changement prevu: "'+change+'". Bilan: 1 point fort a consolider, 1 conseil sur le point de friction, 1 suggestion concrete pour la semaine prochaine. 5-6 lignes. Direct. Pas de markdown.';
   txt.textContent=await callGemini(prompt);
 }
-
 </script>
 </body>
 </html>
