@@ -166,12 +166,10 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 <div id="screen-today" class="screen active">
   <div id="alert" class="alert">⚠️ 3 jours sans activité — protocole minimum : 20 min.</div>
   
-  <!-- Bloc Coach IA avec Historique Défilant Intégré -->
   <div id="ai-welcome" class="ai-card" style="display:none">
     <div class="ai-header"><span style="font-size:16px">🤖</span><span class="ai-label">Coach IA</span></div>
     <div class="ai-body" id="ai-welcome-text"></div>
     
-    <!-- Zone d'historique des messages de discussion -->
     <div id="coach-chat-messages" class="chat-messages-box" style="display:none"></div>
     
     <div class="coach-chat-wrap">
@@ -310,8 +308,8 @@ const PHASES=[
 const QUETES={
   min:[
     {id:'q1',name:'Respiration / cohérence cardiaque',desc:'5 min box breathing ou cohérence cardiaque',xp:30,pid:'p2',phases:[1,2,3]},
-    {id:'q2',name:'Anki — cartes du jour',desc:'10 min, minimum 10 cartes',xp:40,pid:'p1',phases:[1,2,3]},
-    {id:'q3',name:'Observation active',desc:'1 comportement ou micro-expression noté mentalement',xp:20,pid:'p3',phases:[1,2,3]},
+    {id:'q2',name:'Anki — cartes du jour',desc:'10 min, minimum 10 cartes (Étymologie médicale)',xp:40,pid:'p1',phases:[1,2,3]},
+    {id:'q3',name:'Sémiologie factuelle & conscience spatiale',desc:'1 fait physique noté (posture/marche) + 1 scan spatial (sorties/distances)',xp:20,pid:'p3',phases:[1,2,3]},
   ],
   opt:[
     {id:'q4',name:'Bloc cognitif profond',desc:'45 min lecture technique, calcul ou méthode Feynman',xp:80,pid:'p1',phases:[1,2,3]},
@@ -321,21 +319,21 @@ const QUETES={
     {id:'q8',name:'Journal décisionnel',desc:'5 min — 1 décision analysée pour biais cognitifs',xp:30,pid:'p1',phases:[1,2,3]},
     {id:'q9',name:'Lecture 30 min',desc:'Médecine, philo, neuro, stoïcisme...',xp:40,pid:'p1',phases:[1,2,3]},
     {id:'q10',name:'Échecs / jeu stratégique',desc:'15 min blitz ou puzzle — pensée multi-coups',xp:35,pid:'p5',phases:[2,3]},
-    {id:'q11',name:"Dessin d'observation",desc:'5 min — percevoir avant de dessiner',xp:25,pid:'p3',phases:[3]},
+    {id:'q11',name:"Dessin d'observation",desc:'5 min — percevoir les lignes et volumes réels avant de dessiner',xp:25,pid:'p3',phases:[3]},
     {id:'q12',name:'Calcul mental chronométré',desc:'10 min — vitesse et chunking',xp:30,pid:'p1',phases:[2,3]},
   ]
 };
 const PILLARS=[
   {id:'p1',name:'Métacognition & apprentissage',icon:'🧠',color:'#a78bfa',satellites:'Mémoire · Calcul · Biais · Feynman'},
   {id:'p2',name:'Régulation psychophysio',icon:'🫁',color:'#34d399',satellites:'Stress · Wim Hof · Sommeil · Récupération'},
-  {id:'p3',name:'Présence & observation',icon:'👁',color:'#60a5fa',satellites:'Microexpressions · Espace · Visages · Détails'},
+  {id:'p3',name:'Présence & observation',icon:'👁',color:'#60a5fa',satellites:'Sémiologie · Espace · Faits · Distances'},
   {id:'p4',name:'Condition physique',icon:'⚡',color:'#fb923c',satellites:'Force · Endurance · Proprio · Réflexes'},
   {id:'p5',name:'Influence & communication',icon:'🎯',color:'#fbbf24',satellites:'Rhétorique · Langues · Négociation · Stratégie'},
 ];
 const CAPS=[
   {n:'Mémoire',p:'p1'},{n:'Calcul mental',p:'p1'},
   {n:'Contrôle émotionnel',p:'p2'},{n:'Récupération',p:'p2'},
-  {n:'Microexpressions',p:'p3'},{n:'Conscience spatiale',p:'p3'},
+  {n:'Sémiologie physique',p:'p3'},{n:'Conscience spatiale',p:'p3'},
   {n:'Force musculaire',p:'p4'},{n:'Endurance cardio',p:'p4'},
   {n:'Rhétorique',p:'p5'},{n:'Langues',p:'p5'},
 ];
@@ -463,7 +461,6 @@ function renderQuetes(){
     
     let coachBtn=inPhase?`<button class="btn-coach" data-qid="${q.id}" data-qname="${safeN}" data-qdesc="${safeD}" onclick="event.stopPropagation();coachQuete(this)">💡 Coach</button>`:'';
     
-    // SÉLECTEUR DE DOMAINE POUR L'ENTRAÎNEMENT PHYSIQUE (q5)
     if(q.id === 'q5' && inPhase) {
       coachBtn += `
       <select class="coach-select" id="workout-type" onclick="event.stopPropagation();">
@@ -683,9 +680,9 @@ const SYSTEM_CONTEXT=`Tu es le coach personnel d'Eliseo, 19 ans, etudiant suisse
 PROFIL PHYSIQUE: Nageur regulier (2x/semaine, 1h15, ~3km/session). Bonne base physique (pompes, tractions faciles). Cardio ameliorable.
 
 SYSTEME 12 MOIS — 5 PILIERS:
-1. Metacognition & apprentissage (memoire, calcul mental, biais cognitifs, methode Feynman, transfert inter-domaines)
+1. Metacognition & apprentissage (memoire, calcul mental, bais cognitifs, methode Feynman, transfert inter-domaines)
 2. Regulation psychophysiologique (respiration, Wim Hof, sommeil, stress, controle emotionnel)
-3. Presence & observation (microexpressions, conscience spatiale, detection comportements, visages)
+3. Presence & observation (semiologie clinique factuelle, conscience spatiale, detection elements tactiques et environnementaux, sans psychologisation)
 4. Condition physique (force, endurance zone 2, proprioception, reflexes, coordination)
 5. Influence & communication (rhetorique, langues, negociation, echecs/strategie)
 
@@ -712,7 +709,7 @@ function loadWelcomeMessage(){
   const el=document.getElementById('ai-welcome');
   const txt=document.getElementById('ai-welcome-text');
   el.style.display='block';
-  txt.textContent="Bonjour Eliseo ! Ravi de te retrouver. Ta configuration actuelle est chargée. Prêt à passer à l'action ? Tu peux utiliser la zone de chat ci-dessous pour débriefer tes séances ou me poser des questions.";
+  txt.textContent="Bonjour Eliseo ! Ton protocole d'observation factuelle et tes paquets d'étymologie sur Anki sont configurés pour optimiser ta préparation clinique et militaire. Prêt à passer à l'action ?";
 }
 
 async function envoyerMessageCoach(){
@@ -735,7 +732,7 @@ async function envoyerMessageCoach(){
   chatBox.scrollTop=chatBox.scrollHeight;
   input.value='';
   
-  const prompt=buildCtx()+'\n\nVoici le message d\'Eliseo: "'+msg+'". Réponds de manière directe, personnalisée et motivante. Sans markdown.';
+  const prompt=buildCtx()+'\n\nVoici le message d\'Eliseo: "'+msg+'". Réponds de manière directe, analytique et motivante. Sans markdown.';
   const responseText=await callGemini(prompt);
   
   coachEl.textContent='🤖 Coach : '+responseText;
@@ -755,12 +752,17 @@ async function coachQuete(btn){
   card.style.marginTop='6px';
   card.innerHTML='<div class="ai-header"><span style="font-size:16px">💡</span><span class="ai-label">Conseils</span></div><div class="ai-body" id="txt-'+qId+'">Chargement...</div>';
   btn.closest('.quest').after(card);
-  const prompt=buildCtx()+' Quete: "'+qName+'" ('+qDesc+'). Donne 3 conseils pratiques et concrets pour bien realiser cette quete aujourd hui. 4 lignes max. Pas de markdown ni tirets.';
+  
+  let consigneSpecifique = "";
+  if(qId === 'q3') {
+    consigneSpecifique = " Interdiction absolue de parler de détection de mensonges, de psychologie, d'intentions ou de micro-expressions. Donne uniquement des exercices de repérage de faits anatomiques/mécaniques (asymétries, démarche, posture) et de tactique spatiale (calcul de distances à l'oeil nu, angles morts, repérage des sorties) utiles pour l'armée et la clinique.";
+  }
+
+  const prompt=buildCtx()+' Quete: "'+qName+'" ('+qDesc+').'+consigneSpecifique+' Donne 3 conseils pratiques et concrets pour bien realiser cette quete aujourd hui. 4 lignes max. Pas de markdown ni tirets.';
   const bodyEl=document.getElementById('txt-'+qId);
-  if(bodyEl)bodyEl.textContent=await callGemini(prompt);
+  if(bodyEl) bodyEl.textContent=await callGemini(prompt);
 }
 
-// LOGIQUE DE GÉNÉRATION ADAPTATIVE ET SÉLECTIVE D'ENTRAÎNEMENT
 async function genererEntrainement(btn) {
   const existingId = 'workout-generated';
   const existing = document.getElementById(existingId);
