@@ -72,7 +72,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .pillar-icon{font-size:20px;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .pillar-name{font-size:14px;font-weight:600;flex:1;}
 .pillar-lv{font-size:12px;color:var(--muted);}
-.pillar-sats{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;}
+.pillar-sats覆{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;}
 .chart-card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px;}
 .chart-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
 .cap-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
@@ -166,10 +166,12 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 <div id="screen-today" class="screen active">
   <div id="alert" class="alert">⚠️ 3 jours sans activité — protocole minimum : 20 min.</div>
   
+  <!-- Bloc Coach IA avec Historique Défilant Intégré -->
   <div id="ai-welcome" class="ai-card" style="display:none">
     <div class="ai-header"><span style="font-size:16px">🤖</span><span class="ai-label">Coach IA</span></div>
     <div class="ai-body" id="ai-welcome-text"></div>
     
+    <!-- Zone d'historique des messages de discussion -->
     <div id="coach-chat-messages" class="chat-messages-box" style="display:none"></div>
     
     <div class="coach-chat-wrap">
@@ -206,7 +208,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
   <div id="quetes-min"></div>
   <div class="section-title">Optimal</div>
   <div id="quetes-opt"></div>
-  <button class="btn-main" onclick="validerJour()">✓ Valider la journée</button>
+  <button class="btn-main" id="btn-valider" onclick="validerJour()">✓ Valider la journée</button>
 </div>
 
 <div id="screen-piliers" class="screen">
@@ -355,6 +357,7 @@ let XP_HISTORY=[];
 let starVal=0;
 let chartXp=null,chartRadar=null;
 let syncTimer=null;
+let isDayLocked=false;
 
 function setupUser(){
   const name=document.getElementById('setup-name').value.trim().toLowerCase().replace(/[^a-z0-9_]/g,'');
@@ -488,6 +491,10 @@ function renderQuetes(){
 }
 
 async function toggleQuete(id){
+  if(isDayLocked){
+    alert("La journée est verrouillée. Clique sur 'Modifier la journée' pour faire des modifications.");
+    return;
+  }
   const all=[...QUETES.min,...QUETES.opt];
   const q=all.find(x=>x.id===id);
   if(!q)return;
@@ -528,9 +535,30 @@ async function validerJour(){
     if(XP_HISTORY.length>60)XP_HISTORY.pop();
     sbInsert('sys_xp_history',histEntry).catch(()=>{});
   }
+  isDayLocked=true;
+  updateValidationButton();
   scheduleSave();
   updateHeader();
   goTab('stats',document.querySelectorAll('.tab-btn')[2]);
+}
+
+function modifierJour(){
+  isDayLocked=false;
+  updateValidationButton();
+}
+
+function updateValidationButton(){
+  const btn=document.getElementById('btn-valider');
+  if(!btn)return;
+  if(isDayLocked){
+    btn.textContent="✏️ Modifier la journée";
+    btn.setAttribute('onclick','modifierJour()');
+    btn.style.background="linear-gradient(135deg, #4b5563, #374151)";
+  }else{
+    btn.textContent="✓ Valider la journée";
+    btn.setAttribute('onclick','validerJour()');
+    btn.style.background="linear-gradient(135deg,var(--accent2),var(--accent))";
+  }
 }
 
 function renderPiliers(){
@@ -642,6 +670,8 @@ function goTab(id,btn){
 
 async function init(){
   await loadFromSupabase();
+  isDayLocked=(S.last_day===todayKey());
+  updateValidationButton();
   updateHeader();
   renderQuetes();
   loadWelcomeMessage();
