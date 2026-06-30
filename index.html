@@ -121,13 +121,13 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 .tab-icon{font-size:22px;line-height:1;}
 .empty-state{color:var(--muted);font-size:13px;padding:28px 0;text-align:center;}
 
-/* Styles spécifiques pour l'interface de discussion du Coach */
+/* Interface Chat Coach Améliorée */
 .ai-card{background:linear-gradient(135deg,rgba(124,58,237,.12),rgba(96,165,250,.08));border:0.5px solid rgba(167,139,250,.25);border-radius:12px;padding:14px 16px;margin-bottom:10px;}
 .ai-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
 .ai-label{font-size:11px;font-weight:700;color:var(--accent);letter-spacing:.05em;text-transform:uppercase;}
 .ai-body{font-size:13px;color:var(--text);line-height:1.65;white-space:pre-wrap;}
 .chat-messages-box{max-height:220px;overflow-y:auto;margin-top:10px;padding-top:10px;border-top:0.5px solid var(--border);display:flex;flex-direction:column;gap:10px;}
-.chat-msg{font-size:13px;line-height:1.5;white-space:pre-wrap;}
+.chat-msg{font-size:13px;line-height:1.5;white-space:pre-wrap;padding:4px 0;}
 .chat-msg.user{color:var(--blue);font-weight:500;}
 .chat-msg.coach{color:var(--text);}
 .coach-chat-wrap{margin-top:12px;display:flex;gap:8px;}
@@ -163,16 +163,14 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 <div id="screen-today" class="screen active">
   <div id="alert" class="alert">⚠️ 3 jours sans activité — protocole minimum : 20 min.</div>
   
-  <!-- Encadré Coach IA Amélioré avec Discussion de Type Messagerie -->
   <div id="ai-welcome" class="ai-card" style="display:none">
     <div class="ai-header"><span style="font-size:16px">🤖</span><span class="ai-label">Coach IA</span></div>
     <div class="ai-body" id="ai-welcome-text"></div>
     
-    <!-- Zone d'historique des messages échangés -->
     <div id="coach-chat-messages" class="chat-messages-box" style="display:none"></div>
     
     <div class="coach-chat-wrap">
-      <input type="text" id="coach-free-input" class="coach-input" placeholder="Écris ton message ici..." autocomplete="off">
+      <input type="text" id="coach-free-input" class="coach-input" placeholder="Discuter avec ton coach..." autocomplete="off">
       <button class="coach-send" onclick="envoyerMessageCoach()">Envoyer</button>
     </div>
   </div>
@@ -690,7 +688,7 @@ function buildCtx(){
   return SYSTEM_CONTEXT+'\n\n'+dynamicCtx;
 }
 
-// Message de bienvenue unique et statique (Économise entièrement ton quota de jetons)
+// 1. Message de bienvenue unique et statique (Zéro jeton consommé au démarrage !)
 async function loadWelcomeMessage(){
   if(!UID)return;
   const el=document.getElementById('ai-welcome');
@@ -699,38 +697,39 @@ async function loadWelcomeMessage(){
   txt.textContent="Bonjour Eliseo ! Ravi de te retrouver. Ta configuration actuelle est chargée. Prêt à passer à l'action ? Tu peux utiliser la zone de chat ci-dessous pour débriefer tes séances ou me poser des questions.";
 }
 
-// Fonction de discussion cumulative (Permet d'avoir un vrai historique de chat)
+// 2. Logique interactive de discussion cumulative (Vrai chat historique continu)
 async function envoyerMessageCoach(){
   const input=document.getElementById('coach-free-input');
-  const chatMessagesBox=document.getElementById('coach-chat-messages');
+  const chatBox=document.getElementById('coach-chat-messages');
   const msg=input.value.trim();
   if(!msg)return;
   
-  chatMessagesBox.style.display='flex';
+  // Rendre visible la boîte des messages accumulés
+  chatBox.style.display='flex';
   
-  // 1. Ajouter le message de l'utilisateur à l'écran
-  const userMsgEl=document.createElement('div');
-  userMsgEl.className='chat-msg user';
-  userMsgEl.textContent='👉 Toi : '+msg;
-  chatMessagesBox.appendChild(userMsgEl);
+  // Écrire le message de l'utilisateur
+  const userEl=document.createElement('div');
+  userEl.className='chat-msg user';
+  userEl.textContent='👉 Toi : '+msg;
+  chatBox.appendChild(userEl);
   
-  // 2. Ajouter l'état de chargement du coach
-  const coachMsgEl=document.createElement('div');
-  coachMsgEl.className='chat-msg coach';
-  coachMsgEl.textContent='🤖 Coach : Réflexion en cours...';
-  chatMessagesBox.appendChild(coachMsgEl);
+  // Créer l'élément de chargement temporaire du coach
+  const coachEl=document.createElement('div');
+  coachEl.className='chat-msg coach';
+  coachEl.textContent='🤖 Coach : Réflexion...';
+  chatBox.appendChild(coachEl);
   
-  // Scroll vers le bas
-  chatMessagesBox.scrollTop=chatMessagesBox.scrollHeight;
+  // Ajuster le scroll automatique vers le bas
+  chatBox.scrollTop=chatBox.scrollHeight;
   input.value='';
   
-  // Construction du prompt avec contexte complet
-  const prompt=buildCtx()+'\n\nVoici le message de l\'utilisateur Eliseo: "'+msg+'". Reponds de maniere directe, concrete, personnalisee et motivante. Pas de markdown.';
-  const res=await callGemini(prompt);
+  // Construire le prompt et interroger Gemini
+  const prompt=buildCtx()+'\n\nVoici le message d\'Eliseo: "'+msg+'". Réponds de manière directe, personnalisée et motivante. Sans markdown.';
+  const responseText=await callGemini(prompt);
   
-  // 3. Remplacer le chargement par la vraie réponse du coach
-  coachMsgEl.textContent='🤖 Coach : '+res;
-  chatMessagesBox.scrollTop=chatMessagesBox.scrollHeight;
+  // Mettre à jour le message du coach avec la vraie réponse
+  coachEl.textContent='🤖 Coach : '+responseText;
+  chatBox.scrollTop=chatBox.scrollHeight;
 }
 
 async function coachQuete(btn){
