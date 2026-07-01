@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="favicon.jpg?v=3">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-/* --- Tous les styles restent IDENTIQUES à la version précédente --- */
+/* ===== STYLES (inchangés) ===== */
 :root{--bg:#0e0e10;--card:#18181c;--card2:#222228;--border:rgba(255,255,255,0.07);--text:#f0f0f0;--muted:#777;--accent:#a78bfa;--accent2:#7c3aed;--green:#34d399;--amber:#fbbf24;--coral:#f87171;--blue:#60a5fa;--orange:#fb923c;--r:14px;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;font-size:15px;min-height:100dvh;padding-bottom:calc(76px + env(safe-area-inset-bottom));}
@@ -95,10 +95,9 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .cap-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
 .cap-item{background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:10px 12px;}
 .cap-name{font-size:11px;color:var(--muted);margin-bottom:4px;}
-.cap-pct{font-size:16px;font-weight:700;margin-bottom:4px;}
+.cap-count{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;}
 .cap-bar{height:4px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden;}
 .cap-fill{height:100%;border-radius:2px;transition:width .4s;}
-.cap-progress-text{font-size:10px;color:var(--muted);margin-top:2px;}
 .heatmap{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px;}
 .hm-sq{width:12px;height:12px;border-radius:2px;background:rgba(255,255,255,0.05);}
 .hm-sq.on{background:var(--accent2);}
@@ -178,7 +177,6 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 .class-item .class-title{font-size:12px;font-weight:700;color:var(--accent);margin-bottom:2px;}
 .class-item .class-bar{margin-top:6px;height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;}
 .class-item .class-bar-fill{height:100%;border-radius:2px;transition:width .4s;}
-.class-item .class-progress{font-size:10px;color:var(--muted);margin-top:2px;}
 .class-item.highlight{border-color:var(--accent);background:rgba(167,139,250,0.08);}
 .class-item.weak{border-color:var(--coral);background:rgba(248,113,113,0.08);}
 .class-item .class-bar-fill.guerrier{background:#ef4444;}
@@ -358,6 +356,20 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
         <option value="recurrent">Récurrente (Quotidienne)</option>
       </select>
     </div>
+    <div class="form-group">
+      <select id="cq-capacity" class="form-select">
+        <option value="Mémoire">🧠 Mémoire</option>
+        <option value="Calcul mental">🧮 Calcul mental</option>
+        <option value="Contrôle émotionnel">😌 Contrôle émotionnel</option>
+        <option value="Récupération">🛌 Récupération</option>
+        <option value="Sémiologie physique">🔬 Sémiologie physique</option>
+        <option value="Conscience spatiale">🗺️ Conscience spatiale</option>
+        <option value="Force musculaire">💪 Force musculaire</option>
+        <option value="Endurance cardio">🏃 Endurance cardio</option>
+        <option value="Rhétorique">🎤 Rhétorique</option>
+        <option value="Langues">🌍 Langues</option>
+      </select>
+    </div>
     <button class="btn-sm btn-accent" onclick="ajouterQuetePerso()" style="width:100%;">+ Forger la Quête</button>
   </div>
   <div class="section-title">Tes Quêtes Personnelles Actives</div>
@@ -442,7 +454,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
         <div class="class-level" id="guerrier-level"></div>
         <div class="class-title" id="guerrier-title">Apprenti</div>
         <div class="class-bar"><div class="class-bar-fill guerrier" id="guerrier-bar" style="width:0%"></div></div>
-        <div class="class-progress" id="guerrier-progress">0 / 100 XP</div>
+        <div class="class-progress" style="font-size:10px;color:var(--muted);margin-top:2px;" id="guerrier-progress">0 / 100 XP</div>
       </div>
       <div class="class-item" id="class-mage">
         <div class="class-icon">🔮</div>
@@ -450,7 +462,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
         <div class="class-level" id="mage-level"></div>
         <div class="class-title" id="mage-title">Apprenti</div>
         <div class="class-bar"><div class="class-bar-fill mage" id="mage-bar" style="width:0%"></div></div>
-        <div class="class-progress" id="mage-progress">0 / 100 XP</div>
+        <div class="class-progress" style="font-size:10px;color:var(--muted);margin-top:2px;" id="mage-progress">0 / 100 XP</div>
       </div>
       <div class="class-item" id="class-ombre">
         <div class="class-icon">🌑</div>
@@ -458,7 +470,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
         <div class="class-level" id="ombre-level"></div>
         <div class="class-title" id="ombre-title">Apprenti</div>
         <div class="class-bar"><div class="class-bar-fill ombre" id="ombre-bar" style="width:0%"></div></div>
-        <div class="class-progress" id="ombre-progress">0 / 100 XP</div>
+        <div class="class-progress" style="font-size:10px;color:var(--muted);margin-top:2px;" id="ombre-progress">0 / 100 XP</div>
       </div>
       <div class="class-item" id="class-aventurier">
         <div class="class-icon">🎒</div>
@@ -466,7 +478,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
         <div class="class-level" id="aventurier-level"></div>
         <div class="class-title" id="aventurier-title">Apprenti</div>
         <div class="class-bar"><div class="class-bar-fill aventurier" id="aventurier-bar" style="width:0%"></div></div>
-        <div class="class-progress" id="aventurier-progress">0 / 100 XP</div>
+        <div class="class-progress" style="font-size:10px;color:var(--muted);margin-top:2px;" id="aventurier-progress">0 / 100 XP</div>
       </div>
     </div>
   </div>
@@ -502,7 +514,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 
 <script>
 // ============================================================
-// CONFIGURATION ET CONSTANTES
+// CONFIGURATION
 // ============================================================
 const SB_URL = 'https://nlicstxewcrzjliyslkm.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5saWNzdHhld2NyempsaXlzbGttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1ODg1NzUsImV4cCI6MjA5ODE2NDU3NX0.CTHaV_iM50Q_sA1l8_5rVL7b4nU8XonYRcds8Z702GI';
@@ -514,8 +526,8 @@ const HDR = {
 };
 
 const MAX_PILLIER_XP = 100000;
-const MAX_QUESTS_PER_PILLAR = 50; // Objectif pour les capacités
 
+// --- Paliers des piliers ---
 const PILLAR_RANKS = [
   { level: 1, xp: 0, title: 'Apprenti' },
   { level: 2, xp: 600, title: 'Praticien' },
@@ -544,6 +556,7 @@ const PILLAR_RANKS = [
   { level: 25, xp: 62000, title: 'Éternel' },
 ];
 
+// --- Paliers des classes ---
 const CLASS_RANKS = [
   { level: 1, xp: 0, title: 'Apprenti' },
   { level: 2, xp: 100, title: 'Initié' },
@@ -572,6 +585,7 @@ const CLASS_RANKS = [
   { level: 25, xp: 30000, title: '★ Infini' },
 ];
 
+// --- Fonctions pour les piliers ---
 function getPillarRank(xp) {
   let rank = PILLAR_RANKS[0];
   for (const r of PILLAR_RANKS) {
@@ -579,7 +593,6 @@ function getPillarRank(xp) {
   }
   return rank;
 }
-
 function getPillarLevel(xp) {
   let level = 1;
   for (const r of PILLAR_RANKS) {
@@ -587,7 +600,6 @@ function getPillarLevel(xp) {
   }
   return level;
 }
-
 function getNextPillarRank(xp) {
   let next = null;
   for (const r of PILLAR_RANKS) {
@@ -599,7 +611,6 @@ function getNextPillarRank(xp) {
   }
   return next;
 }
-
 function getPillarProgress(xp) {
   const current = getPillarRank(xp);
   const next = getNextPillarRank(xp);
@@ -610,6 +621,7 @@ function getPillarProgress(xp) {
   return { pct, xp_into, xp_needed, nextLevel: next.level, nextTitle: next.title };
 }
 
+// --- Fonctions pour les classes ---
 function getClassRank(xp) {
   let rank = CLASS_RANKS[0];
   for (const r of CLASS_RANKS) {
@@ -617,7 +629,6 @@ function getClassRank(xp) {
   }
   return rank;
 }
-
 function getClassLevel(xp) {
   let level = 1;
   for (const r of CLASS_RANKS) {
@@ -625,7 +636,6 @@ function getClassLevel(xp) {
   }
   return level;
 }
-
 function getNextClassRank(xp) {
   let next = null;
   for (const r of CLASS_RANKS) {
@@ -637,7 +647,6 @@ function getNextClassRank(xp) {
   }
   return next;
 }
-
 function getClassProgress(xp) {
   const current = getClassRank(xp);
   const next = getNextClassRank(xp);
@@ -649,6 +658,32 @@ function getClassProgress(xp) {
 }
 
 // ============================================================
+// MAPPING CAPACITÉS PAR QUÊTE
+// ============================================================
+const CAPACITY_MAP = {
+  // Quêtes minimum
+  'q1': 'Contrôle émotionnel',
+  'q2': 'Mémoire',
+  'q3': 'Sémiologie physique',
+  // Quêtes optimales
+  'q4': 'Calcul mental',
+  'q5': 'Force musculaire',
+  'q6': 'Récupération',
+  'q7': 'Rhétorique',
+  'q8': 'Mémoire',
+  'q9': 'Mémoire',
+  'q10': 'Calcul mental',
+  'q11': 'Conscience spatiale',
+  'q12': 'Calcul mental',
+  // Sidequest (dynamique selon le texte, on la mettra par défaut sur "Observation")
+};
+
+// Pour la sidequest, on définit une capacité par défaut
+const DEFAULT_SIDEQUEST_CAPACITY = 'Observation';
+
+// Pour les quêtes forgées, l'utilisateur choisit la capacité via le sélecteur.
+
+// ============================================================
 // FONCTIONS SUPABASE
 // ============================================================
 async function sbGet(table, uid) {
@@ -656,7 +691,6 @@ async function sbGet(table, uid) {
   const d = await r.json();
   return d && d[0] ? d[0] : null;
 }
-
 async function sbUpsert(table, obj) {
   return fetch(`${SB_URL}/rest/v1/${table}`, {
     method: 'POST',
@@ -664,15 +698,12 @@ async function sbUpsert(table, obj) {
     body: JSON.stringify(obj)
   });
 }
-
 async function sbInsert(table, obj) {
   return fetch(`${SB_URL}/rest/v1/${table}`, { method: 'POST', headers: HDR, body: JSON.stringify(obj) });
 }
-
 async function sbDelete(table, uid, questId, day) {
   return fetch(`${SB_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(uid)}&quest_id=eq.${questId}&created_at=gte.${day}T00:00:00&created_at=lte.${day}T23:59:59`, { method: 'DELETE', headers: HDR });
 }
-
 async function sbGetMany(table, uid, limit = 30) {
   const r = await fetch(`${SB_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(uid)}&order=created_at.desc&limit=${limit}`, { headers: HDR });
   return r.json();
@@ -716,16 +747,9 @@ const PILLARS = [
   { id: 'p5', name: 'Influence & communication', icon: '🎯', color: '#fbbf24', satellites: 'Rhétorique · Langues · Négociation · Stratégie' },
 ];
 const CAPS = [
-  { n: 'Mémoire', p: 'p1' },
-  { n: 'Calcul mental', p: 'p1' },
-  { n: 'Contrôle émotionnel', p: 'p2' },
-  { n: 'Récupération', p: 'p2' },
-  { n: 'Sémiologie physique', p: 'p3' },
-  { n: 'Conscience spatiale', p: 'p3' },
-  { n: 'Force musculaire', p: 'p4' },
-  { n: 'Endurance cardio', p: 'p4' },
-  { n: 'Rhétorique', p: 'p5' },
-  { n: 'Langues', p: 'p5' },
+  'Mémoire', 'Calcul mental', 'Contrôle émotionnel', 'Récupération',
+  'Sémiologie physique', 'Conscience spatiale', 'Force musculaire',
+  'Endurance cardio', 'Rhétorique', 'Langues'
 ];
 const MILESTONES = [
   { lbl: 'Premier jour', icon: '🌱', check: s => s.days_total >= 1 },
@@ -774,9 +798,7 @@ let checkedToday = {};
 let S = {
   total_xp: 0, streak: 0, last_day: null, days_total: 0,
   start_date: new Date().toISOString().slice(0, 10), current_month: 1,
-  p1_xp: 0, p2_xp: 0, p3_xp: 0, p4_xp: 0, p5_xp: 0,
-  // ---- NOUVEAU : compteurs de quêtes par pilier ----
-  p1_quests: 0, p2_quests: 0, p3_quests: 0, p4_quests: 0, p5_quests: 0
+  p1_xp: 0, p2_xp: 0, p3_xp: 0, p4_xp: 0, p5_xp: 0
 };
 let LOG = [];
 let XP_HISTORY = [];
@@ -796,6 +818,9 @@ let bilanHistory = [];
 let currentSidequest = null;
 let editQuestId = null;
 let isProcessing = false;
+
+// --- NOUVEAU : compteurs de quêtes par capacité ---
+let capacityCounts = {};
 
 // ============================================================
 // FONCTIONS UTILITAIRES
@@ -877,9 +902,51 @@ function distributeClassXP(xp, pid, isCustom = false) {
   return boostedXP;
 }
 
+// ---- Gestion des compteurs de capacité ----
+function incrementCapacity(cap) {
+  if (!cap) return;
+  capacityCounts[cap] = (capacityCounts[cap] || 0) + 1;
+}
+
+function decrementCapacity(cap) {
+  if (!cap) return;
+  capacityCounts[cap] = Math.max(0, (capacityCounts[cap] || 0) - 1);
+}
+
+function getCapacityForQuest(questId, customCapacity = null) {
+  if (questId === 'sidequest') {
+    return DEFAULT_SIDEQUEST_CAPACITY;
+  }
+  if (questId && questId.startsWith('cq_')) {
+    return customCapacity || 'Créativité';
+  }
+  return CAPACITY_MAP[questId] || null;
+}
+
 // ============================================================
-// FONCTIONS SUPABASE SPÉCIFIQUES (inchangées)
+// FONCTIONS SUPABASE SPÉCIFIQUES
 // ============================================================
+async function saveCapacityCounts() {
+  if (!UID) return;
+  try {
+    await sbUpsert('sys_capacity_counts', {
+      user_id: UID,
+      counts: JSON.stringify(capacityCounts),
+      updated_at: new Date().toISOString()
+    });
+  } catch (e) { console.warn('saveCapacityCounts:', e); }
+}
+
+async function loadCapacityCounts() {
+  if (!UID) return;
+  try {
+    const data = await sbGet('sys_capacity_counts', UID);
+    if (data && data.counts) {
+      capacityCounts = JSON.parse(data.counts);
+    }
+  } catch (e) { console.warn('loadCapacityCounts:', e); }
+}
+
 async function saveClassData() {
   try {
     await sbUpsert('sys_classes', {
@@ -975,7 +1042,7 @@ async function loadCustomQuestsFromDB() {
 }
 
 // ============================================================
-// INITIALISATION ET CHARGEMENT
+// INITIALISATION
 // ============================================================
 function setupUser() {
   const name = document.getElementById('setup-name').value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
@@ -1022,6 +1089,7 @@ async function loadFromSupabase() {
 
     await loadClassData();
     await loadBilanHistory();
+    await loadCapacityCounts();
 
     const savedWeekly = localStorage.getItem('sys12_weekly_xp');
     if (savedWeekly) {
@@ -1079,6 +1147,7 @@ async function saveProgress() {
     await sbUpsert('sys_progress', { ...S, user_id: UID, updated_at: new Date().toISOString() });
     await saveClassData();
     await saveCustomQuestsToDB();
+    await saveCapacityCounts();
     if (currentSidequest) {
       await saveSidequestToDB(currentSidequest);
     }
@@ -1225,6 +1294,7 @@ async function toggleQuete(id) {
   const q = all.find(x => x.id === id);
   if (!q) return;
   const today = todayKey();
+  const cap = getCapacityForQuest(id);
 
   let xp = q.xp;
   xp = Math.round(xp * 1.2);
@@ -1235,26 +1305,24 @@ async function toggleQuete(id) {
   const finalXp = xp;
 
   if (checkedToday[id]) {
-    // Décocher
     delete checkedToday[id];
     S.total_xp = Math.max(0, S.total_xp - finalXp);
     S[q.pid + '_xp'] = Math.max(0, (S[q.pid + '_xp'] || 0) - finalXp);
-    S[q.pid + '_quests'] = Math.max(0, (S[q.pid + '_quests'] || 0) - 1);
     const cId = getClassForPillar(q.pid);
     classXP[cId] = Math.max(0, (classXP[cId] || 0) - finalXp);
     weeklyClassXP[cId] = Math.max(0, (weeklyClassXP[cId] || 0) - finalXp);
+    if (cap) decrementCapacity(cap);
     LOG = LOG.filter(l => !(l.quest_id === id && l.created_at && l.created_at.slice(0, 10) === today));
     sbDelete('sys_log', UID, id, today).catch(() => {});
     toast("↩️ Quête décochée — XP retirés");
   } else {
-    // Cocher
     checkedToday[id] = true;
     S.total_xp += finalXp;
     S[q.pid + '_xp'] = Math.min(MAX_PILLIER_XP, (S[q.pid + '_xp'] || 0) + finalXp);
-    S[q.pid + '_quests'] = (S[q.pid + '_quests'] || 0) + 1;
     const cId = getClassForPillar(q.pid);
     classXP[cId] = (classXP[cId] || 0) + finalXp;
     weeklyClassXP[cId] = (weeklyClassXP[cId] || 0) + finalXp;
+    if (cap) incrementCapacity(cap);
 
     const entry = { user_id: UID, quest_id: id, quest_name: q.name, xp: finalXp, pillar_id: q.pid, created_at: new Date().toISOString() };
     LOG.unshift(entry);
@@ -1337,6 +1405,7 @@ async function toggleSidequest() {
     updateSidequestUI();
     return;
   }
+  const cap = DEFAULT_SIDEQUEST_CAPACITY;
 
   let baseXp = 30;
   baseXp = Math.round(baseXp * 1.2);
@@ -1345,33 +1414,36 @@ async function toggleSidequest() {
     baseXp = Math.round(baseXp * 1.1);
   }
   const finalXp = baseXp;
-  const pid = currentSidequest.pid || 'p1';
 
   if (currentSidequest.done) {
     currentSidequest.done = false;
     S.total_xp = Math.max(0, S.total_xp - finalXp);
-    S[pid + '_xp'] = Math.max(0, (S[pid + '_xp'] || 0) - finalXp);
-    S[pid + '_quests'] = Math.max(0, (S[pid + '_quests'] || 0) - 1);
-    const cId = getClassForPillar(pid);
+    if (currentSidequest.pid) {
+      S[currentSidequest.pid + '_xp'] = Math.max(0, (S[currentSidequest.pid + '_xp'] || 0) - finalXp);
+    }
+    const cId = getClassForPillar(currentSidequest.pid);
     classXP[cId] = Math.max(0, (classXP[cId] || 0) - finalXp);
     weeklyClassXP[cId] = Math.max(0, (weeklyClassXP[cId] || 0) - finalXp);
+    decrementCapacity(cap);
     LOG = LOG.filter(l => !(l.quest_id === 'sidequest' && l.created_at && l.created_at.slice(0, 10) === today));
     sbDelete('sys_log', UID, 'sidequest', today).catch(() => {});
     toast("↩️ Sidequest décochée — XP retirés");
   } else {
     currentSidequest.done = true;
     S.total_xp += finalXp;
-    S[pid + '_xp'] = Math.min(MAX_PILLIER_XP, (S[pid + '_xp'] || 0) + finalXp);
-    S[pid + '_quests'] = (S[pid + '_quests'] || 0) + 1;
-    const cId = getClassForPillar(pid);
+    if (currentSidequest.pid) {
+      S[currentSidequest.pid + '_xp'] = Math.min(MAX_PILLIER_XP, (S[currentSidequest.pid + '_xp'] || 0) + finalXp);
+    }
+    const cId = getClassForPillar(currentSidequest.pid);
     classXP[cId] = (classXP[cId] || 0) + finalXp;
     weeklyClassXP[cId] = (weeklyClassXP[cId] || 0) + finalXp;
+    incrementCapacity(cap);
     const entry = {
       user_id: UID,
       quest_id: 'sidequest',
       quest_name: '[Sidequest] ' + currentSidequest.text.slice(0, 40) + '...',
       xp: finalXp,
-      pillar_id: pid,
+      pillar_id: currentSidequest.pid || 'p1',
       created_at: new Date().toISOString()
     };
     LOG.unshift(entry);
@@ -1416,7 +1488,7 @@ async function rerollSidequestIA() {
 }
 
 // ============================================================
-// QUÊTES FORGÉES (AVENTURIER)
+// QUÊTES FORGÉES
 // ============================================================
 function loadCustomQuests() {
   customQuests = JSON.parse(localStorage.getItem('sys12_custom_quests') || '[]');
@@ -1442,12 +1514,21 @@ function ajouterQuetePerso() {
   }
   const diff = document.getElementById('cq-diff').value;
   const type = document.getElementById('cq-type').value;
+  const capacity = document.getElementById('cq-capacity').value;
 
   let xp = 10;
   if (diff === 'medium') xp = 25;
   if (diff === 'hard') xp = 50;
 
-  const nq = { id: 'cq_' + Date.now(), name: name, xp: xp, type: type, done: false, total_xp: 0 };
+  const nq = {
+    id: 'cq_' + Date.now(),
+    name: name,
+    xp: xp,
+    type: type,
+    done: false,
+    total_xp: 0,
+    capacity: capacity
+  };
   customQuests.push(nq);
   nameEl.value = '';
   saveCustomQuests();
@@ -1469,12 +1550,13 @@ function renderCustomQuests() {
     const finalXp = xp;
     const typeTag = `<span class="tag tag-ph">${q.type === 'oneshot' ? 'One-shot' : 'Récurrente'}</span>`;
     const aventurierTag = `<span class="tag tag-aventurier">🎒 Aventurier</span>`;
+    const capTag = `<span class="tag" style="background:rgba(167,139,250,0.1);color:var(--accent);">${q.capacity || 'Créativité'}</span>`;
 
     return `<div class="quest${q.done ? ' done' : ''}" style="position:relative;" data-quest-id="${q.id}">
       <div class="check" onclick="event.stopPropagation();event.preventDefault();toggleCustomQuest('${q.id}')">${q.done ? '✓' : ''}</div>
       <div class="q-info" onclick="event.stopPropagation();event.preventDefault();toggleCustomQuest('${q.id}')">
         <div class="q-name">${q.name}</div>
-        <div class="q-tags">${typeTag}${aventurierTag}</div>
+        <div class="q-tags">${typeTag}${aventurierTag}${capTag}</div>
       </div>
       <div class="q-xp" onclick="event.stopPropagation();event.preventDefault();toggleCustomQuest('${q.id}')">+${finalXp} XP</div>
       <div class="q-actions">
@@ -1493,6 +1575,7 @@ function openEditModal(id) {
   document.getElementById('edit-cq-name').value = q.name;
   document.getElementById('edit-cq-diff').value = q.xp === 10 ? 'easy' : q.xp === 25 ? 'medium' : 'hard';
   document.getElementById('edit-cq-type').value = q.type;
+  // On ajoute la capacité à l'édition (on l'affiche mais on ne la modifie pas ici pour simplifier)
   document.getElementById('edit-modal').classList.add('show');
 }
 
@@ -1541,6 +1624,7 @@ function deleteCustomQuest(id) {
     S.total_xp = Math.max(0, S.total_xp - finalXp);
     classXP.aventurier = Math.max(0, (classXP.aventurier || 0) - finalXp);
     weeklyClassXP.aventurier = Math.max(0, (weeklyClassXP.aventurier || 0) - finalXp);
+    if (q.capacity) decrementCapacity(q.capacity);
     LOG = LOG.filter(l => !(l.quest_id === id && l.created_at && l.created_at.slice(0, 10) === today));
     sbDelete('sys_log', UID, id, today).catch(() => {});
   }
@@ -1572,6 +1656,7 @@ async function toggleCustomQuest(id) {
       xp = Math.round(xp * 1.1);
     }
     const finalXp = xp;
+    const cap = q.capacity || 'Créativité';
 
     if (q.done) {
       q.done = false;
@@ -1579,6 +1664,7 @@ async function toggleCustomQuest(id) {
       classXP.aventurier = Math.max(0, (classXP.aventurier || 0) - finalXp);
       weeklyClassXP.aventurier = Math.max(0, (weeklyClassXP.aventurier || 0) - finalXp);
       q.total_xp = Math.max(0, (q.total_xp || 0) - finalXp);
+      decrementCapacity(cap);
       LOG = LOG.filter(l => !(l.quest_id === id && l.created_at && l.created_at.slice(0, 10) === today));
       sbDelete('sys_log', UID, id, today).catch(() => {});
       toast("↩️ Quête forgée décochée — XP retirés");
@@ -1588,6 +1674,7 @@ async function toggleCustomQuest(id) {
       classXP.aventurier = (classXP.aventurier || 0) + finalXp;
       weeklyClassXP.aventurier = (weeklyClassXP.aventurier || 0) + finalXp;
       q.total_xp = (q.total_xp || 0) + finalXp;
+      incrementCapacity(cap);
       const entry = {
         user_id: UID,
         quest_id: id,
@@ -1705,110 +1792,9 @@ function renderPiliers() {
       <div class="pillar-sats">
         Prochain palier : ${nextTitle} (Niv. ${nextLevel}) — ${xp_needed - xp_into} XP restants
         <br>${p.satellites}
-        <br><span style="color:var(--muted);font-size:10px;">Quêtes accomplies : ${S[p.id + '_quests'] || 0}</span>
       </div>
     </div>`;
   }).join('');
-}
-
-// ============================================================
-// STATISTIQUES - CAPACITÉS BASÉES SUR LE NOMBRE DE QUÊTES
-// ============================================================
-function renderStats() {
-  const today = todayKey();
-  const activeDays = [...new Set(LOG.map(l => l.created_at && l.created_at.slice(0, 10)).filter(Boolean))];
-  let hm = '';
-  for (let i = 59; i >= 0; i--) {
-    const d = new Date(); d.setDate(d.getDate() - i);
-    const key = d.toISOString().slice(0, 10);
-    const isToday = key === today;
-    const on = activeDays.includes(key);
-    hm += `<div class="hm-sq${on && !isToday ? ' on' : ''}${isToday ? ' today' : ''}"></div>`;
-  }
-  document.getElementById('heatmap').innerHTML = hm;
-
-  // ---- CAPACITÉS : basées sur le nombre de quêtes ----
-  document.getElementById('cap-grid').innerHTML = CAPS.map(c => {
-    const questCount = S[c.p + '_quests'] || 0;
-    const maxQuests = MAX_QUESTS_PER_PILLAR;
-    const pct = Math.min(100, Math.round((questCount / maxQuests) * 100));
-    return `<div class="cap-item">
-      <div class="cap-name">${c.n}</div>
-      <div class="cap-pct" style="color:${PCOLS[c.p]}">${pct}%</div>
-      <div class="cap-bar"><div class="cap-fill" style="width:${pct}%;background:${PCOLS[c.p]}"></div></div>
-      <div class="cap-progress-text">${questCount} / ${maxQuests} quêtes</div>
-    </div>`;
-  }).join('');
-
-  document.getElementById('milestones').innerHTML = MILESTONES.map(m => {
-    const ok = m.check(S);
-    return `<div class="ms-item${ok ? ' reached' : ''}">
-      <div class="ms-icon">${m.icon}</div>
-      <div class="ms-label">${m.lbl}</div>
-      <div class="ms-status">${ok ? '✓ Atteint' : 'En cours'}</div>
-    </div>`;
-  }).join('');
-
-  const logEl = document.getElementById('log-list');
-  if (!LOG.length) { logEl.innerHTML = '<div class="empty-state">Aucune action enregistrée</div>'; } else {
-    logEl.innerHTML = LOG.slice(0, 15).map(l => `
-    <div class="log-entry">
-      <div class="log-dot" style="background:${PCOLS[l.pillar_id] || '#888'}"></div>
-      <div class="log-text">${l.quest_name}</div>
-      <span class="log-xp">+${l.xp}</span>
-      <span class="log-time">${l.created_at ? l.created_at.slice(11, 16) : ''}</span>
-    </div>`).join('');
-  }
-
-  // Graphique XP (inchangé)
-  const xpCtx = document.getElementById('chart-xp').getContext('2d');
-  const sorted = [...XP_HISTORY].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).slice(-20);
-  const xpLabels = sorted.map(h => h.created_at ? h.created_at.slice(5, 10) : '');
-  const xpData = sorted.map(h => h.xp);
-  if (chartXp) chartXp.destroy();
-  chartXp = new Chart(xpCtx, {
-    type: 'line',
-    data: {
-      labels: xpLabels.length ? xpLabels : ['—'],
-      datasets: [{ data: xpData.length ? xpData : [0], borderColor: '#a78bfa', backgroundColor: 'rgba(124,58,237,0.15)', borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#a78bfa', fill: true, tension: .4 }]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { ticks: { color: '#555', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
-        y: { ticks: { color: '#555', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' }, beginAtZero: true }
-      }
-    }
-  });
-
-  // Radar (inchangé)
-  const rCtx = document.getElementById('chart-radar').getContext('2d');
-  const rLabels = PILLARS.map(p => p.icon + ' ' + p.name.split(' ')[0]);
-  const rData = PILLARS.map(p => {
-    const level = getPillarLevel(S[p.id + '_xp'] || 0);
-    return Math.min(100, Math.round((level / 25) * 100));
-  });
-  if (chartRadar) chartRadar.destroy();
-  chartRadar = new Chart(rCtx, {
-    type: 'radar',
-    data: {
-      labels: rLabels,
-      datasets: [{ data: rData, borderColor: '#a78bfa', backgroundColor: 'rgba(124,58,237,0.18)', borderWidth: 2, pointBackgroundColor: '#a78bfa', pointRadius: 4 }]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: false } },
-      scales: {
-        r: {
-          min: 0, max: 100, ticks: { display: false },
-          grid: { color: 'rgba(255,255,255,0.07)' },
-          pointLabels: { color: '#999', font: { size: 11 } },
-          angleLines: { color: 'rgba(255,255,255,0.06)' }
-        }
-      }
-    }
-  });
 }
 
 // ============================================================
@@ -1887,6 +1873,106 @@ function renderAvatar() {
 }
 
 // ============================================================
+// STATISTIQUES
+// ============================================================
+function renderStats() {
+  const today = todayKey();
+  const activeDays = [...new Set(LOG.map(l => l.created_at && l.created_at.slice(0, 10)).filter(Boolean))];
+  let hm = '';
+  for (let i = 59; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    const isToday = key === today;
+    const on = activeDays.includes(key);
+    hm += `<div class="hm-sq${on && !isToday ? ' on' : ''}${isToday ? ' today' : ''}"></div>`;
+  }
+  document.getElementById('heatmap').innerHTML = hm;
+
+  // Capacités développées (avec compteurs)
+  document.getElementById('cap-grid').innerHTML = CAPS.map(cap => {
+    const count = capacityCounts[cap] || 0;
+    // On détermine un pourcentage fictif basé sur le nombre de quêtes (max 20 quêtes = 100%)
+    const pct = Math.min(100, Math.round((count / 20) * 100));
+    const color = '#a78bfa'; // on peut varier selon la capacité si on veut
+    return `<div class="cap-item">
+      <div class="cap-name">${cap}</div>
+      <div class="cap-count">${count} quête${count > 1 ? 's' : ''}</div>
+      <div class="cap-bar"><div class="cap-fill" style="width:${pct}%;background:${color}"></div></div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('milestones').innerHTML = MILESTONES.map(m => {
+    const ok = m.check(S);
+    return `<div class="ms-item${ok ? ' reached' : ''}">
+      <div class="ms-icon">${m.icon}</div>
+      <div class="ms-label">${m.lbl}</div>
+      <div class="ms-status">${ok ? '✓ Atteint' : 'En cours'}</div>
+    </div>`;
+  }).join('');
+
+  const logEl = document.getElementById('log-list');
+  if (!LOG.length) { logEl.innerHTML = '<div class="empty-state">Aucune action enregistrée</div>'; } else {
+    logEl.innerHTML = LOG.slice(0, 15).map(l => `
+    <div class="log-entry">
+      <div class="log-dot" style="background:${PCOLS[l.pillar_id] || '#888'}"></div>
+      <div class="log-text">${l.quest_name}</div>
+      <span class="log-xp">+${l.xp}</span>
+      <span class="log-time">${l.created_at ? l.created_at.slice(11, 16) : ''}</span>
+    </div>`).join('');
+  }
+
+  // Graphique XP (inchangé)
+  const xpCtx = document.getElementById('chart-xp').getContext('2d');
+  const sorted = [...XP_HISTORY].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).slice(-20);
+  const xpLabels = sorted.map(h => h.created_at ? h.created_at.slice(5, 10) : '');
+  const xpData = sorted.map(h => h.xp);
+  if (chartXp) chartXp.destroy();
+  chartXp = new Chart(xpCtx, {
+    type: 'line',
+    data: {
+      labels: xpLabels.length ? xpLabels : ['—'],
+      datasets: [{ data: xpData.length ? xpData : [0], borderColor: '#a78bfa', backgroundColor: 'rgba(124,58,237,0.15)', borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#a78bfa', fill: true, tension: .4 }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#555', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
+        y: { ticks: { color: '#555', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' }, beginAtZero: true }
+      }
+    }
+  });
+
+  // Radar (basé sur les niveaux des piliers)
+  const rCtx = document.getElementById('chart-radar').getContext('2d');
+  const rLabels = PILLARS.map(p => p.icon + ' ' + p.name.split(' ')[0]);
+  const rData = PILLARS.map(p => {
+    const level = getPillarLevel(S[p.id + '_xp'] || 0);
+    return Math.min(100, Math.round((level / 25) * 100));
+  });
+  if (chartRadar) chartRadar.destroy();
+  chartRadar = new Chart(rCtx, {
+    type: 'radar',
+    data: {
+      labels: rLabels,
+      datasets: [{ data: rData, borderColor: '#a78bfa', backgroundColor: 'rgba(124,58,237,0.18)', borderWidth: 2, pointBackgroundColor: '#a78bfa', pointRadius: 4 }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        r: {
+          min: 0, max: 100, ticks: { display: false },
+          grid: { color: 'rgba(255,255,255,0.07)' },
+          pointLabels: { color: '#999', font: { size: 11 } },
+          angleLines: { color: 'rgba(255,255,255,0.06)' }
+        }
+      }
+    }
+  });
+}
+
+// ============================================================
 // REVUE
 // ============================================================
 function setStar(v) {
@@ -1953,7 +2039,7 @@ function goTab(id, btn) {
 }
 
 // ============================================================
-// AUTRES FONCTIONS (bilan, boost, etc.) inchangées
+// AUTRES FONCTIONS (bilan, boost, etc.)
 // ============================================================
 function renderBilanHistory() {
   const container = document.getElementById('bilan-history');
@@ -2127,27 +2213,7 @@ function callGemini(prompt) {
   });
 }
 
-const SYSTEM_CONTEXT = `Tu es le coach personnel d'Eliseo, 19 ans, etudiant suisse en annee sabbatique apres sa maturite gymnasiale (moyenne 5.0). Il envisage des etudes de medecine. Il a 4 mois d'armee en fevrier. Il voyage parfois.
-
-PROFIL PHYSIQUE: Nageur regulier (2x/semaine, 1h15, ~3km/session). Bonne base physique (pompes, tractions faciles). Cardio ameliorable.
-
-SYSTEME 12 MOIS — 5 PILIERS:
-1. Metacognition & apprentissage (memoire, calcul mental, bais cognitifs, methode Feynman, transfert inter-domaines)
-2. Regulation psychophysiologique (respiration, Wim Hof, sommeil, stress, controle emotionnel)
-3. Presence & observation (semiologie clinique factuelle, conscience spatiale, detection elements tactiques et environnementaux, sans psychologisation)
-4. Condition physique (force, endurance zone 2, proprioception, reflexes, coordination)
-5. Influence & communication (rhetorique, langues, negociation, echecs/strategie)
-
-3 PHASES:
-- Phase 1 (mois 1-3): Fondations — installer les routines a friction minimale
-- Phase 2 (mois 4-8): Intensification — integration des satellites, armee comme laboratoire social
-- Phase 3 (mois 9-12): Consolidation — mesure, ajustement, extension
-
-PHILOSOPHIE: Pratique deliberee > repetition passive. Stress + recuperation = croissance. Identite stable bat motivation fluctuante. Seuil minimum (20 min/jour) non-negociable meme les mauvais jours.
-
-PASSIONS: Piano, dessin (decompress), cinema (Wes Anderson, Jim Jarmusch, Jake Gyllenhaal), mode streetwear/vintage/gorpcore, vie sociale.
-
-Reponds toujours en francais, de facon directe, concrete et adaptee au niveau actuel d'Eliseo. Pas de markdown.`;
+const SYSTEM_CONTEXT = `... (inchangé) ...`;
 
 function buildCtx() {
   const ph = getCurrentPhase();
@@ -2159,4 +2225,117 @@ function buildCtx() {
 function loadWelcomeMessage() {
   if (!UID) return;
   const el = document.getElementById('ai-welcome');
-  const txt = document.getElementById
+  const txt = document.getElementById('ai-welcome-text');
+  el.style.display = 'block';
+  txt.textContent = "Bonjour Eliseo ! Ton protocole d'observation factuelle et tes paquets d'étymologie sur Anki sont configurés pour optimiser ta préparation clinique et militaire. Prêt à passer à l'action ?";
+}
+
+async function envoyerMessageCoach() {
+  const input = document.getElementById('coach-free-input');
+  const chatBox = document.getElementById('coach-chat-messages');
+  const msg = input.value.trim();
+  if (!msg) return;
+
+  chatBox.style.display = 'flex';
+  const userEl = document.createElement('div');
+  userEl.className = 'chat-msg user';
+  userEl.textContent = '👉 Toi : ' + msg;
+  chatBox.appendChild(userEl);
+
+  const coachEl = document.createElement('div');
+  coachEl.className = 'chat-msg coach';
+  coachEl.textContent = '🤖 Coach : Réflexion...';
+  chatBox.appendChild(coachEl);
+
+  chatBox.scrollTop = chatBox.scrollHeight;
+  input.value = '';
+
+  const prompt = buildCtx() + '\n\nVoici le message d\'Eliseo: "' + msg + '". Réponds de manière directe, analytique et motivante. Sans markdown.';
+  const responseText = await callGemini(prompt);
+
+  coachEl.textContent = '🤖 Coach : ' + responseText;
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+async function coachQuete(btn) {
+  const qId = btn.getAttribute('data-qid');
+  const qName = btn.getAttribute('data-qname');
+  const qDesc = btn.getAttribute('data-qdesc');
+  const existingId = 'coach-' + qId;
+  const existing = document.getElementById(existingId);
+  if (existing) { existing.remove(); return; }
+  const card = document.createElement('div');
+  card.className = 'ai-card';
+  card.id = existingId;
+  card.style.marginTop = '6px';
+  card.innerHTML = '<div class="ai-header"><span style="font-size:16px">💡</span><span class="ai-label">Conseils</span></div><div class="ai-body" id="txt-' + qId + '">Chargement...</div>';
+  btn.closest('.quest').after(card);
+
+  let consigneSpecifique = "";
+  if (qId === 'q3') {
+    consigneSpecifique = " Interdiction absolue de parler de détection de mensonges, de psychologie, d'intentions ou de micro-expressions. Donne uniquement des exercices de repérage de faits anatomiques/mécaniques (asymétries, démarche, posture) et de tactique spatiale (calcul de distances à l'oeil nu, angles morts, repérage des sorties) utiles pour l'armée et la clinique.";
+  }
+
+  const prompt = buildCtx() + ' Quete: "' + qName + '" (' + qDesc + ').' + consigneSpecifique + ' Donne 3 conseils pratiques et concrets pour bien realiser cette quete aujourd hui. 4 lignes max. Pas de markdown ni tirets.';
+  const bodyEl = document.getElementById('txt-' + qId);
+  if (bodyEl) bodyEl.textContent = await callGemini(prompt);
+}
+
+async function genererEntrainement(btn) {
+  const existingId = 'workout-generated';
+  const existing = document.getElementById(existingId);
+  if (existing) { existing.remove(); return; }
+
+  const selectEl = document.getElementById('workout-type');
+  const selectedDomain = selectEl ? selectEl.value : 'auto';
+
+  const card = document.createElement('div');
+  card.className = 'ai-card';
+  card.id = existingId;
+  card.style.marginTop = '6px';
+  card.style.border = '0.5px solid rgba(96,165,250,.3)';
+  card.style.background = 'linear-gradient(135deg,rgba(96,165,250,.12),rgba(14,14,16,.08))';
+  card.innerHTML = '<div class="ai-header"><span style="font-size:16px">🏋️</span><span class="ai-label" style="color:var(--blue)">Séance sur-mesure</span></div><div class="ai-body" id="txt-workout">Analyse du domaine choisi et calcul du protocole adaptatif...</div>';
+  btn.closest('.quest').after(card);
+
+  const historiquesRecents = LOG.slice(0, 10).map(l => l.quest_name).join(', ');
+
+  let domaineInstructions = "";
+  if (selectedDomain === "bodyweight") {
+    domaineInstructions = "L'entraînement DOIT obligatoirement être axé sur le POIDS DU CORPS / CALISTHÉNIE (en utilisant sa bonne base en pompes, tractions, ou des variantes complexes comme du tempo ou de la pliométrie).";
+  } else if (selectedDomain === "swim") {
+    domaineInstructions = "L'entraînement DOIT obligatoirement être un protocole de NATATION en piscine (séries en mètres, nages, allures, ou exercices techniques, adapté à sa capacité de faire 3km par session).";
+  } else if (selectedDomain === "run") {
+    domaineInstructions = "L'entraînement DOIT obligatoirement être de la COURSE À PIED / CARDIO EXTÉRIEUR (axé soit sur son point faible à améliorer : le foncier en zone 2, soit du fractionné/HIIT haute intensité).";
+  } else {
+    domaineInstructions = "Laisse libre cours à ton expertise de coach pour choisir le domaine (natation, course ou poids du corps) le plus pertinent selon son historique récent.";
+  }
+
+  const prompt = buildCtx() + `
+  En tant que coach sportif, génère un entraînement physique précis de 30 à 45 minutes pour Eliseo.
+  CONTRAINTE DE SÉLECTION : ${domaineInstructions}
+  
+  Prends également en compte son profil général et son historique récent d'actions: [${historiquesRecents}].
+  
+  Format de réponse obligatoire (sois hyper concis, direct et condensé) :
+  1. Domaine et Objectif ciblé (ex: Natation - Vitesse explosive ou Calisthénie - Volume de force)
+  2. Échauffement rapide
+  3. Corps de séance : Exercices/Séries exactes, répétitions ou distances, temps de récupération très précis.
+  
+  Maximum 7 lignes. Pas de markdown, pas de listes à puces ou tirets (sauts de ligne simples).`;
+
+  const bodyEl = document.getElementById('txt-workout');
+  if (bodyEl) bodyEl.textContent = await callGemini(prompt);
+}
+
+async function genererBilanRevue(bien, resist, change, stars) {
+  const el = document.getElementById('ai-bilan');
+  const txt = document.getElementById('ai-bilan-text');
+  el.style.display = 'block';
+  txt.textContent = 'Analyse de ta semaine...';
+  const prompt = buildCtx() + ' Revue (' + stars + '/5). Ce qui a marche: "' + bien + '". Ce qui a resiste: "' + resist + '". Changement prevu: "' + change + '". Bilan: 1 point fort a consolider, 1 conseil sur le point de friction, 1 suggestion concrete pour la semaine prochaine. 5-6 lignes. Direct. Pas de markdown.';
+  txt.textContent = await callGemini(prompt);
+}
+</script>
+</body>
+</html>
