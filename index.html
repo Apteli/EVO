@@ -11,6 +11,7 @@
 <link rel="apple-touch-icon" href="favicon.jpg?v=3">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
+/* --- STYLES (inchangés, identiques à la version précédente) --- */
 :root{--bg:#0e0e10;--card:#18181c;--card2:#222228;--border:rgba(255,255,255,0.07);--text:#f0f0f0;--muted:#777;--accent:#a78bfa;--accent2:#7c3aed;--green:#34d399;--amber:#fbbf24;--coral:#f87171;--blue:#60a5fa;--orange:#fb923c;--r:14px;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;font-size:15px;min-height:100dvh;padding-bottom:calc(76px + env(safe-area-inset-bottom));}
@@ -448,8 +449,10 @@ const SB_URL='https://nlicstxewcrzjliyslkm.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5saWNzdHhld2NyempsaXlzbGttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1ODg1NzUsImV4cCI6MjA5ODE2NDU3NX0.CTHaV_iM50Q_sA1l8_5rVL7b4nU8XonYRcds8Z702GI';
 const HDR={'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=representation'};
 
+// ---- NOUVEAU : Plafond des piliers à 100 000 XP ----
 const MAX_PILLIER_XP = 100000;
 
+// ---- NOUVEAU : Niveaux et titres des piliers ----
 const PILLAR_RANKS = [
   { level: 1, xp: 0, title: 'Apprenti' },
   { level: 2, xp: 600, title: 'Praticien' },
@@ -471,6 +474,7 @@ const PILLAR_RANKS = [
   { level: 18, xp: 34200, title: 'Omniscient' },
   { level: 19, xp: 38000, title: 'Éveillé' },
   { level: 20, xp: 42000, title: 'Dieu' },
+  // Au-delà du niveau 20, on continue avec des titres épiques
   { level: 21, xp: 46000, title: 'Alpha' },
   { level: 22, xp: 50000, title: 'Oméga' },
   { level: 23, xp: 54000, title: 'Cosmique' },
@@ -478,36 +482,51 @@ const PILLAR_RANKS = [
   { level: 25, xp: 62000, title: 'Éternel' },
 ];
 
+// ---- Fonction pour obtenir le titre d'un pilier selon son XP ----
 function getPillarRank(xp) {
   let rank = PILLAR_RANKS[0];
   for (const r of PILLAR_RANKS) {
-    if (xp >= r.xp) rank = r;
+    if (xp >= r.xp) {
+      rank = r;
+    }
   }
   return rank;
 }
 
+// ---- Fonction pour calculer le niveau d'un pilier (1 à 25+) ----
 function getPillarLevel(xp) {
   let level = 1;
   for (const r of PILLAR_RANKS) {
-    if (xp >= r.xp) level = r.level;
+    if (xp >= r.xp) {
+      level = r.level;
+    }
   }
   return level;
 }
 
+// ---- Fonction pour obtenir le prochain palier ----
 function getNextPillarRank(xp) {
   let next = null;
   for (const r of PILLAR_RANKS) {
-    if (xp < r.xp) { next = r; break; }
+    if (xp < r.xp) {
+      next = r;
+      break;
+    }
   }
   if (!next) {
+    // Si on dépasse le dernier palier, on crée un palier virtuel
     const last = PILLAR_RANKS[PILLAR_RANKS.length - 1];
-    next = { level: last.level + 1, xp: last.xp + 4000, title: '★ ' + last.title + ' ∞' };
+    next = {
+      level: last.level + 1,
+      xp: last.xp + 4000,
+      title: '★ ' + last.title + ' ∞'
+    };
   }
   return next;
 }
 
 // ============================================================
-// FONCTIONS SUPABASE
+// FONCTIONS SUPABASE (inchangées)
 // ============================================================
 async function sbGet(table,uid){
   const r=await fetch(`${SB_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(uid)}&limit=1`,{headers:HDR});
@@ -794,9 +813,7 @@ async function saveSidequestToDB(sq) {
       is_ia: sq.isIA || false,
       updated_at: new Date().toISOString()
     });
-  } catch(e) {
-    console.warn('Erreur sauvegarde sidequest:', e);
-  }
+  } catch(e) {}
 }
 
 async function loadSidequestFromDB() {
@@ -812,9 +829,7 @@ async function loadSidequestFromDB() {
         isIA: data.is_ia || false
       };
     }
-  } catch(e) {
-    console.warn('Erreur chargement sidequest:', e);
-  }
+  } catch(e) {}
   return null;
 }
 
@@ -862,36 +877,37 @@ function setSyncState(st){
 async function loadFromSupabase(){
   setSyncState('syncing');
   try{
-    const [prog, logRaw, histRaw] = await Promise.all([
-      sbGet('sys_progress', UID),
-      sbGetMany('sys_log', UID, 50),
-      sbGetMany('sys_xp_history', UID, 60),
+    const [prog,logRaw,histRaw] = await Promise.all([
+      sbGet('sys_progress',UID),
+      sbGetMany('sys_log',UID,50),
+      sbGetMany('sys_xp_history',UID,60),
     ]);
     if(prog){
-      S = { ...S, ...prog };
+      S={...S,...prog};
+      // --- Calcul du mois (corrigé) ---
       const start = new Date(S.start_date);
       const now = new Date();
       const diffJours = Math.floor((now - start) / (1000 * 60 * 60 * 24));
       let moisEcoules = Math.floor(diffJours / 30.44);
       S.current_month = Math.max(1, Math.min(12, moisEcoules + 1));
     }
-    if(Array.isArray(logRaw)) LOG = logRaw;
-    if(Array.isArray(histRaw)) XP_HISTORY = histRaw;
-
-    const today = todayKey();
-    checkedToday = {};
-    LOG.forEach(l => {
-      if(l.quest_id && l.quest_id !== 'review' && l.created_at && l.created_at.slice(0,10) === today){
-        checkedToday[l.quest_id] = true;
+    if(Array.isArray(logRaw))LOG=logRaw;
+    if(Array.isArray(histRaw))XP_HISTORY=histRaw;
+    const today=todayKey();
+    checkedToday={};
+    LOG.forEach(l=>{
+      if(l.quest_id&&l.quest_id!=='review'&&l.created_at&&l.created_at.slice(0,10)===today){
+        checkedToday[l.quest_id]=true;
       }
     });
-
     await loadClassData();
     await loadBilanHistory();
-
+    
     const savedWeekly = localStorage.getItem('sys12_weekly_xp');
     if (savedWeekly) {
-      try { weeklyClassXP = JSON.parse(savedWeekly); } catch(e) {}
+      try {
+        weeklyClassXP = JSON.parse(savedWeekly);
+      } catch(e) {}
     }
     const savedAura = localStorage.getItem('sys12_aura');
     if (savedAura) {
@@ -904,43 +920,40 @@ async function loadFromSupabase(){
         lastBilanDate = auraData.lastBilanDate || null;
       } catch(e) {}
     }
-
-    // --- CHARGEMENT DES QUÊTES PERSONNELLES ---
+    
     const dbQuests = await loadCustomQuestsFromDB();
     if (dbQuests && Array.isArray(dbQuests)) {
       customQuests = dbQuests;
       localStorage.setItem('sys12_custom_quests', JSON.stringify(customQuests));
     } else {
-      customQuests = JSON.parse(localStorage.getItem('sys12_custom_quests') || '[]');
+      customQuests = JSON.parse(localStorage.getItem('sys12_custom_quests')||'[]');
     }
-
-    // --- CHARGEMENT DE LA SIDEQUEST AVEC PRIORITÉ ABSOLUE SUPABASE ---
+    
     const dbSq = await loadSidequestFromDB();
     const todayStr = todayKey();
-
     if (dbSq && dbSq.date === todayStr) {
-      // ✅ La base a une sidequest pour aujourd'hui → on l'utilise
       currentSidequest = dbSq;
       localStorage.setItem('sys12_sidequest', JSON.stringify(currentSidequest));
     } else {
-      // ❌ Pas de sidequest en base pour aujourd'hui → on en crée une
-      const rand = BANQUE_SIDEQUESTS[Math.floor(Math.random() * BANQUE_SIDEQUESTS.length)];
-      currentSidequest = {
-        date: todayStr,
-        text: rand.text,
-        pid: rand.pid || 'p5',
-        done: false,
-        isIA: false
-      };
-      localStorage.setItem('sys12_sidequest', JSON.stringify(currentSidequest));
-      await saveSidequestToDB(currentSidequest);
+      const localSq = localStorage.getItem('sys12_sidequest');
+      if (localSq) {
+        const parsed = JSON.parse(localSq);
+        if (parsed.date === todayStr) {
+          currentSidequest = parsed;
+        }
+      }
+      if (!currentSidequest) {
+        const rand = BANQUE_SIDEQUESTS[Math.floor(Math.random()*BANQUE_SIDEQUESTS.length)];
+        currentSidequest = {date: todayStr, text: rand.text, pid: rand.pid, done: false, isIA: false};
+        localStorage.setItem('sys12_sidequest', JSON.stringify(currentSidequest));
+        await saveSidequestToDB(currentSidequest);
+      } else {
+        await saveSidequestToDB(currentSidequest);
+      }
     }
-
+    
     setSyncState('ok');
-  } catch(e) {
-    setSyncState('error');
-    console.error('Erreur loadFromSupabase:', e);
-  }
+  }catch(e){setSyncState('error');}
 }
 
 async function saveProgress(){
@@ -965,10 +978,7 @@ async function saveProgress(){
       localStorage.setItem('sys12_sidequest', JSON.stringify(currentSidequest));
     }
     setSyncState('ok');
-  } catch(e) {
-    setSyncState('error');
-    console.error('Erreur saveProgress:', e);
-  }
+  }catch(e){setSyncState('error');}
 }
 
 function scheduleSave(){
@@ -1107,7 +1117,7 @@ async function toggleQuete(id){
   if(checkedToday[id]){
     delete checkedToday[id];
     S.total_xp=Math.max(0,S.total_xp-finalXp);
-    S[q.pid+'_xp]=Math.max(0,(S[q.pid+'_xp']||0)-finalXp);
+    S[q.pid+'_xp']=Math.max(0,(S[q.pid+'_xp']||0)-finalXp);
     const cId = getClassForPillar(q.pid);
     classXP[cId] = Math.max(0, (classXP[cId] || 0) - finalXp);
     weeklyClassXP[cId] = Math.max(0, (weeklyClassXP[cId] || 0) - finalXp);
@@ -1117,6 +1127,7 @@ async function toggleQuete(id){
   } else {
     checkedToday[id]=true;
     S.total_xp+=finalXp;
+    // ---- NOUVEAU : plafond à 100 000 XP ----
     S[q.pid+'_xp'] = Math.min(MAX_PILLIER_XP, (S[q.pid+'_xp'] || 0) + finalXp);
     const cId = getClassForPillar(q.pid);
     classXP[cId] = (classXP[cId] || 0) + finalXp;
@@ -1135,81 +1146,52 @@ async function toggleQuete(id){
 }
 
 // ============================================================
-// SIDEQUEST (UNIQUE, SYNCHRONISÉE, PERSISTANTE)
+// SIDEQUEST
 // ============================================================
 function initSidequest(){
-  // Déjà chargé depuis Supabase dans loadFromSupabase
-  // On s'assure juste que l'UI est à jour
+  const today=todayKey();
+  if (!currentSidequest || currentSidequest.date !== today) {
+    const rand=BANQUE_SIDEQUESTS[Math.floor(Math.random()*BANQUE_SIDEQUESTS.length)];
+    currentSidequest={date:today,text:rand.text,pid:rand.pid,done:false,isIA:false};
+    localStorage.setItem('sys12_sidequest', JSON.stringify(currentSidequest));
+    saveSidequestToDB(currentSidequest);
+  }
   updateSidequestUI();
 }
 
 function updateSidequestUI(){
-  if(!currentSidequest) {
-    // Fallback : essayer de charger depuis localStorage
-    const local = localStorage.getItem('sys12_sidequest');
-    if (local) {
-      try {
-        const parsed = JSON.parse(local);
-        if (parsed.date === todayKey()) {
-          currentSidequest = parsed;
-        }
-      } catch(e) {}
-    }
-    if (!currentSidequest) {
-      // Générer une nouvelle si vraiment rien
-      const rand = BANQUE_SIDEQUESTS[Math.floor(Math.random() * BANQUE_SIDEQUESTS.length)];
-      currentSidequest = {
-        date: todayKey(),
-        text: rand.text,
-        pid: rand.pid || 'p5',
-        done: false,
-        isIA: false
-      };
-      localStorage.setItem('sys12_sidequest', JSON.stringify(currentSidequest));
-      saveSidequestToDB(currentSidequest);
-    }
-  }
-
-  const item = document.getElementById('sidequest-item');
-  const chk = document.getElementById('sq-check');
-  document.getElementById('sidequest-text').textContent = currentSidequest.text;
+  if(!currentSidequest) return;
+  const item=document.getElementById('sidequest-item');
+  const chk=document.getElementById('sq-check');
+  document.getElementById('sidequest-text').textContent=currentSidequest.text;
   
-  let baseXp = 30;
+  let baseXp=30;
   baseXp = Math.round(baseXp * 1.2);
   const classId = getClassForPillar(currentSidequest.pid);
   if (boostClass && classId === boostClass) {
     baseXp = Math.round(baseXp * 1.1);
   }
   const finalXp = baseXp;
-  document.getElementById('sq-xp-display').textContent = `+${finalXp} XP`;
+  document.getElementById('sq-xp-display').textContent=`+${finalXp} XP`;
 
   if(currentSidequest.done){
     item.classList.add('done');
-    chk.textContent = '✓';
-  } else {
+    chk.textContent='✓';
+  }else{
     item.classList.remove('done');
-    chk.textContent = '';
+    chk.textContent='';
   }
 }
 
-async function toggleSidequest(){
+function toggleSidequest(){
   if(isDayLocked){
     toast("⚠️ Journée verrouillée. Utilise 'Modifier la journée' pour ajuster.");
     return;
   }
-  if(!currentSidequest) {
-    toast("⚠️ Sidequest non chargée.");
-    return;
-  }
-  const today = todayKey();
-  if (currentSidequest.date !== today) {
-    // La sidequest est périmée, on recharge
-    await loadFromSupabase();
-    updateSidequestUI();
-    return;
-  }
+  if(!currentSidequest) return;
+  const today=todayKey();
   
-  let baseXp = 30;
+  let baseXp=30;
   baseXp = Math.round(baseXp * 1.2);
   const classId = getClassForPillar(currentSidequest.pid);
   if (boostClass && classId === boostClass) {
@@ -1218,44 +1200,29 @@ async function toggleSidequest(){
   const finalXp = baseXp;
 
   if(currentSidequest.done){
-    // Décocher
-    currentSidequest.done = false;
-    S.total_xp = Math.max(0, S.total_xp - finalXp);
-    if(currentSidequest.pid) {
-      S[currentSidequest.pid + '_xp'] = Math.max(0, (S[currentSidequest.pid + '_xp'] || 0) - finalXp);
-    }
+    currentSidequest.done=false;
+    S.total_xp=Math.max(0,S.total_xp-finalXp);
+    if(currentSidequest.pid) S[currentSidequest.pid+'_xp']=Math.max(0,(S[currentSidequest.pid+'_xp']||0)-finalXp);
     const cId = getClassForPillar(currentSidequest.pid);
     classXP[cId] = Math.max(0, (classXP[cId] || 0) - finalXp);
     weeklyClassXP[cId] = Math.max(0, (weeklyClassXP[cId] || 0) - finalXp);
-    LOG = LOG.filter(l => !(l.quest_id === 'sidequest' && l.created_at && l.created_at.slice(0,10) === today));
-    sbDelete('sys_log', UID, 'sidequest', today).catch(()=>{});
+    LOG=LOG.filter(l=>!(l.quest_id==='sidequest'&&l.created_at&&l.created_at.slice(0,10)===today));
+    sbDelete('sys_log',UID,'sidequest',today).catch(()=>{});
     toast("↩️ Sidequest décochée — XP retirés");
-  } else {
-    // Cocher
-    currentSidequest.done = true;
-    S.total_xp += finalXp;
-    if(currentSidequest.pid) {
-      S[currentSidequest.pid + '_xp'] = Math.min(MAX_PILLIER_XP, (S[currentSidequest.pid + '_xp'] || 0) + finalXp);
-    }
+  }else{
+    currentSidequest.done=true;
+    S.total_xp+=finalXp;
+    if(currentSidequest.pid) S[currentSidequest.pid+'_xp'] = Math.min(MAX_PILLIER_XP, (S[currentSidequest.pid+'_xp']||0) + finalXp);
     const cId = getClassForPillar(currentSidequest.pid);
     classXP[cId] = (classXP[cId] || 0) + finalXp;
     weeklyClassXP[cId] = (weeklyClassXP[cId] || 0) + finalXp;
-    const entry = {
-      user_id: UID,
-      quest_id: 'sidequest',
-      quest_name: `[Sidequest] ${currentSidequest.text.slice(0,40)}...`,
-      xp: finalXp,
-      pillar_id: currentSidequest.pid || 'p1',
-      created_at: new Date().toISOString()
-    };
+    const entry={user_id:UID,quest_id:'sidequest',quest_name:`[Sidequest] ${currentSidequest.text.slice(0,40)}...`,xp:finalXp,pillar_id:currentSidequest.pid||'p1',created_at:new Date().toISOString()};
     LOG.unshift(entry);
-    sbInsert('sys_log', entry).catch(()=>{});
+    sbInsert('sys_log',entry).catch(()=>{});
     toast("✅ +" + finalXp + " XP pour la sidequest !");
   }
-
-  // Sauvegarder immédiatement en base et en local
   localStorage.setItem('sys12_sidequest', JSON.stringify(currentSidequest));
-  await saveSidequestToDB(currentSidequest);
+  saveSidequestToDB(currentSidequest);
   updateSidequestUI();
   scheduleSave();
   updateHeader();
@@ -1266,28 +1233,21 @@ async function rerollSidequestIA(){
     toast("⚠️ Journée verrouillée.");
     return;
   }
-  const btn = document.getElementById('btn-reroll');
-  btn.textContent = "Création en cours par l'IA...";
-  btn.disabled = true;
+  const btn=document.getElementById('btn-reroll');
+  btn.textContent="Création en cours par l'IA...";
+  btn.disabled=true;
   
-  const prompt = buildCtx() + "\n\nGénère une 'sidequest' (quête secondaire) utile, concrète et rapide (max 15 min) pour Eliseo aujourd'hui. Thème recommandé : sors-le de sa zone de confort, fais-le pratiquer un brise-glace de sociabilité, de l'observation humaine ou un exercice d'assurance tactique. Donne uniquement l'énoncé direct en 2 lignes max. Sans markdown.";
-  const res = await callGemini(prompt);
+  const prompt=buildCtx()+"\n\nGénère une 'sidequest' (quête secondaire) utile, concrète et rapide (max 15 min) pour Eliseo aujourd'hui. Thème recommandé : sors-le de sa zone de confort, fais-le pratiquer un brise-glace de sociabilité, de l'observation humaine ou un exercice d'assurance tactique. Donne uniquement l'énoncé direct en 2 lignes max. Sans markdown.";
+  const res=await callGemini(prompt);
   
-  const today = todayKey();
-  // On crée une nouvelle sidequest (on écrase l'ancienne)
-  currentSidequest = {
-    date: today,
-    text: res,
-    pid: 'p5',
-    done: false,
-    isIA: true
-  };
+  const today=todayKey();
+  currentSidequest={date:today,text:res,pid:'p5',done:false,isIA:true};
   localStorage.setItem('sys12_sidequest', JSON.stringify(currentSidequest));
-  await saveSidequestToDB(currentSidequest);
+  saveSidequestToDB(currentSidequest);
   updateSidequestUI();
   
-  btn.textContent = "🎲 Relancer via le Coach (IA)";
-  btn.disabled = false;
+  btn.textContent="🎲 Relancer via le Coach (IA)";
+  btn.disabled=false;
   toast("🔄 Nouvelle sidequest générée par l'IA !");
 }
 
@@ -1375,6 +1335,7 @@ function toggleCustomQuest(id){
   if(q.done){
     q.done=false;
     S.total_xp=Math.max(0,S.total_xp-finalXp);
+    // Les quêtes forgées n'affectent PAS les piliers
     classXP.aventurier = Math.max(0, (classXP.aventurier || 0) - finalXp);
     weeklyClassXP.aventurier = Math.max(0, (weeklyClassXP.aventurier || 0) - finalXp);
     q.total_xp = Math.max(0, (q.total_xp || 0) - finalXp);
@@ -1384,6 +1345,7 @@ function toggleCustomQuest(id){
   }else{
     q.done=true;
     S.total_xp+=finalXp;
+    // Les quêtes forgées n'alimentent PAS les piliers
     classXP.aventurier = (classXP.aventurier || 0) + finalXp;
     weeklyClassXP.aventurier = (weeklyClassXP.aventurier || 0) + finalXp;
     q.total_xp = (q.total_xp || 0) + finalXp;
@@ -1459,7 +1421,7 @@ function updateValidationButton(){
 }
 
 // ============================================================
-// AFFICHAGE DES PILIERS
+// AFFICHAGE DES PILIERS (AVEC NOUVEAUX TITRES)
 // ============================================================
 function renderPiliers(){
   document.getElementById('piliers-list').innerHTML=PILLARS.map(p=>{
