@@ -11,6 +11,7 @@
 <link rel="apple-touch-icon" href="favicon.jpg?v=3">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
+/* --- STYLES (inchangés, identiques à la version précédente) --- */
 :root{--bg:#0e0e10;--card:#18181c;--card2:#222228;--border:rgba(255,255,255,0.07);--text:#f0f0f0;--muted:#777;--accent:#a78bfa;--accent2:#7c3aed;--green:#34d399;--amber:#fbbf24;--coral:#f87171;--blue:#60a5fa;--orange:#fb923c;--r:14px;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;font-size:15px;min-height:100dvh;padding-bottom:calc(76px + env(safe-area-inset-bottom));}
@@ -36,53 +37,15 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .ph1 .phase-prog{color:var(--green);}
 .ph2 .phase-prog{color:var(--blue);}
 .ph3 .phase-prog{color:var(--accent);}
-
-.xp-bars-container {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    background: var(--card);
-    border: 0.5px solid var(--border);
-    border-radius: var(--r);
-    padding: 12px 14px;
-    margin-bottom: 12px;
-}
-.xp-bar-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-.xp-bar-label {
-    font-size: 10px;
-    font-weight: 600;
-    color: var(--muted);
-    min-width: 32px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-.xp-bar-track {
-    flex: 1;
-    background: rgba(255,255,255,0.06);
-    border-radius: 4px;
-    height: 6px;
-    overflow: hidden;
-}
-.xp-bar-fill {
-    height: 100%;
-    border-radius: 4px;
-    transition: width 0.5s ease;
-}
-.xp-bar-value {
-    font-size: 10px;
-    font-weight: 600;
-    color: var(--muted);
-    min-width: 50px;
-    text-align: right;
-}
-.xp-bar-fill.global { background: linear-gradient(90deg, var(--accent2), var(--accent)); }
-.xp-bar-fill.pilliers { background: linear-gradient(90deg, #34d399, #60a5fa); }
-.xp-bar-fill.forges { background: linear-gradient(90deg, #fbbf24, #fb923c); }
-
+.xp-bars-container{display:flex;flex-direction:column;gap:4px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:12px;}
+.xp-bar-row{display:flex;align-items:center;gap:8px;}
+.xp-bar-label{font-size:10px;font-weight:600;color:var(--muted);min-width:32px;text-transform:uppercase;letter-spacing:0.05em;}
+.xp-bar-track{flex:1;background:rgba(255,255,255,0.06);border-radius:4px;height:6px;overflow:hidden;}
+.xp-bar-fill{height:100%;border-radius:4px;transition:width .5s ease;}
+.xp-bar-value{font-size:10px;font-weight:600;color:var(--muted);min-width:50px;text-align:right;}
+.xp-bar-fill.global{background:linear-gradient(90deg,var(--accent2),var(--accent));}
+.xp-bar-fill.pilliers{background:linear-gradient(90deg,#34d399,#60a5fa);}
+.xp-bar-fill.forges{background:linear-gradient(90deg,#fbbf24,#fb923c);}
 .xp-hero{background:var(--card);border:0.5px solid var(--border);border-radius:var(--r);padding:18px 16px 14px;margin-bottom:12px;text-align:center;}
 .xp-big{font-size:54px;font-weight:800;letter-spacing:-2px;background:linear-gradient(135deg,var(--accent),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;}
 .xp-level{font-size:14px;color:var(--muted);margin-top:4px;}
@@ -120,6 +83,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .pillar-icon{font-size:20px;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .pillar-name{font-size:14px;font-weight:600;flex:1;}
 .pillar-lv{font-size:12px;color:var(--muted);}
+.pillar-title{font-size:13px;font-weight:700;color:var(--accent);margin-left:6px;}
 .pillar-sats{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;}
 .chart-card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px;}
 .chart-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
@@ -170,7 +134,6 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 .tab-btn.active{color:var(--accent);}
 .tab-icon{font-size:20px;line-height:1;}
 .empty-state{color:var(--muted);font-size:13px;padding:28px 0;text-align:center;}
-
 .ai-card{background:linear-gradient(135deg,rgba(124,58,237,.12),rgba(96,165,250,.08));border:0.5px solid rgba(167,139,250,.25);border-radius:12px;padding:14px 16px;margin-bottom:10px;}
 .ai-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
 .ai-label{font-size:11px;font-weight:700;color:var(--accent);letter-spacing:.05em;text-transform:uppercase;}
@@ -186,170 +149,54 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 .coach-send:active{opacity:0.8;}
 .btn-coach{background:rgba(167,139,250,.1);border:0.5px solid rgba(167,139,250,.3);border-radius:8px;padding:5px 11px;font-size:11px;font-weight:600;color:var(--accent);cursor:pointer;font-family:inherit;display:inline-block;margin-top:6px;}
 .coach-select{background:rgba(24,24,28,0.9);border:0.5px solid rgba(255,255,255,0.15);color:var(--text);border-radius:6px;padding:4px 8px;font-size:11px;font-family:inherit;outline:none;margin-top:6px;vertical-align:middle;}
-
-/* Formulaires Livre des Quêtes */
 .form-group{margin-bottom:12px;}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
-.form-select, .form-input{width:100%;background:rgba(255,255,255,.05);border:0.5px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-family:inherit;font-size:13px;outline:none;}
-.form-select:focus, .form-input:focus{border-color:var(--accent);}
+.form-select,.form-input{width:100%;background:rgba(255,255,255,.05);border:0.5px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-family:inherit;font-size:13px;outline:none;}
+.form-select:focus,.form-input:focus{border-color:var(--accent);}
 .btn-sm{padding:10px 14px;font-size:13px;font-weight:600;border-radius:8px;border:none;cursor:pointer;font-family:inherit;}
 .btn-accent{background:var(--accent2);color:#fff;}
 .btn-muted{background:rgba(255,255,255,0.06);color:var(--text);border:0.5px solid var(--border);}
-.btn-accent:active, .btn-muted:active{opacity:0.8;}
+.btn-accent:active,.btn-muted:active{opacity:0.8;}
 .sidequest-box{background:linear-gradient(135deg,rgba(251,191,36,0.1),rgba(249,146,60,0.05));border:0.5px solid rgba(251,191,36,0.25);border-radius:12px;padding:14px;margin-bottom:14px;}
 .sidequest-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
 .sidequest-title{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--amber);letter-spacing:0.05em;}
 .sidequest-xp{font-size:12px;font-weight:700;color:var(--amber);}
-
-.avatar-card {
-    background: var(--card);
-    border: 0.5px solid var(--border);
-    border-radius: var(--r);
-    padding: 16px;
-    margin-bottom: 12px;
-}
-.avatar-title {
-    font-size: 14px;
-    font-weight: 700;
-    margin-bottom: 2px;
-}
-.avatar-subtitle {
-    font-size: 12px;
-    color: var(--muted);
-    margin-bottom: 12px;
-}
-.class-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-}
-.class-item {
-    background: var(--card2);
-    border: 0.5px solid var(--border);
-    border-radius: 10px;
-    padding: 12px;
-    text-align: center;
-}
-.class-item .class-icon {
-    font-size: 24px;
-    margin-bottom: 2px;
-}
-.class-item .class-name {
-    font-size: 12px;
-    font-weight: 600;
-}
-.class-item .class-level {
-    font-size: 11px;
-    color: var(--muted);
-}
-.class-item .class-bar {
-    margin-top: 6px;
-    height: 4px;
-    background: rgba(255,255,255,0.06);
-    border-radius: 2px;
-    overflow: hidden;
-}
-.class-item .class-bar-fill {
-    height: 100%;
-    border-radius: 2px;
-    transition: width 0.4s;
-}
-.class-item.highlight {
-    border-color: var(--accent);
-    background: rgba(167,139,250,0.08);
-}
-.class-item.weak {
-    border-color: var(--coral);
-    background: rgba(248,113,113,0.08);
-}
-.class-item .class-bar-fill.guerrier { background: #ef4444; }
-.class-item .class-bar-fill.mage { background: #3b82f6; }
-.class-item .class-bar-fill.ombre { background: #8b5cf6; }
-.class-item .class-bar-fill.aventurier { background: #22c55e; }
-
-.aura-banner {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 14px;
-    border-radius: 10px;
-    margin-bottom: 12px;
-    background: rgba(167,139,250,0.1);
-    border: 0.5px solid rgba(167,139,250,0.25);
-}
-.aura-banner .aura-icon { font-size: 24px; }
-.aura-banner .aura-info { flex: 1; }
-.aura-banner .aura-name { font-size: 14px; font-weight: 700; }
-.aura-banner .aura-desc { font-size: 11px; color: var(--muted); }
-.aura-banner.souverain { border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.05); }
-.aura-banner.stagnant { border-color: rgba(255,255,255,0.1); background: rgba(255,255,255,0.02); opacity: 0.6; }
-.aura-banner.guerrier { border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.1); }
-.aura-banner.mage { border-color: rgba(59,130,246,0.4); background: rgba(59,130,246,0.1); }
-.aura-banner.ombre { border-color: rgba(139,92,246,0.4); background: rgba(139,92,246,0.1); }
-.aura-banner.aventurier { border-color: rgba(34,197,94,0.4); background: rgba(34,197,94,0.1); }
-
-.bilan-btn {
-    background: rgba(167,139,250,0.1);
-    border: 0.5px solid rgba(167,139,250,0.25);
-    border-radius: 8px;
-    padding: 8px 14px;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--accent);
-    cursor: pointer;
-    font-family: inherit;
-    width: 100%;
-    margin-top: 8px;
-}
-.bilan-btn:active { opacity: 0.8; }
-.bilan-btn:disabled { opacity: 0.4; cursor: default; }
-
-.choose-boost {
-    display: flex;
-    gap: 6px;
-    margin-top: 8px;
-    flex-wrap: wrap;
-}
-.choose-boost .boost-btn {
-    padding: 4px 10px;
-    border-radius: 6px;
-    border: 0.5px solid var(--border);
-    background: var(--card2);
-    color: var(--text);
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
-    font-family: inherit;
-}
-.choose-boost .boost-btn:active { opacity: 0.8; }
-.choose-boost .boost-btn.selected {
-    border-color: var(--accent);
-    background: rgba(167,139,250,0.15);
-    color: var(--accent);
-}
-
-.toast {
-    position: fixed;
-    bottom: 80px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--card2);
-    border: 0.5px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 20px;
-    font-size: 13px;
-    color: var(--text);
-    z-index: 200;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-    max-width: 90%;
-    text-align: center;
-}
-.toast.show {
-    opacity: 1;
-    pointer-events: auto;
-}
+.avatar-card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px;}
+.avatar-title{font-size:14px;font-weight:700;margin-bottom:2px;}
+.avatar-subtitle{font-size:12px;color:var(--muted);margin-bottom:12px;}
+.class-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.class-item{background:var(--card2);border:0.5px solid var(--border);border-radius:10px;padding:12px;text-align:center;}
+.class-item .class-icon{font-size:24px;margin-bottom:2px;}
+.class-item .class-name{font-size:12px;font-weight:600;}
+.class-item .class-level{font-size:11px;color:var(--muted);}
+.class-item .class-bar{margin-top:6px;height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;}
+.class-item .class-bar-fill{height:100%;border-radius:2px;transition:width .4s;}
+.class-item.highlight{border-color:var(--accent);background:rgba(167,139,250,0.08);}
+.class-item.weak{border-color:var(--coral);background:rgba(248,113,113,0.08);}
+.class-item .class-bar-fill.guerrier{background:#ef4444;}
+.class-item .class-bar-fill.mage{background:#3b82f6;}
+.class-item .class-bar-fill.ombre{background:#8b5cf6;}
+.class-item .class-bar-fill.aventurier{background:#22c55e;}
+.aura-banner{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;margin-bottom:12px;background:rgba(167,139,250,0.1);border:0.5px solid rgba(167,139,250,0.25);}
+.aura-banner .aura-icon{font-size:24px;}
+.aura-banner .aura-info{flex:1;}
+.aura-banner .aura-name{font-size:14px;font-weight:700;}
+.aura-banner .aura-desc{font-size:11px;color:var(--muted);}
+.aura-banner.souverain{border-color:rgba(255,255,255,0.3);background:rgba(255,255,255,0.05);}
+.aura-banner.stagnant{border-color:rgba(255,255,255,0.1);background:rgba(255,255,255,0.02);opacity:0.6;}
+.aura-banner.guerrier{border-color:rgba(239,68,68,0.4);background:rgba(239,68,68,0.1);}
+.aura-banner.mage{border-color:rgba(59,130,246,0.4);background:rgba(59,130,246,0.1);}
+.aura-banner.ombre{border-color:rgba(139,92,246,0.4);background:rgba(139,92,246,0.1);}
+.aura-banner.aventurier{border-color:rgba(34,197,94,0.4);background:rgba(34,197,94,0.1);}
+.bilan-btn{background:rgba(167,139,250,0.1);border:0.5px solid rgba(167,139,250,0.25);border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;color:var(--accent);cursor:pointer;font-family:inherit;width:100%;margin-top:8px;}
+.bilan-btn:active{opacity:0.8;}
+.bilan-btn:disabled{opacity:0.4;cursor:default;}
+.choose-boost{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+.choose-boost .boost-btn{padding:4px 10px;border-radius:6px;border:0.5px solid var(--border);background:var(--card2);color:var(--text);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;}
+.choose-boost .boost-btn:active{opacity:0.8;}
+.choose-boost .boost-btn.selected{border-color:var(--accent);background:rgba(167,139,250,0.15);color:var(--accent);}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--card2);border:0.5px solid var(--border);border-radius:10px;padding:12px 20px;font-size:13px;color:var(--text);z-index:200;opacity:0;transition:opacity .3s ease;pointer-events:none;max-width:90%;text-align:center;}
+.toast.show{opacity:1;pointer-events:auto;}
 </style>
 </head>
 <body>
@@ -376,7 +223,6 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 
 <div id="screen-today" class="screen active">
   <div id="alert" class="alert">⚠️ 3 jours sans activité — protocole minimum : 20 min.</div>
-  
   <div id="ai-welcome" class="ai-card" style="display:none">
     <div class="ai-header"><span style="font-size:16px">🤖</span><span class="ai-label">Coach IA</span></div>
     <div class="ai-body" id="ai-welcome-text"></div>
@@ -386,7 +232,6 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
       <button class="coach-send" onclick="envoyerMessageCoach()">Envoyer</button>
     </div>
   </div>
-
   <div id="phase-banner" class="phase-banner ph1">
     <div class="phase-icon">🌱</div>
     <div class="phase-info">
@@ -395,7 +240,6 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
     </div>
     <div class="phase-prog" id="phase-prog">Mois 1</div>
   </div>
-
   <div class="xp-bars-container">
     <div class="xp-bar-row">
       <span class="xp-bar-label">👤</span>
@@ -413,7 +257,6 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
       <span class="xp-bar-value" id="bar-forges-val">0 XP</span>
     </div>
   </div>
-
   <div class="xp-hero">
     <div class="xp-big" id="xp-big">0</div>
     <div class="xp-level">Niveau <span id="lv-name">Initié</span></div>
@@ -452,7 +295,6 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
     </div>
     <button class="btn-sm btn-muted" id="btn-reroll" onclick="rerollSidequestIA()" style="width:100%;">🎲 Relancer via le Coach (IA)</button>
   </div>
-
   <div class="rev-card">
     <div class="chart-title" style="margin-bottom:10px;">Forges de Quêtes Personnelles</div>
     <div class="avatar-subtitle" style="margin-bottom:10px;color:var(--muted);font-size:11px;">⚠️ Les quêtes forgées alimentent automatiquement la classe <span style="color:#22c55e;">Aventurier</span> (🎒).</div>
@@ -472,7 +314,6 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
     </div>
     <button class="btn-sm btn-accent" onclick="ajouterQuetePerso()" style="width:100%;">+ Forger la Quête</button>
   </div>
-
   <div class="section-title">Tes Quêtes Personnelles Actives</div>
   <div id="custom-quests-list"></div>
 </div>
@@ -541,7 +382,6 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
       <div class="aura-desc" id="aura-desc">Classe dominante de la semaine</div>
     </div>
   </div>
-
   <div class="avatar-card">
     <div class="avatar-title">📊 Niveaux de Classe</div>
     <div class="avatar-subtitle">Progression dans les 4 disciplines</div>
@@ -572,7 +412,6 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
       </div>
     </div>
   </div>
-
   <div class="avatar-card">
     <div class="avatar-title">⚡ Bénédiction Active</div>
     <div class="avatar-subtitle" id="benediction-desc">Aucune bénédiction active</div>
@@ -582,14 +421,12 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
       <button class="bilan-btn" onclick="confirmerBoost()">Confirmer le choix</button>
     </div>
   </div>
-
   <div class="avatar-card">
     <div class="avatar-title">📋 Historique des Bilans</div>
     <div id="bilan-history">
       <div class="empty-state">Aucun bilan enregistré</div>
     </div>
   </div>
-
   <button class="bilan-btn" onclick="lancerBilanHebdo()" id="btn-bilan-hebdo">📊 Lancer le Bilan Hebdomadaire</button>
 </div>
 
@@ -605,10 +442,92 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 <div class="toast" id="toast"></div>
 
 <script>
+// ============================================================
+// CONFIGURATION ET CONSTANTES
+// ============================================================
 const SB_URL='https://nlicstxewcrzjliyslkm.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5saWNzdHhld2NyempsaXlzbGttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1ODg1NzUsImV4cCI6MjA5ODE2NDU3NX0.CTHaV_iM50Q_sA1l8_5rVL7b4nU8XonYRcds8Z702GI';
 const HDR={'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=representation'};
 
+// ---- NOUVEAU : Plafond des piliers à 100 000 XP ----
+const MAX_PILLIER_XP = 100000;
+
+// ---- NOUVEAU : Niveaux et titres des piliers ----
+const PILLAR_RANKS = [
+  { level: 1, xp: 0, title: 'Apprenti' },
+  { level: 2, xp: 600, title: 'Praticien' },
+  { level: 3, xp: 1200, title: 'Expert' },
+  { level: 4, xp: 2000, title: 'Maître' },
+  { level: 5, xp: 3000, title: 'Grand Maître' },
+  { level: 6, xp: 4200, title: 'Archimage' },
+  { level: 7, xp: 5600, title: 'Savant' },
+  { level: 8, xp: 7200, title: 'Sage' },
+  { level: 9, xp: 9000, title: 'Visionnaire' },
+  { level: 10, xp: 11000, title: 'Érudit' },
+  { level: 11, xp: 13200, title: 'Oracle' },
+  { level: 12, xp: 15600, title: 'Prophète' },
+  { level: 13, xp: 18200, title: 'Illuminé' },
+  { level: 14, xp: 21000, title: 'Transcendant' },
+  { level: 15, xp: 24000, title: 'Légende' },
+  { level: 16, xp: 27200, title: 'Mythe' },
+  { level: 17, xp: 30600, title: 'Divin' },
+  { level: 18, xp: 34200, title: 'Omniscient' },
+  { level: 19, xp: 38000, title: 'Éveillé' },
+  { level: 20, xp: 42000, title: 'Dieu' },
+  // Au-delà du niveau 20, on continue avec des titres épiques
+  { level: 21, xp: 46000, title: 'Alpha' },
+  { level: 22, xp: 50000, title: 'Oméga' },
+  { level: 23, xp: 54000, title: 'Cosmique' },
+  { level: 24, xp: 58000, title: 'Primordial' },
+  { level: 25, xp: 62000, title: 'Éternel' },
+];
+
+// ---- Fonction pour obtenir le titre d'un pilier selon son XP ----
+function getPillarRank(xp) {
+  let rank = PILLAR_RANKS[0];
+  for (const r of PILLAR_RANKS) {
+    if (xp >= r.xp) {
+      rank = r;
+    }
+  }
+  return rank;
+}
+
+// ---- Fonction pour calculer le niveau d'un pilier (1 à 25+) ----
+function getPillarLevel(xp) {
+  let level = 1;
+  for (const r of PILLAR_RANKS) {
+    if (xp >= r.xp) {
+      level = r.level;
+    }
+  }
+  return level;
+}
+
+// ---- Fonction pour obtenir le prochain palier ----
+function getNextPillarRank(xp) {
+  let next = null;
+  for (const r of PILLAR_RANKS) {
+    if (xp < r.xp) {
+      next = r;
+      break;
+    }
+  }
+  if (!next) {
+    // Si on dépasse le dernier palier, on crée un palier virtuel
+    const last = PILLAR_RANKS[PILLAR_RANKS.length - 1];
+    next = {
+      level: last.level + 1,
+      xp: last.xp + 4000,
+      title: '★ ' + last.title + ' ∞'
+    };
+  }
+  return next;
+}
+
+// ============================================================
+// FONCTIONS SUPABASE (inchangées)
+// ============================================================
 async function sbGet(table,uid){
   const r=await fetch(`${SB_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(uid)}&limit=1`,{headers:HDR});
   const d=await r.json();
@@ -628,6 +547,9 @@ async function sbGetMany(table,uid,limit=30){
   return r.json();
 }
 
+// ============================================================
+// DONNÉES STATIQUES
+// ============================================================
 const LEVELS=[
   {min:0,name:'Initié'},{min:500,name:'Apprenti'},{min:1200,name:'Praticien'},
   {min:2500,name:'Expert'},{min:5000,name:'Maître'},{min:10000,name:'Architecte'}
@@ -678,7 +600,6 @@ const MILESTONES=[
   {lbl:'1000 XP',icon:'🏆',check:s=>s.total_xp>=1000},
 ];
 const PCOLS={p1:'#a78bfa',p2:'#34d399',p3:'#60a5fa',p4:'#fb923c',p5:'#fbbf24'};
-
 const PILIER_TO_CLASSE = {
   'p4': 'guerrier',
   'p1': 'mage',
@@ -686,14 +607,12 @@ const PILIER_TO_CLASSE = {
   'p3': 'ombre',
   'p5': 'ombre'
 };
-
 const CLASSES = {
   guerrier: { id: 'guerrier', name: 'Guerrier', icon: '⚔️', color: '#ef4444', barClass: 'guerrier' },
   mage: { id: 'mage', name: 'Mage', icon: '🔮', color: '#3b82f6', barClass: 'mage' },
   ombre: { id: 'ombre', name: 'Ombre', icon: '🌑', color: '#8b5cf6', barClass: 'ombre' },
   aventurier: { id: 'aventurier', name: 'Aventurier', icon: '🎒', color: '#22c55e', barClass: 'aventurier' }
 };
-
 const BANQUE_SIDEQUESTS = [
   {text: "L'Œil Clinique Social : Fais un compliment sincère et ultra-spécifique à un inconnu sur son style ou un accessoire.", pid: "p5"},
   {text: "Le Brise-Glace Tactique : Demande une direction ou une recommandation à quelqu'un dans la rue sans sortir ton téléphone.", pid: "p5"},
@@ -717,6 +636,9 @@ const BANQUE_SIDEQUESTS = [
   {text: "Mémorisation de plaque : Retiens la plaque d'immatriculation de la prochaine voiture croisée pendant 1 heure.", pid: "p1"}
 ];
 
+// ============================================================
+// VARIABLES GLOBALES
+// ============================================================
 let UID=localStorage.getItem('sys12_uid')||null;
 let checkedToday={};
 let S={total_xp:0,streak:0,last_day:null,days_total:0,start_date:new Date().toISOString().slice(0,10),current_month:1,p1_xp:0,p2_xp:0,p3_xp:0,p4_xp:0,p5_xp:0};
@@ -727,7 +649,6 @@ let starVal=0;
 let chartXp=null,chartRadar=null;
 let syncTimer=null;
 let isDayLocked=false;
-
 let classXP = { guerrier: 0, mage: 0, ombre: 0, aventurier: 0 };
 let weeklyClassXP = { guerrier: 0, mage: 0, ombre: 0, aventurier: 0 };
 let currentAura = null;
@@ -737,10 +658,11 @@ let isStagnant = false;
 let lastBilanDate = null;
 let boostSelectionPending = false;
 let bilanHistory = [];
-
 let currentSidequest = null;
-let sidequestSynced = false;
 
+// ============================================================
+// FONCTIONS UTILITAIRES
+// ============================================================
 function toast(msg){
   const el=document.getElementById('toast');
   el.textContent=msg;
@@ -814,11 +736,9 @@ function getWeakestClass(xpMap) {
 
 function getBoostedXP(xp, classId, isPillar = false) {
   let boosted = xp;
-  // Multiplicateur 1.2x pour les piliers
   if (isPillar) {
     boosted = Math.round(boosted * 1.2);
   }
-  // Bonus de rattrapage +10% si classe faible (déterminé au bilan)
   if (boostClass && classId === boostClass) {
     boosted = Math.round(boosted * 1.1);
   }
@@ -838,6 +758,9 @@ function distributeClassXP(xp, pid, isCustom = false) {
   return boostedXP;
 }
 
+// ============================================================
+// FONCTIONS SUPABASE SPÉCIFIQUES
+// ============================================================
 async function saveClassData() {
   try {
     await sbUpsert('sys_classes', {
@@ -932,6 +855,9 @@ async function loadCustomQuestsFromDB() {
   return null;
 }
 
+// ============================================================
+// INITIALISATION ET CHARGEMENT
+// ============================================================
 function setupUser(){
   const name=document.getElementById('setup-name').value.trim().toLowerCase().replace(/[^a-z0-9_]/g,'');
   const errEl=document.getElementById('setup-err');
@@ -958,19 +884,12 @@ async function loadFromSupabase(){
     ]);
     if(prog){
       S={...S,...prog};
-      // --- CORRECTION DU BUG DU MOIS ---
+      // --- Calcul du mois (corrigé) ---
       const start = new Date(S.start_date);
       const now = new Date();
-      
-      // Calcul du nombre de jours écoulés
       const diffJours = Math.floor((now - start) / (1000 * 60 * 60 * 24));
-      
-      // Conversion en mois (approximatif : 30.44 jours par mois en moyenne)
       let moisEcoules = Math.floor(diffJours / 30.44);
-      
-      // On s'assure d'être entre 1 et 12
       S.current_month = Math.max(1, Math.min(12, moisEcoules + 1));
-      // --- FIN CORRECTION ---
     }
     if(Array.isArray(logRaw))LOG=logRaw;
     if(Array.isArray(histRaw))XP_HISTORY=histRaw;
@@ -1080,6 +999,9 @@ function getLv(xp){
   return l;
 }
 
+// ============================================================
+// AFFICHAGE PRINCIPAL
+// ============================================================
 function updateHeader(){
   const xp=S.total_xp,lv=getLv(xp),nl=Math.min(lv+1,LEVELS.length-1);
   const cur=LEVELS[lv].min,next=LEVELS[nl].min;
@@ -1122,6 +1044,9 @@ function updateXPbars() {
   document.getElementById('bar-forges-val').textContent = forgesXP + ' XP';
 }
 
+// ============================================================
+// QUÊTES PRÉ-DÉFINIES
+// ============================================================
 function renderQuetes(){
   const phase=getCurrentPhase();
   
@@ -1129,11 +1054,8 @@ function renderQuetes(){
     const done=!!checkedToday[q.id];
     const inPhase=q.phases.includes(phase.id);
     
-    // Calcul de l'XP avec les bons multiplicateurs
     let xp = q.xp;
-    // Multiplicateur 1.2x pour les piliers (toujours actif)
     xp = Math.round(xp * 1.2);
-    // Bonus de rattrapage +10% si classe faible au bilan
     const classId = getClassForPillar(q.pid);
     if (boostClass && classId === boostClass) {
       xp = Math.round(xp * 1.1);
@@ -1184,11 +1106,8 @@ async function toggleQuete(id){
   if(!q)return;
   const today=todayKey();
   
-  // Calcul de l'XP avec les bons multiplicateurs
   let xp = q.xp;
-  // Multiplicateur 1.2x pour les piliers
   xp = Math.round(xp * 1.2);
-  // Bonus de rattrapage +10% si classe faible au bilan
   const classId = getClassForPillar(q.pid);
   if (boostClass && classId === boostClass) {
     xp = Math.round(xp * 1.1);
@@ -1208,7 +1127,8 @@ async function toggleQuete(id){
   } else {
     checkedToday[id]=true;
     S.total_xp+=finalXp;
-    S[q.pid+'_xp']=Math.min(3000,(S[q.pid+'_xp']||0)+finalXp);
+    // ---- NOUVEAU : plafond à 100 000 XP ----
+    S[q.pid+'_xp'] = Math.min(MAX_PILLIER_XP, (S[q.pid+'_xp'] || 0) + finalXp);
     const cId = getClassForPillar(q.pid);
     classXP[cId] = (classXP[cId] || 0) + finalXp;
     weeklyClassXP[cId] = (weeklyClassXP[cId] || 0) + finalXp;
@@ -1225,6 +1145,9 @@ async function toggleQuete(id){
   renderPiliers();
 }
 
+// ============================================================
+// SIDEQUEST
+// ============================================================
 function initSidequest(){
   const today=todayKey();
   if (!currentSidequest || currentSidequest.date !== today) {
@@ -1242,11 +1165,8 @@ function updateSidequestUI(){
   const chk=document.getElementById('sq-check');
   document.getElementById('sidequest-text').textContent=currentSidequest.text;
   
-  // Calcul de l'XP avec les bons multiplicateurs
   let baseXp=30;
-  // Multiplicateur 1.2x pour les piliers
   baseXp = Math.round(baseXp * 1.2);
-  // Bonus de rattrapage +10% si classe faible au bilan
   const classId = getClassForPillar(currentSidequest.pid);
   if (boostClass && classId === boostClass) {
     baseXp = Math.round(baseXp * 1.1);
@@ -1271,7 +1191,6 @@ function toggleSidequest(){
   if(!currentSidequest) return;
   const today=todayKey();
   
-  // Calcul de l'XP avec les bons multiplicateurs
   let baseXp=30;
   baseXp = Math.round(baseXp * 1.2);
   const classId = getClassForPillar(currentSidequest.pid);
@@ -1293,7 +1212,7 @@ function toggleSidequest(){
   }else{
     currentSidequest.done=true;
     S.total_xp+=finalXp;
-    if(currentSidequest.pid) S[currentSidequest.pid+'_xp']=Math.min(3000,(S[currentSidequest.pid+'_xp']||0)+finalXp);
+    if(currentSidequest.pid) S[currentSidequest.pid+'_xp'] = Math.min(MAX_PILLIER_XP, (S[currentSidequest.pid+'_xp']||0) + finalXp);
     const cId = getClassForPillar(currentSidequest.pid);
     classXP[cId] = (classXP[cId] || 0) + finalXp;
     weeklyClassXP[cId] = (weeklyClassXP[cId] || 0) + finalXp;
@@ -1332,6 +1251,9 @@ async function rerollSidequestIA(){
   toast("🔄 Nouvelle sidequest générée par l'IA !");
 }
 
+// ============================================================
+// QUÊTES FORGÉES (AVENTURIER)
+// ============================================================
 function loadCustomQuests(){
   customQuests=JSON.parse(localStorage.getItem('sys12_custom_quests')||'[]');
   renderCustomQuests();
@@ -1344,8 +1266,7 @@ function saveCustomQuests(){
 }
 
 function renderCqSelectors(){
-  // Plus besoin du sélecteur de pilier, on supprime complètement
-  // Les quêtes forgées vont automatiquement dans Aventurier
+  // Plus de sélecteur de pilier
 }
 
 function ajouterQuetePerso(){
@@ -1362,7 +1283,6 @@ function ajouterQuetePerso(){
   if(diff==='medium') xp=25;
   if(diff==='hard') xp=50;
 
-  // Pas de pilier, la quête va directement dans Aventurier
   const nq={id:'cq_'+Date.now(),name:name,xp:xp,type:type,done:false,total_xp:0};
   customQuests.push(nq);
   nameEl.value='';
@@ -1379,7 +1299,6 @@ function renderCustomQuests(){
 
   listEl.innerHTML=customQuests.map(q=>{
     let xp = q.xp;
-    // Bonus de rattrapage +10% si Aventurier est la classe faible
     if (boostClass && 'aventurier' === boostClass) {
       xp = Math.round(xp * 1.1);
     }
@@ -1408,7 +1327,6 @@ function toggleCustomQuest(id){
   const today=todayKey();
   
   let xp = q.xp;
-  // Bonus de rattrapage +10% si Aventurier est la classe faible
   if (boostClass && 'aventurier' === boostClass) {
     xp = Math.round(xp * 1.1);
   }
@@ -1417,7 +1335,7 @@ function toggleCustomQuest(id){
   if(q.done){
     q.done=false;
     S.total_xp=Math.max(0,S.total_xp-finalXp);
-    // On ne retire pas des piliers car les quêtes forgées n'y vont pas
+    // Les quêtes forgées n'affectent PAS les piliers
     classXP.aventurier = Math.max(0, (classXP.aventurier || 0) - finalXp);
     weeklyClassXP.aventurier = Math.max(0, (weeklyClassXP.aventurier || 0) - finalXp);
     q.total_xp = Math.max(0, (q.total_xp || 0) - finalXp);
@@ -1441,6 +1359,9 @@ function toggleCustomQuest(id){
   updateHeader();
 }
 
+// ============================================================
+// VALIDATION DE JOURNÉE
+// ============================================================
 async function validerJour(){
   const today=todayKey();
   if(isDayLocked){
@@ -1499,24 +1420,42 @@ function updateValidationButton(){
   }
 }
 
+// ============================================================
+// AFFICHAGE DES PILIERS (AVEC NOUVEAUX TITRES)
+// ============================================================
 function renderPiliers(){
   document.getElementById('piliers-list').innerHTML=PILLARS.map(p=>{
-    const xp=S[p.id+'_xp']||0;
-    const pct=Math.min(100,Math.round(xp/3000*100));
-    const lv=Math.floor(xp/600)+1;
+    const xp = S[p.id+'_xp'] || 0;
+    const pct = Math.min(100, Math.round((xp / MAX_PILLIER_XP) * 100));
+    const rank = getPillarRank(xp);
+    const nextRank = getNextPillarRank(xp);
+    const level = getPillarLevel(xp);
+    
     return `<div class="pillar">
       <div class="pillar-top">
         <div class="pillar-icon" style="background:${p.color}22">${p.icon}</div>
         <div class="pillar-name">${p.name}</div>
-        <div class="pillar-lv">Niv. ${lv}</div>
+        <div class="pillar-lv">
+          Niv. ${level} 
+          <span class="pillar-title">${rank.title}</span>
+        </div>
       </div>
       <div class="bar-wrap"><div class="bar-fill" style="width:${pct}%;background:${p.color}"></div></div>
-      <div class="bar-label"><span>${xp} XP</span><span>${pct}%</span></div>
-      <div class="pillar-sats">${p.satellites}</div>
+      <div class="bar-label">
+        <span>${xp} / ${MAX_PILLIER_XP} XP</span>
+        <span>${pct}%</span>
+      </div>
+      <div class="pillar-sats">
+        Prochain palier : ${nextRank.title} (${nextRank.xp} XP)
+        <br>${p.satellites}
+      </div>
     </div>`;
   }).join('');
 }
 
+// ============================================================
+// STATISTIQUES
+// ============================================================
 function renderStats(){
   const today=todayKey();
   const activeDays=[...new Set(LOG.map(l=>l.created_at&&l.created_at.slice(0,10)).filter(Boolean))];
@@ -1532,7 +1471,7 @@ function renderStats(){
 
   document.getElementById('cap-grid').innerHTML=CAPS.map(c=>{
     const xp=S[c.p+'_xp']||0;
-    const pct=Math.min(100,Math.round(xp/3000*100));
+    const pct=Math.min(100, Math.round((xp / MAX_PILLIER_XP) * 100));
     return `<div class="cap-item">
       <div class="cap-name">${c.n}</div>
       <div class="cap-pct" style="color:${PCOLS[c.p]}">${pct}%</div>
@@ -1568,11 +1507,14 @@ function renderStats(){
 
   const rCtx=document.getElementById('chart-radar').getContext('2d');
   const rLabels=PILLARS.map(p=>p.icon+' '+p.name.split(' ')[0]);
-  const rData=PILLARS.map(p=>Math.min(100,Math.round((S[p.id+'_xp']||0)/3000*100)));
+  const rData=PILLARS.map(p=>Math.min(100, Math.round(((S[p.id+'_xp']||0) / MAX_PILLIER_XP) * 100)));
   if(chartRadar)chartRadar.destroy();
   chartRadar=new Chart(rCtx,{type:'radar',data:{labels:rLabels,datasets:[{data:rData,borderColor:'#a78bfa',backgroundColor:'rgba(124,58,237,0.18)',borderWidth:2,pointBackgroundColor:'#a78bfa',pointRadius:4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{r:{min:0,max:100,ticks:{display:false},grid:{color:'rgba(255,255,255,0.07)'},pointLabels:{color:'#999',font:{size:11}},angleLines:{color:'rgba(255,255,255,0.06)'}}}}});
 }
 
+// ============================================================
+// REVUE
+// ============================================================
 function setStar(v){
   starVal=v;
   document.querySelectorAll('.star').forEach((s,i)=>s.classList.toggle('on',i<v));
@@ -1598,6 +1540,9 @@ async function sauvegarderRevue(){
   toast("📝 Revue sauvegardée ! +100 XP");
 }
 
+// ============================================================
+// NAVIGATION
+// ============================================================
 function goTab(id,btn){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('screen-'+id).classList.add('active');
@@ -1610,6 +1555,9 @@ function goTab(id,btn){
   if(id==='avatar') { renderAvatar(); renderBilanHistory(); }
 }
 
+// ============================================================
+// AVATAR / CLASSES
+// ============================================================
 function renderAvatar(){
   const banner = document.getElementById('aura-banner');
   const icon = document.getElementById('aura-icon');
@@ -1796,6 +1744,9 @@ function lancerBilanHebdo() {
   scheduleSave();
 }
 
+// ============================================================
+// INITIALISATION
+// ============================================================
 async function init(){
   await loadFromSupabase();
   isDayLocked=(S.last_day===todayKey());
@@ -1816,6 +1767,9 @@ if(!UID){
   init();
 }
 
+// ============================================================
+// IA / COACH
+// ============================================================
 const WORKER_URL='https://evolution-ai.eliseobuti.workers.dev';
 
 function callGemini(prompt){
