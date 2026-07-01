@@ -11,7 +11,6 @@
 <link rel="apple-touch-icon" href="favicon.jpg?v=3">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-/* --- STYLES (inchangés, identiques à la version précédente) --- */
 :root{--bg:#0e0e10;--card:#18181c;--card2:#222228;--border:rgba(255,255,255,0.07);--text:#f0f0f0;--muted:#777;--accent:#a78bfa;--accent2:#7c3aed;--green:#34d399;--amber:#fbbf24;--coral:#f87171;--blue:#60a5fa;--orange:#fb923c;--r:14px;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;font-size:15px;min-height:100dvh;padding-bottom:calc(76px + env(safe-area-inset-bottom));}
@@ -449,10 +448,8 @@ const SB_URL='https://nlicstxewcrzjliyslkm.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5saWNzdHhld2NyempsaXlzbGttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1ODg1NzUsImV4cCI6MjA5ODE2NDU3NX0.CTHaV_iM50Q_sA1l8_5rVL7b4nU8XonYRcds8Z702GI';
 const HDR={'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=representation'};
 
-// ---- NOUVEAU : Plafond des piliers à 100 000 XP ----
 const MAX_PILLIER_XP = 100000;
 
-// ---- NOUVEAU : Niveaux et titres des piliers ----
 const PILLAR_RANKS = [
   { level: 1, xp: 0, title: 'Apprenti' },
   { level: 2, xp: 600, title: 'Praticien' },
@@ -474,7 +471,6 @@ const PILLAR_RANKS = [
   { level: 18, xp: 34200, title: 'Omniscient' },
   { level: 19, xp: 38000, title: 'Éveillé' },
   { level: 20, xp: 42000, title: 'Dieu' },
-  // Au-delà du niveau 20, on continue avec des titres épiques
   { level: 21, xp: 46000, title: 'Alpha' },
   { level: 22, xp: 50000, title: 'Oméga' },
   { level: 23, xp: 54000, title: 'Cosmique' },
@@ -482,51 +478,36 @@ const PILLAR_RANKS = [
   { level: 25, xp: 62000, title: 'Éternel' },
 ];
 
-// ---- Fonction pour obtenir le titre d'un pilier selon son XP ----
 function getPillarRank(xp) {
   let rank = PILLAR_RANKS[0];
   for (const r of PILLAR_RANKS) {
-    if (xp >= r.xp) {
-      rank = r;
-    }
+    if (xp >= r.xp) rank = r;
   }
   return rank;
 }
 
-// ---- Fonction pour calculer le niveau d'un pilier (1 à 25+) ----
 function getPillarLevel(xp) {
   let level = 1;
   for (const r of PILLAR_RANKS) {
-    if (xp >= r.xp) {
-      level = r.level;
-    }
+    if (xp >= r.xp) level = r.level;
   }
   return level;
 }
 
-// ---- Fonction pour obtenir le prochain palier ----
 function getNextPillarRank(xp) {
   let next = null;
   for (const r of PILLAR_RANKS) {
-    if (xp < r.xp) {
-      next = r;
-      break;
-    }
+    if (xp < r.xp) { next = r; break; }
   }
   if (!next) {
-    // Si on dépasse le dernier palier, on crée un palier virtuel
     const last = PILLAR_RANKS[PILLAR_RANKS.length - 1];
-    next = {
-      level: last.level + 1,
-      xp: last.xp + 4000,
-      title: '★ ' + last.title + ' ∞'
-    };
+    next = { level: last.level + 1, xp: last.xp + 4000, title: '★ ' + last.title + ' ∞' };
   }
   return next;
 }
 
 // ============================================================
-// FONCTIONS SUPABASE (inchangées)
+// FONCTIONS SUPABASE
 // ============================================================
 async function sbGet(table,uid){
   const r=await fetch(`${SB_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(uid)}&limit=1`,{headers:HDR});
@@ -813,7 +794,9 @@ async function saveSidequestToDB(sq) {
       is_ia: sq.isIA || false,
       updated_at: new Date().toISOString()
     });
-  } catch(e) {}
+  } catch(e) {
+    console.warn('Erreur sauvegarde sidequest:', e);
+  }
 }
 
 async function loadSidequestFromDB() {
@@ -829,7 +812,9 @@ async function loadSidequestFromDB() {
         isIA: data.is_ia || false
       };
     }
-  } catch(e) {}
+  } catch(e) {
+    console.warn('Erreur chargement sidequest:', e);
+  }
   return null;
 }
 
@@ -904,7 +889,6 @@ async function loadFromSupabase(){
     await loadClassData();
     await loadBilanHistory();
 
-    // Récupération des données locales
     const savedWeekly = localStorage.getItem('sys12_weekly_xp');
     if (savedWeekly) {
       try { weeklyClassXP = JSON.parse(savedWeekly); } catch(e) {}
@@ -930,7 +914,7 @@ async function loadFromSupabase(){
       customQuests = JSON.parse(localStorage.getItem('sys12_custom_quests') || '[]');
     }
 
-    // --- CHARGEMENT DE LA SIDEQUEST AVEC PRIORITÉ SUPABASE ---
+    // --- CHARGEMENT DE LA SIDEQUEST AVEC PRIORITÉ ABSOLUE SUPABASE ---
     const dbSq = await loadSidequestFromDB();
     const todayStr = todayKey();
 
@@ -981,7 +965,10 @@ async function saveProgress(){
       localStorage.setItem('sys12_sidequest', JSON.stringify(currentSidequest));
     }
     setSyncState('ok');
-  }catch(e){setSyncState('error');}
+  } catch(e) {
+    setSyncState('error');
+    console.error('Erreur saveProgress:', e);
+  }
 }
 
 function scheduleSave(){
@@ -1120,7 +1107,7 @@ async function toggleQuete(id){
   if(checkedToday[id]){
     delete checkedToday[id];
     S.total_xp=Math.max(0,S.total_xp-finalXp);
-    S[q.pid+'_xp']=Math.max(0,(S[q.pid+'_xp']||0)-finalXp);
+    S[q.pid+'_xp]=Math.max(0,(S[q.pid+'_xp']||0)-finalXp);
     const cId = getClassForPillar(q.pid);
     classXP[cId] = Math.max(0, (classXP[cId] || 0) - finalXp);
     weeklyClassXP[cId] = Math.max(0, (weeklyClassXP[cId] || 0) - finalXp);
@@ -1130,7 +1117,6 @@ async function toggleQuete(id){
   } else {
     checkedToday[id]=true;
     S.total_xp+=finalXp;
-    // ---- NOUVEAU : plafond à 100 000 XP ----
     S[q.pid+'_xp'] = Math.min(MAX_PILLIER_XP, (S[q.pid+'_xp'] || 0) + finalXp);
     const cId = getClassForPillar(q.pid);
     classXP[cId] = (classXP[cId] || 0) + finalXp;
@@ -1149,52 +1135,81 @@ async function toggleQuete(id){
 }
 
 // ============================================================
-// SIDEQUEST
+// SIDEQUEST (UNIQUE, SYNCHRONISÉE, PERSISTANTE)
 // ============================================================
 function initSidequest(){
-  const today=todayKey();
-  if (!currentSidequest || currentSidequest.date !== today) {
-    const rand=BANQUE_SIDEQUESTS[Math.floor(Math.random()*BANQUE_SIDEQUESTS.length)];
-    currentSidequest={date:today,text:rand.text,pid:rand.pid,done:false,isIA:false};
-    localStorage.setItem('sys12_sidequest', JSON.stringify(currentSidequest));
-    saveSidequestToDB(currentSidequest);
-  }
+  // Déjà chargé depuis Supabase dans loadFromSupabase
+  // On s'assure juste que l'UI est à jour
   updateSidequestUI();
 }
 
 function updateSidequestUI(){
-  if(!currentSidequest) return;
-  const item=document.getElementById('sidequest-item');
-  const chk=document.getElementById('sq-check');
-  document.getElementById('sidequest-text').textContent=currentSidequest.text;
+  if(!currentSidequest) {
+    // Fallback : essayer de charger depuis localStorage
+    const local = localStorage.getItem('sys12_sidequest');
+    if (local) {
+      try {
+        const parsed = JSON.parse(local);
+        if (parsed.date === todayKey()) {
+          currentSidequest = parsed;
+        }
+      } catch(e) {}
+    }
+    if (!currentSidequest) {
+      // Générer une nouvelle si vraiment rien
+      const rand = BANQUE_SIDEQUESTS[Math.floor(Math.random() * BANQUE_SIDEQUESTS.length)];
+      currentSidequest = {
+        date: todayKey(),
+        text: rand.text,
+        pid: rand.pid || 'p5',
+        done: false,
+        isIA: false
+      };
+      localStorage.setItem('sys12_sidequest', JSON.stringify(currentSidequest));
+      saveSidequestToDB(currentSidequest);
+    }
+  }
+
+  const item = document.getElementById('sidequest-item');
+  const chk = document.getElementById('sq-check');
+  document.getElementById('sidequest-text').textContent = currentSidequest.text;
   
-  let baseXp=30;
+  let baseXp = 30;
   baseXp = Math.round(baseXp * 1.2);
   const classId = getClassForPillar(currentSidequest.pid);
   if (boostClass && classId === boostClass) {
     baseXp = Math.round(baseXp * 1.1);
   }
   const finalXp = baseXp;
-  document.getElementById('sq-xp-display').textContent=`+${finalXp} XP`;
+  document.getElementById('sq-xp-display').textContent = `+${finalXp} XP`;
 
   if(currentSidequest.done){
     item.classList.add('done');
-    chk.textContent='✓';
-  }else{
+    chk.textContent = '✓';
+  } else {
     item.classList.remove('done');
-    chk.textContent='';
+    chk.textContent = '';
   }
 }
 
-function toggleSidequest(){
+async function toggleSidequest(){
   if(isDayLocked){
     toast("⚠️ Journée verrouillée. Utilise 'Modifier la journée' pour ajuster.");
     return;
   }
-  if(!currentSidequest) return;
-  const today=todayKey();
+  if(!currentSidequest) {
+    toast("⚠️ Sidequest non chargée.");
+    return;
+  }
+  const today = todayKey();
+  if (currentSidequest.date !== today) {
+    // La sidequest est périmée, on recharge
+    await loadFromSupabase();
+    updateSidequestUI();
+    return;
+  }
   
-  let baseXp=30;
+  let baseXp = 30;
   baseXp = Math.round(baseXp * 1.2);
   const classId = getClassForPillar(currentSidequest.pid);
   if (boostClass && classId === boostClass) {
@@ -1203,29 +1218,44 @@ function toggleSidequest(){
   const finalXp = baseXp;
 
   if(currentSidequest.done){
-    currentSidequest.done=false;
-    S.total_xp=Math.max(0,S.total_xp-finalXp);
-    if(currentSidequest.pid) S[currentSidequest.pid+'_xp']=Math.max(0,(S[currentSidequest.pid+'_xp']||0)-finalXp);
+    // Décocher
+    currentSidequest.done = false;
+    S.total_xp = Math.max(0, S.total_xp - finalXp);
+    if(currentSidequest.pid) {
+      S[currentSidequest.pid + '_xp'] = Math.max(0, (S[currentSidequest.pid + '_xp'] || 0) - finalXp);
+    }
     const cId = getClassForPillar(currentSidequest.pid);
     classXP[cId] = Math.max(0, (classXP[cId] || 0) - finalXp);
     weeklyClassXP[cId] = Math.max(0, (weeklyClassXP[cId] || 0) - finalXp);
-    LOG=LOG.filter(l=>!(l.quest_id==='sidequest'&&l.created_at&&l.created_at.slice(0,10)===today));
-    sbDelete('sys_log',UID,'sidequest',today).catch(()=>{});
+    LOG = LOG.filter(l => !(l.quest_id === 'sidequest' && l.created_at && l.created_at.slice(0,10) === today));
+    sbDelete('sys_log', UID, 'sidequest', today).catch(()=>{});
     toast("↩️ Sidequest décochée — XP retirés");
-  }else{
-    currentSidequest.done=true;
-    S.total_xp+=finalXp;
-    if(currentSidequest.pid) S[currentSidequest.pid+'_xp'] = Math.min(MAX_PILLIER_XP, (S[currentSidequest.pid+'_xp']||0) + finalXp);
+  } else {
+    // Cocher
+    currentSidequest.done = true;
+    S.total_xp += finalXp;
+    if(currentSidequest.pid) {
+      S[currentSidequest.pid + '_xp'] = Math.min(MAX_PILLIER_XP, (S[currentSidequest.pid + '_xp'] || 0) + finalXp);
+    }
     const cId = getClassForPillar(currentSidequest.pid);
     classXP[cId] = (classXP[cId] || 0) + finalXp;
     weeklyClassXP[cId] = (weeklyClassXP[cId] || 0) + finalXp;
-    const entry={user_id:UID,quest_id:'sidequest',quest_name:`[Sidequest] ${currentSidequest.text.slice(0,40)}...`,xp:finalXp,pillar_id:currentSidequest.pid||'p1',created_at:new Date().toISOString()};
+    const entry = {
+      user_id: UID,
+      quest_id: 'sidequest',
+      quest_name: `[Sidequest] ${currentSidequest.text.slice(0,40)}...`,
+      xp: finalXp,
+      pillar_id: currentSidequest.pid || 'p1',
+      created_at: new Date().toISOString()
+    };
     LOG.unshift(entry);
-    sbInsert('sys_log',entry).catch(()=>{});
+    sbInsert('sys_log', entry).catch(()=>{});
     toast("✅ +" + finalXp + " XP pour la sidequest !");
   }
+
+  // Sauvegarder immédiatement en base et en local
   localStorage.setItem('sys12_sidequest', JSON.stringify(currentSidequest));
-  saveSidequestToDB(currentSidequest);
+  await saveSidequestToDB(currentSidequest);
   updateSidequestUI();
   scheduleSave();
   updateHeader();
@@ -1236,21 +1266,28 @@ async function rerollSidequestIA(){
     toast("⚠️ Journée verrouillée.");
     return;
   }
-  const btn=document.getElementById('btn-reroll');
-  btn.textContent="Création en cours par l'IA...";
-  btn.disabled=true;
+  const btn = document.getElementById('btn-reroll');
+  btn.textContent = "Création en cours par l'IA...";
+  btn.disabled = true;
   
-  const prompt=buildCtx()+"\n\nGénère une 'sidequest' (quête secondaire) utile, concrète et rapide (max 15 min) pour Eliseo aujourd'hui. Thème recommandé : sors-le de sa zone de confort, fais-le pratiquer un brise-glace de sociabilité, de l'observation humaine ou un exercice d'assurance tactique. Donne uniquement l'énoncé direct en 2 lignes max. Sans markdown.";
-  const res=await callGemini(prompt);
+  const prompt = buildCtx() + "\n\nGénère une 'sidequest' (quête secondaire) utile, concrète et rapide (max 15 min) pour Eliseo aujourd'hui. Thème recommandé : sors-le de sa zone de confort, fais-le pratiquer un brise-glace de sociabilité, de l'observation humaine ou un exercice d'assurance tactique. Donne uniquement l'énoncé direct en 2 lignes max. Sans markdown.";
+  const res = await callGemini(prompt);
   
-  const today=todayKey();
-  currentSidequest={date:today,text:res,pid:'p5',done:false,isIA:true};
+  const today = todayKey();
+  // On crée une nouvelle sidequest (on écrase l'ancienne)
+  currentSidequest = {
+    date: today,
+    text: res,
+    pid: 'p5',
+    done: false,
+    isIA: true
+  };
   localStorage.setItem('sys12_sidequest', JSON.stringify(currentSidequest));
-  saveSidequestToDB(currentSidequest);
+  await saveSidequestToDB(currentSidequest);
   updateSidequestUI();
   
-  btn.textContent="🎲 Relancer via le Coach (IA)";
-  btn.disabled=false;
+  btn.textContent = "🎲 Relancer via le Coach (IA)";
+  btn.disabled = false;
   toast("🔄 Nouvelle sidequest générée par l'IA !");
 }
 
@@ -1338,7 +1375,6 @@ function toggleCustomQuest(id){
   if(q.done){
     q.done=false;
     S.total_xp=Math.max(0,S.total_xp-finalXp);
-    // Les quêtes forgées n'affectent PAS les piliers
     classXP.aventurier = Math.max(0, (classXP.aventurier || 0) - finalXp);
     weeklyClassXP.aventurier = Math.max(0, (weeklyClassXP.aventurier || 0) - finalXp);
     q.total_xp = Math.max(0, (q.total_xp || 0) - finalXp);
@@ -1348,7 +1384,6 @@ function toggleCustomQuest(id){
   }else{
     q.done=true;
     S.total_xp+=finalXp;
-    // Les quêtes forgées n'alimentent PAS les piliers
     classXP.aventurier = (classXP.aventurier || 0) + finalXp;
     weeklyClassXP.aventurier = (weeklyClassXP.aventurier || 0) + finalXp;
     q.total_xp = (q.total_xp || 0) + finalXp;
@@ -1424,7 +1459,7 @@ function updateValidationButton(){
 }
 
 // ============================================================
-// AFFICHAGE DES PILIERS (AVEC NOUVEAUX TITRES)
+// AFFICHAGE DES PILIERS
 // ============================================================
 function renderPiliers(){
   document.getElementById('piliers-list').innerHTML=PILLARS.map(p=>{
