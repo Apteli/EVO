@@ -109,7 +109,6 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .tag{font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;}
 .tag-min{background:rgba(167,139,250,.15);color:var(--accent);}
 .tag-ph{background:rgba(255,255,255,.07);color:var(--muted);}
-.tag-bounty{background:rgba(251,191,36,.15);color:var(--amber);}
 .tag-aventurier{background:rgba(34,197,94,.15);color:#22c55e;}
 .q-xp{font-size:13px;font-weight:700;color:var(--accent);flex-shrink:0;}
 .btn-main{width:100%;background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;border:none;border-radius:14px;padding:16px;font-size:16px;font-weight:700;cursor:pointer;margin-top:14px;transition:opacity .15s;font-family:inherit;}
@@ -378,14 +377,6 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 <div id="screen-today" class="screen active">
   <div id="alert" class="alert">⚠️ 3 jours sans activité — protocole minimum : 20 min.</div>
   
-  <div id="bounty-banner" class="phase-banner" style="background:rgba(251,191,36,.08);border:0.5px solid rgba(251,191,36,.25);margin-bottom:12px;display:none;">
-    <div class="phase-icon">🚨</div>
-    <div class="phase-info">
-      <div class="phase-name" style="color:var(--amber)">Boussole : Prime du Jour activée !</div>
-      <div class="phase-desc" id="bounty-desc" style="color:rgba(255,255,255,0.7)">+25% XP sur toutes les quêtes liées au pilier le plus bas.</div>
-    </div>
-  </div>
-
   <div id="ai-welcome" class="ai-card" style="display:none">
     <div class="ai-header"><span style="font-size:16px">🤖</span><span class="ai-label">Coach IA</span></div>
     <div class="ai-body" id="ai-welcome-text"></div>
@@ -464,19 +455,16 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 
   <div class="rev-card">
     <div class="chart-title" style="margin-bottom:10px;">Forges de Quêtes Personnelles</div>
-    <div class="avatar-subtitle" style="margin-bottom:10px;color:var(--muted);font-size:11px;">⚠️ Les quêtes forgées alimentent automatiquement la classe <span style="color:#22c55e;">Aventurier</span> (🎒) — elles n'affectent pas les piliers.</div>
+    <div class="avatar-subtitle" style="margin-bottom:10px;color:var(--muted);font-size:11px;">⚠️ Les quêtes forgées alimentent automatiquement la classe <span style="color:#22c55e;">Aventurier</span> (🎒).</div>
     <div class="form-group">
       <input type="text" id="cq-name" class="form-input" placeholder="Nom de ta tâche ou objectif..." autocomplete="off">
     </div>
     <div class="form-row">
-      <select id="cq-pillar" class="form-select"></select>
       <select id="cq-diff" class="form-select">
         <option value="easy">Facile (10 XP)</option>
         <option value="medium">Moyen (25 XP)</option>
         <option value="hard">Difficile (50 XP)</option>
       </select>
-    </div>
-    <div class="form-group">
       <select id="cq-type" class="form-select">
         <option value="oneshot">One-shot (To-Do ponctuelle)</option>
         <option value="recurrent">Récurrente (Quotidienne)</option>
@@ -614,7 +602,6 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
   <button class="tab-btn" onclick="goTab('revue',this)"><span class="tab-icon">📋</span>Revue</button>
 </div>
 
-<!-- Toast pour les notifications -->
 <div class="toast" id="toast"></div>
 
 <script>
@@ -827,9 +814,11 @@ function getWeakestClass(xpMap) {
 
 function getBoostedXP(xp, classId, isPillar = false) {
   let boosted = xp;
+  // Multiplicateur 1.2x pour les piliers
   if (isPillar) {
     boosted = Math.round(boosted * 1.2);
   }
+  // Bonus de rattrapage +10% si classe faible (déterminé au bilan)
   if (boostClass && classId === boostClass) {
     boosted = Math.round(boosted * 1.1);
   }
@@ -943,8 +932,6 @@ async function loadCustomQuestsFromDB() {
   return null;
 }
 
-// --- Toast notification ---
-
 function setupUser(){
   const name=document.getElementById('setup-name').value.trim().toLowerCase().replace(/[^a-z0-9_]/g,'');
   const errEl=document.getElementById('setup-err');
@@ -971,10 +958,19 @@ async function loadFromSupabase(){
     ]);
     if(prog){
       S={...S,...prog};
-      const start=new Date(S.start_date);
-      const now=new Date();
-      const md=(now.getFullYear()-start.getFullYear())*12+(now.getMonth()-start.getMonth())+1;
-      S.current_month=Math.max(1,Math.min(12,md));
+      // --- CORRECTION DU BUG DU MOIS ---
+      const start = new Date(S.start_date);
+      const now = new Date();
+      
+      // Calcul du nombre de jours écoulés
+      const diffJours = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+      
+      // Conversion en mois (approximatif : 30.44 jours par mois en moyenne)
+      let moisEcoules = Math.floor(diffJours / 30.44);
+      
+      // On s'assure d'être entre 1 et 12
+      S.current_month = Math.max(1, Math.min(12, moisEcoules + 1));
+      // --- FIN CORRECTION ---
     }
     if(Array.isArray(logRaw))LOG=logRaw;
     if(Array.isArray(histRaw))XP_HISTORY=histRaw;
@@ -1006,7 +1002,6 @@ async function loadFromSupabase(){
       } catch(e) {}
     }
     
-    // Charger les quêtes personnelles depuis Supabase
     const dbQuests = await loadCustomQuestsFromDB();
     if (dbQuests && Array.isArray(dbQuests)) {
       customQuests = dbQuests;
@@ -1015,7 +1010,6 @@ async function loadFromSupabase(){
       customQuests = JSON.parse(localStorage.getItem('sys12_custom_quests')||'[]');
     }
     
-    // Charger la sidequest depuis Supabase
     const dbSq = await loadSidequestFromDB();
     const todayStr = todayKey();
     if (dbSq && dbSq.date === todayStr) {
@@ -1080,17 +1074,6 @@ function getCurrentPhase(){
   return PHASES.find(p=>p.months.includes(m))||PHASES[0];
 }
 
-function getBountyPillar(){
-  const pillars=['p1','p2','p3','p4','p5'];
-  let minXp=Infinity;
-  let minId='p1';
-  pillars.forEach(id=>{
-    const xp=S[id+'_xp']||0;
-    if(xp<minXp){minXp=xp;minId=id;}
-  });
-  return minId;
-}
-
 function getLv(xp){
   let l=0;
   for(let i=0;i<LEVELS.length;i++){if(xp>=LEVELS[i].min)l=i;}
@@ -1116,13 +1099,6 @@ function updateHeader(){
   banner.querySelector('.phase-name').textContent='Phase '+ph.id+' — '+ph.name;
   banner.querySelector('.phase-desc').textContent=ph.desc;
   document.getElementById('phase-prog').textContent='Mois '+S.current_month;
-  
-  const bp=getBountyPillar();
-  const bpObj=PILLARS.find(p=>p.id===bp);
-  if(bpObj){
-    document.getElementById('bounty-banner').style.display='flex';
-    document.getElementById('bounty-desc').textContent=`Pilier ciblé : ${bpObj.name}. Toutes ses quêtes rapportent +25% XP.`;
-  }
 
   const missed=S.last_day&&(new Date()-new Date(S.last_day))/86400000>3;
   document.getElementById('alert').classList.toggle('show',!!missed&&S.days_total>0);
@@ -1148,23 +1124,24 @@ function updateXPbars() {
 
 function renderQuetes(){
   const phase=getCurrentPhase();
-  const bp=getBountyPillar();
   
   function qHTML(q,isMin){
     const done=!!checkedToday[q.id];
     const inPhase=q.phases.includes(phase.id);
-    const isBounty=(q.pid===bp);
+    
+    // Calcul de l'XP avec les bons multiplicateurs
     let xp = q.xp;
+    // Multiplicateur 1.2x pour les piliers (toujours actif)
     xp = Math.round(xp * 1.2);
+    // Bonus de rattrapage +10% si classe faible au bilan
     const classId = getClassForPillar(q.pid);
     if (boostClass && classId === boostClass) {
       xp = Math.round(xp * 1.1);
     }
-    const displayedXp = isBounty ? Math.round(xp * 1.25) : xp;
+    const displayedXp = xp;
     
     const phTag=!inPhase?`<span class="tag tag-ph">Phase ${q.phases[0]}+</span>`:'';
     const minTag=isMin?`<span class="tag tag-min">minimum</span>`:'';
-    const bountyTag=isBounty?`<span class="tag tag-bounty">🚨 Prime +25%</span>`:'';
     
     const safeN=q.name.replace(/"/g,'&quot;');
     const safeD=q.desc.replace(/"/g,'&quot;');
@@ -1187,7 +1164,7 @@ function renderQuetes(){
       <div class="q-info">
         <div class="q-name">${q.name}</div>
         <div class="q-desc">${q.desc}</div>
-        <div class="q-tags">${minTag}${phTag}${bountyTag}</div>
+        <div class="q-tags">${minTag}${phTag}</div>
         ${coachBtn}
       </div>
       <div class="q-xp">+${displayedXp} XP</div>
@@ -1206,16 +1183,17 @@ async function toggleQuete(id){
   const q=all.find(x=>x.id===id);
   if(!q)return;
   const today=todayKey();
-  const bp=getBountyPillar();
   
+  // Calcul de l'XP avec les bons multiplicateurs
   let xp = q.xp;
-  const isPillar = true;
+  // Multiplicateur 1.2x pour les piliers
   xp = Math.round(xp * 1.2);
+  // Bonus de rattrapage +10% si classe faible au bilan
   const classId = getClassForPillar(q.pid);
   if (boostClass && classId === boostClass) {
     xp = Math.round(xp * 1.1);
   }
-  const finalXp = (q.pid===bp) ? Math.round(xp * 1.25) : xp;
+  const finalXp = xp;
 
   if(checkedToday[id]){
     delete checkedToday[id];
@@ -1264,15 +1242,17 @@ function updateSidequestUI(){
   const chk=document.getElementById('sq-check');
   document.getElementById('sidequest-text').textContent=currentSidequest.text;
   
-  const bp=getBountyPillar();
+  // Calcul de l'XP avec les bons multiplicateurs
   let baseXp=30;
+  // Multiplicateur 1.2x pour les piliers
   baseXp = Math.round(baseXp * 1.2);
+  // Bonus de rattrapage +10% si classe faible au bilan
   const classId = getClassForPillar(currentSidequest.pid);
   if (boostClass && classId === boostClass) {
     baseXp = Math.round(baseXp * 1.1);
   }
-  const finalXp=(currentSidequest.pid===bp)?Math.round(baseXp * 1.25):baseXp;
-  document.getElementById('sq-xp-display').textContent=`+${finalXp} XP` + ((currentSidequest.pid===bp)?' 🚨':'');
+  const finalXp = baseXp;
+  document.getElementById('sq-xp-display').textContent=`+${finalXp} XP`;
 
   if(currentSidequest.done){
     item.classList.add('done');
@@ -1291,14 +1271,14 @@ function toggleSidequest(){
   if(!currentSidequest) return;
   const today=todayKey();
   
-  const bp=getBountyPillar();
+  // Calcul de l'XP avec les bons multiplicateurs
   let baseXp=30;
   baseXp = Math.round(baseXp * 1.2);
   const classId = getClassForPillar(currentSidequest.pid);
   if (boostClass && classId === boostClass) {
     baseXp = Math.round(baseXp * 1.1);
   }
-  const finalXp=(currentSidequest.pid===bp)?Math.round(baseXp * 1.25):baseXp;
+  const finalXp = baseXp;
 
   if(currentSidequest.done){
     currentSidequest.done=false;
@@ -1364,7 +1344,8 @@ function saveCustomQuests(){
 }
 
 function renderCqSelectors(){
-  document.getElementById('cq-pillar').innerHTML=PILLARS.map(p=>`<option value="${p.id}">${p.icon} ${p.name.split(' ')[0]}</option>`).join('');
+  // Plus besoin du sélecteur de pilier, on supprime complètement
+  // Les quêtes forgées vont automatiquement dans Aventurier
 }
 
 function ajouterQuetePerso(){
@@ -1374,7 +1355,6 @@ function ajouterQuetePerso(){
     toast("⚠️ Donne un nom à ta quête.");
     return;
   }
-  const pid=document.getElementById('cq-pillar').value;
   const diff=document.getElementById('cq-diff').value;
   const type=document.getElementById('cq-type').value;
   
@@ -1382,11 +1362,12 @@ function ajouterQuetePerso(){
   if(diff==='medium') xp=25;
   if(diff==='hard') xp=50;
 
-  const nq={id:'cq_'+Date.now(),name:name,pid:pid,xp:xp,type:type,done:false,total_xp:0};
+  // Pas de pilier, la quête va directement dans Aventurier
+  const nq={id:'cq_'+Date.now(),name:name,xp:xp,type:type,done:false,total_xp:0};
   customQuests.push(nq);
   nameEl.value='';
   saveCustomQuests();
-  toast("⚔️ Quête forgée : '" + name + "'");
+  toast("⚔️ Quête forgée : '" + name + "' (🎒 Aventurier)");
 }
 
 function renderCustomQuests(){
@@ -1395,16 +1376,14 @@ function renderCustomQuests(){
     listEl.innerHTML='<div class="empty-state">Aucune quête forgée pour le moment.</div>';
     return;
   }
-  const bp=getBountyPillar();
 
   listEl.innerHTML=customQuests.map(q=>{
-    const isBounty=(q.pid===bp);
     let xp = q.xp;
+    // Bonus de rattrapage +10% si Aventurier est la classe faible
     if (boostClass && 'aventurier' === boostClass) {
       xp = Math.round(xp * 1.1);
     }
-    const finalXp=isBounty?Math.round(xp * 1.25):xp;
-    const bountyTag=isBounty?`<span class="tag tag-bounty">🚨 +25%</span>`:'';
+    const finalXp = xp;
     const typeTag=`<span class="tag tag-ph">${q.type==='oneshot'?'One-shot':'Récurrente'}</span>`;
     const aventurierTag=`<span class="tag tag-aventurier">🎒 Aventurier</span>`;
     
@@ -1412,7 +1391,7 @@ function renderCustomQuests(){
       <div class="check">${q.done?'✓':''}</div>
       <div class="q-info">
         <div class="q-name">${q.name}</div>
-        <div class="q-tags">${typeTag}${aventurierTag}${bountyTag}</div>
+        <div class="q-tags">${typeTag}${aventurierTag}</div>
       </div>
       <div class="q-xp">+${finalXp} XP</div>
     </div>`;
@@ -1427,18 +1406,18 @@ function toggleCustomQuest(id){
   const q=customQuests.find(x=>x.id===id);
   if(!q) return;
   const today=todayKey();
-  const bp=getBountyPillar();
   
   let xp = q.xp;
+  // Bonus de rattrapage +10% si Aventurier est la classe faible
   if (boostClass && 'aventurier' === boostClass) {
     xp = Math.round(xp * 1.1);
   }
-  const finalXp=(q.pid===bp)?Math.round(xp * 1.25):xp;
+  const finalXp = xp;
 
   if(q.done){
     q.done=false;
     S.total_xp=Math.max(0,S.total_xp-finalXp);
-    S[q.pid+'_xp']=Math.max(0,(S[q.pid+'_xp']||0)-finalXp);
+    // On ne retire pas des piliers car les quêtes forgées n'y vont pas
     classXP.aventurier = Math.max(0, (classXP.aventurier || 0) - finalXp);
     weeklyClassXP.aventurier = Math.max(0, (weeklyClassXP.aventurier || 0) - finalXp);
     q.total_xp = Math.max(0, (q.total_xp || 0) - finalXp);
@@ -1448,14 +1427,14 @@ function toggleCustomQuest(id){
   }else{
     q.done=true;
     S.total_xp+=finalXp;
-    S[q.pid+'_xp']=Math.min(3000,(S[q.pid+'_xp']||0)+finalXp);
+    // Les quêtes forgées n'alimentent PAS les piliers
     classXP.aventurier = (classXP.aventurier || 0) + finalXp;
     weeklyClassXP.aventurier = (weeklyClassXP.aventurier || 0) + finalXp;
     q.total_xp = (q.total_xp || 0) + finalXp;
-    const entry={user_id:UID,quest_id:id,quest_name:`[Perso] ${q.name}`,xp:finalXp,pillar_id:q.pid,created_at:new Date().toISOString()};
+    const entry={user_id:UID,quest_id:id,quest_name:`[Perso] ${q.name}`,xp:finalXp,pillar_id:'custom',created_at:new Date().toISOString()};
     LOG.unshift(entry);
     sbInsert('sys_log',entry).catch(()=>{});
-    toast("✅ +" + finalXp + " XP pour '" + q.name + "'");
+    toast("✅ +" + finalXp + " XP pour '" + q.name + "' (🎒 Aventurier)");
   }
   saveCustomQuests();
   scheduleSave();
