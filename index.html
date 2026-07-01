@@ -11,22 +11,7 @@
 <link rel="apple-touch-icon" href="favicon.jpg?v=3">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-:root{
-  --bg:#0e0e10;
-  --card:#18181c;
-  --card2:#222228;
-  --border:rgba(255,255,255,0.07);
-  --text:#f0f0f0;
-  --muted:#777;
-  --accent:#a78bfa;
-  --accent2:#7c3aed;
-  --green:#34d399;
-  --amber:#fbbf24;
-  --coral:#f87171;
-  --blue:#60a5fa;
-  --orange:#fb923c;
-  --r:14px;
-}
+:root{--bg:#0e0e10;--card:#18181c;--card2:#222228;--border:rgba(255,255,255,0.07);--text:#f0f0f0;--muted:#777;--accent:#a78bfa;--accent2:#7c3aed;--green:#34d399;--amber:#fbbf24;--coral:#f87171;--blue:#60a5fa;--orange:#fb923c;--r:14px;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;font-size:15px;min-height:100dvh;padding-bottom:calc(76px + env(safe-area-inset-bottom));}
 .screen{display:none;padding:14px;max-width:500px;margin:0 auto;}
@@ -192,26 +177,10 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
   </div>
 </div>
 
-<div style="max-width:500px; margin:0 auto; padding: 0 14px 10px;">
-  <div style="background:var(--card); border:0.5px solid var(--border); border-radius:10px; padding:10px 12px; display:flex; flex-direction:column; gap:6px;">
-    <div>
-      <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:2px;"><span style="font-weight:700; color:var(--accent);">⭐ XP GLOBALE</span><span id="txt-global-xp">0 XP</span></div>
-      <div style="height:5px; background:rgba(255,255,255,0.05); border-radius:3px; overflow:hidden;"><div id="bar-global-xp" style="width:0%; height:100%; background:linear-gradient(90deg, var(--accent2), var(--accent));"></div></div>
-    </div>
-    <div>
-      <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:2px;"><span style="font-weight:700; color:var(--blue);">💎 JAUGE PILIERS (1.2x)</span><span id="txt-piliers-xp">0 XP</span></div>
-      <div style="height:5px; background:rgba(255,255,255,0.05); border-radius:3px; overflow:hidden;"><div id="bar-piliers-xp" style="width:0%; height:100%; background:var(--blue);"></div></div>
-    </div>
-    <div>
-      <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:2px;"><span style="font-weight:700; color:var(--green);">⚔️ JAUGE QUÊTES FORGÉES</span><span id="txt-forges-xp">0 XP</span></div>
-      <div style="height:5px; background:rgba(255,255,255,0.05); border-radius:3px; overflow:hidden;"><div id="bar-forges-xp" style="width:0%; height:100%; background:var(--green);"></div></div>
-    </div>
-  </div>
-</div>
-
 <div id="screen-today" class="screen active">
   <div id="alert" class="alert">⚠️ 3 jours sans activité — protocole minimum : 20 min.</div>
   
+  <!-- Boussole Banner -->
   <div id="bounty-banner" class="phase-banner" style="background:rgba(251,191,36,.08);border:0.5px solid rgba(251,191,36,.25);margin-bottom:12px;display:none;">
     <div class="phase-icon">🚨</div>
     <div class="phase-info">
@@ -220,6 +189,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
     </div>
   </div>
 
+  <!-- Bloc Coach IA -->
   <div id="ai-welcome" class="ai-card" style="display:none">
     <div class="ai-header"><span style="font-size:16px">🤖</span><span class="ai-label">Coach IA</span></div>
     <div class="ai-body" id="ai-welcome-text"></div>
@@ -240,9 +210,9 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
   </div>
   <div class="xp-hero">
     <div class="xp-big" id="xp-big">0</div>
-    <div class="xp-level">Aura Active : <span id="lbl-current-aura" style="font-weight:bold; color:var(--accent);">Initié</span></div>
+    <div class="xp-level">Niveau <span id="lv-name">Initié</span></div>
     <div class="bar-wrap"><div class="bar-fill" id="lv-bar" style="width:0%"></div></div>
-    <div class="bar-label"><span id="bar-cur">0 / 500 XP</span><span id="bar-next">→ Suivant</span></div>
+    <div class="bar-label"><span id="bar-cur">0 / 500 XP</span><span id="bar-next">→ Apprenti</span></div>
   </div>
   <div class="streak-row">
     <div class="streak-card">
@@ -261,7 +231,9 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
   <button class="btn-main" id="btn-valider" onclick="validerJour()">✓ Valider la journée</button>
 </div>
 
+<!-- Nouvel Onglet Livre des Quêtes -->
 <div id="screen-book" class="screen">
+  <!-- Sidequest Aléatoire du Jour -->
   <div class="sidequest-box" id="sidequest-card">
     <div class="sidequest-header">
       <div class="sidequest-title">🎲 Sidequest du Jour (Aléatoire)</div>
@@ -276,20 +248,14 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
     </div>
     <button class="btn-sm btn-muted" id="btn-reroll" onclick="rerollSidequestIA()" style="width:100%;">🎲 Relancer via le Coach (IA)</button>
   </div>
+
   <div class="rev-card">
     <div class="chart-title" style="margin-bottom:10px;">Forges de Quêtes Personnelles</div>
     <div class="form-group">
       <input type="text" id="cq-name" class="form-input" placeholder="Nom de ta tâche ou objectif..." autocomplete="off">
     </div>
     <div class="form-row">
-      <select id="cq-pillar" class="form-select">
-         <option value="physique">Conditions physiques (Guerrier)</option>
-         <option value="metacognition">Métacognition & Apprentissage (Mage)</option>
-         <option value="regulation">Régulation psycho-physio (Mage)</option>
-         <option value="presence">Présence & Observation (Ombre)</option>
-         <option value="influence">Influence & Communication (Ombre)</option>
-         <option value="forge">Quête Forgée Exclusive (Aventurier)</option>
-      </select>
+      <select id="cq-pillar" class="form-select"></select>
       <select id="cq-diff" class="form-select">
         <option value="easy">Facile (10 XP)</option>
         <option value="medium">Moyen (25 XP)</option>
@@ -302,291 +268,887 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
         <option value="recurrent">Récurrente (Quotidienne)</option>
       </select>
     </div>
-    <button class="btn-sm btn-accent" onclick="ajouterQuetePerso()" style="width:100%;">🔨 Forger la Quête</button>
+    <button class="btn-sm btn-accent" onclick="ajouterQuetePerso()" style="width:100%;">+ Forger la Quête</button>
   </div>
-  <div class="section-title">Quêtes Forgées Actives</div>
-  <div id="forged-quests-list"></div>
+
+  <div class="section-title">Tes Quêtes Personnelles Actives</div>
+  <div id="custom-quests-list"></div>
 </div>
 
-<div id="screen-status" class="screen">
+<div id="screen-piliers" class="screen">
+  <div id="piliers-list"></div>
+</div>
+
+<div id="screen-stats" class="screen">
   <div class="chart-card">
-    <div class="chart-title">👑 Statut Général & Alignement de Classe</div>
-    <div id="rpg-aura-box" style="padding:12px; border-radius:10px; background:rgba(255,255,255,0.03); text-align:center; margin-bottom:14px;">
-      <div style="font-size:12px; color:var(--muted);">Titre Hebdomadaire Actuel</div>
-      <div id="rpg-aura-title" style="font-size:20px; font-weight:800; color:var(--accent); margin-top:4px;">Initié</div>
-    </div>
-    
-    <div class="section-title" style="margin-top:0;">Niveau des 4 Classes RPG</div>
-    <div class="cap-grid" style="grid-template-columns:1fr; gap:12px;">
-      <div class="cap-item" style="border-left: 4px solid #f87171;">
-        <div style="display:flex; justify-content:between; align-items:center; width:100%;">
-          <div class="cap-name" style="flex:1; font-weight:600; color:#fff;">LE GUERRIER (Force & Vitalité)</div>
-          <div id="xp-guerrier-txt" style="font-size:12px; font-weight:700; color:#f87171;">0 XP</div>
-        </div>
-        <div style="font-size:11px; color:var(--muted); margin-bottom:6px;">Alimenté par : Conditions physiques</div>
-        <div class="cap-bar"><div id="bar-guerrier" class="cap-fill" style="width:0%; background:#f87171;"></div></div>
-      </div>
-      <div class="cap-item" style="border-left: 4px solid #60a5fa;">
-        <div style="display:flex; justify-content:between; align-items:center; width:100%;">
-          <div class="cap-name" style="flex:1; font-weight:600; color:#fff;">LE MAGE (Esprit & Volonté)</div>
-          <div id="xp-mage-txt" style="font-size:12px; font-weight:700; color:#60a5fa;">0 XP</div>
-        </div>
-        <div style="font-size:11px; color:var(--muted); margin-bottom:6px;">Alimenté par : Métacognition, Apprentissage & Régulation</div>
-        <div class="cap-bar"><div id="bar-mage" class="cap-fill" style="width:0%; background:#60a5fa;"></div></div>
-      </div>
-      <div class="cap-item" style="border-left: 4px solid #c084fc;">
-        <div style="display:flex; justify-content:between; align-items:center; width:100%;">
-          <div class="cap-name" style="flex:1; font-weight:600; color:#fff;">L'OMBRE (Perception & Stratégie)</div>
-          <div id="xp-ombre-txt" style="font-size:12px; font-weight:700; color:#c084fc;">0 XP</div>
-        </div>
-        <div style="font-size:11px; color:var(--muted); margin-bottom:6px;">Alimenté par : Présence, Observation & Influence</div>
-        <div class="cap-bar"><div id="bar-ombre" class="cap-fill" style="width:0%; background:#c084fc;"></div></div>
-      </div>
-      <div class="cap-item" style="border-left: 4px solid #34d399;">
-        <div style="display:flex; justify-content:between; align-items:center; width:100%;">
-          <div class="cap-name" style="flex:1; font-weight:600; color:#fff;">L'AVENTURIER (Adaptabilité)</div>
-          <div id="xp-aventurier-txt" style="font-size:12px; font-weight:700; color:#34d399;">0 XP</div>
-        </div>
-        <div style="font-size:11px; color:var(--muted); margin-bottom:6px;">Alimenté par : Quêtes Forgées et Imprévus exclusifs</div>
-        <div class="cap-bar"><div id="bar-aventurier" class="cap-fill" style="width:0%; background:#34d399;"></div></div>
-      </div>
-    </div>
-
-    <button class="btn-main" style="background:var(--card2); font-size:13px; padding:10px;" onclick="executerBilanDimanche()">📊 Simuler / Déclencher le Bilan du Dimanche Soir</button>
-    <div id="bilan-choix-souverain" style="display:none; margin-top:12px; padding:10px; background:rgba(167,139,250,0.1); border:0.5px solid var(--accent); border-radius:8px;">
-      <div style="font-size:12px; font-weight:bold; color:var(--accent); margin-bottom:6px;">👑 Équilibre parfait ! Choisissez votre bénédiction (+10%) :</div>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
-        <button class="btn-sm btn-muted" onclick="choisirBenedictionSouverain('guerrier')">Guerrier</button>
-        <button class="btn-sm btn-muted" onclick="choisirBenedictionSouverain('mage')">Mage</button>
-        <button class="btn-sm btn-muted" onclick="choisirBenedictionSouverain('ombre')">Ombre</button>
-        <button class="btn-sm btn-muted" onclick="choisirBenedictionSouverain('aventurier')">Aventurier</button>
-      </div>
+    <div class="chart-title">XP cumulé — historique</div>
+    <canvas id="chart-xp" height="130"></canvas>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title">Équilibre des piliers</div>
+    <canvas id="chart-radar" height="200"></canvas>
+  </div>
+  <div class="section-title">Activité — 60 jours</div>
+  <div class="chart-card">
+    <div class="heatmap" id="heatmap"></div>
+    <div class="hm-legend">
+      <span><div class="hm-sq on" style="display:inline-block;width:10px;height:10px;border-radius:2px"></div> actif</span>
+      <span><div class="hm-sq today" style="display:inline-block;width:10px;height:10px;border-radius:2px"></div> aujourd'hui</span>
     </div>
   </div>
+  <div class="section-title">Capacités développées</div>
+  <div class="cap-grid" id="cap-grid"></div>
+  <div class="section-title">Jalons</div>
+  <div class="ms-grid" id="milestones"></div>
+  <div class="section-title">Journal des actions</div>
+  <div class="chart-card" id="log-list"><div class="empty-state">Aucune action enregistrée</div></div>
 </div>
 
-<nav class="tab-bar">
-  <button class="tab-btn active" onclick="switchTab('today')">
-    <span class="tab-icon">☀️</span><span>Aujourd'hui</span>
-  </button>
-  <button class="tab-btn" onclick="switchTab('book')">
-    <span class="tab-icon">📖</span><span>Quêtes</span>
-  </button>
-  <button class="tab-btn" onclick="switchTab('status')">
-    <span class="tab-icon">🛡️</span><span>Statuts</span>
-  </button>
-</nav>
+<div id="screen-revue" class="screen">
+  <div class="rev-card">
+    <div class="rev-q">Cette semaine globalement</div>
+    <div class="stars" id="stars-row">
+      <span class="star" onclick="setStar(1)">★</span>
+      <span class="star" onclick="setStar(2)">★</span>
+      <span class="star" onclick="setStar(3)">★</span>
+      <span class="star" onclick="setStar(4)">★</span>
+      <span class="star" onclick="setStar(5)">★</span>
+    </div>
+  </div>
+  <div class="rev-card">
+    <div class="rev-q">Ce qui a bien fonctionné</div>
+    <textarea id="rv-bien" placeholder="Habitudes tenues, progrès..."></textarea>
+  </div>
+  <div class="rev-card">
+    <div class="rev-q">Ce qui a résisté</div>
+    <textarea id="rv-resist" placeholder="Friction, abandons, raisons..."></textarea>
+  </div>
+  <div class="rev-card">
+    <div class="rev-q">Ce que je change cette semaine</div>
+    <textarea id="rv-change" placeholder="Un ajustement concret..."></textarea>
+  </div>
+  <button class="btn-main" onclick="sauvegarderRevue()">Sauvegarder +100 XP</button>
+  <div id="ai-bilan" class="ai-card" style="display:none;margin-top:12px;"><div class="ai-header"><span style="font-size:16px">🧠</span><span class="ai-label">Bilan IA</span></div><div class="ai-body" id="ai-bilan-text"></div></div>
+</div>
+
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="goTab('today',this)"><span class="tab-icon">☀️</span>Aujourd'hui</button>
+  <button class="tab-btn" onclick="goTab('book',this)"><span class="tab-icon">📖</span>Livre</button>
+  <button class="tab-btn" onclick="goTab('piliers',this)"><span class="tab-icon">🧱</span>Piliers</button>
+  <button class="tab-btn" onclick="goTab('stats',this)"><span class="tab-icon">📈</span>Stats</button>
+  <button class="tab-btn" onclick="goTab('revue',this)"><span class="tab-icon">📋</span>Revue</button>
+</div>
 
 <script>
-// État global préservé et enrichi pour le moteur RPG
-let state = {
-  xp: 0,
-  xpPiliers: 0,
-  xpForges: 0,
-  streak: 0,
-  totalDays: 0,
-  user: '',
-  classes: {
-    guerrier: 0,
-    mage: 0,
-    ombre: 0,
-    aventurier: 0
-  },
-  titreAura: "Initié",
-  classeBénie: "", // Recevra +10% d'XP
+const SB_URL='https://nlicstxewcrzjliyslkm.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5saWNzdHhld2NyempsaXlzbGttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1ODg1NzUsImV4cCI6MjA5ODE2NDU3NX0.CTHaV_iM50Q_sA1l8_5rVL7b4nU8XonYRcds8Z702GI';
+const HDR={'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=representation'};
+
+async function sbGet(table,uid){
+  const r=await fetch(`${SB_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(uid)}&limit=1`,{headers:HDR});
+  const d=await r.json();
+  return d&&d[0]?d[0]:null;
+}
+async function sbUpsert(table,obj){
+  return fetch(`${SB_URL}/rest/v1/${table}`,{method:'POST',headers:{...HDR,'Prefer':'resolution=merge-duplicates,return=representation'},body:JSON.stringify(obj)});
+}
+async function sbInsert(table,obj){
+  return fetch(`${SB_URL}/rest/v1/${table}`,{method:'POST',headers:HDR,body:JSON.stringify(obj)});
+}
+async function sbDelete(table,uid,questId,day){
+  return fetch(`${SB_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(uid)}&quest_id=eq.${questId}&created_at=gte.${day}T00:00:00&created_at=lte.${day}T23:59:59`,{method:'DELETE',headers:HDR});
+}
+async function sbGetMany(table,uid,limit=30){
+  const r=await fetch(`${SB_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(uid)}&order=created_at.desc&limit=${limit}`,{headers:HDR});
+  return r.json();
+}
+
+const LEVELS=[
+  {min:0,name:'Initié'},{min:500,name:'Apprenti'},{min:1200,name:'Praticien'},
+  {min:2500,name:'Expert'},{min:5000,name:'Maître'},{min:10000,name:'Architecte'}
+];
+const PHASES=[
+  {id:1,months:[1,2,3],name:'Fondations',desc:'Installer les routines à friction minimale',icon:'🌱',cls:'ph1'},
+  {id:2,months:[4,5,6,7,8],name:'Intensification',desc:'Intégration des satellites, armée comme labo',icon:'⚡',cls:'ph2'},
+  {id:3,months:[9,10,11,12],name:'Consolidation',desc:'Mesure, ajustement, extension du système',icon:'💎',cls:'ph3'},
+];
+const QUETES={
+  min:[
+    {id:'q1',name:'Respiration / cohérence cardiaque',desc:'5 min box breathing ou cohérence cardiaque',xp:30,pid:'p2',phases:[1,2,3]},
+    {id:'q2',name:'Anki — cartes du jour',desc:'10 min, minimum 10 cartes (Étymologie médicale)',xp:40,pid:'p1',phases:[1,2,3]},
+    {id:'q3',name:'Sémiologie factuelle & conscience spatiale',desc:'1 fait physique noté (posture/marche) + 1 scan spatial (sorties/distances)',xp:20,pid:'p3',phases:[1,2,3]},
+  ],
+  opt:[
+    {id:'q4',name:'Bloc cognitif profond',desc:'45 min lecture technique, calcul ou méthode Feynman',xp:80,pid:'p1',phases:[1,2,3]},
+    {id:'q5',name:'Entraînement physique',desc:'30 min force, natation ou zone 2',xp:70,pid:'p4',phases:[1,2,3]},
+    {id:'q6',name:'Wim Hof / douche froide',desc:'Protocole respiration + exposition au froid',xp:50,pid:'p2',phases:[1,2,3]},
+    {id:'q7',name:'Langue ou rhétorique',desc:'30 min Pimsleur, Assimil ou débat oral',xp:60,pid:'p5',phases:[2,3]},
+    {id:'q8',name:'Journal décisionnel',desc:'5 min — 1 décision analysée pour biais cognitifs',xp:30,pid:'p1',phases:[1,2,3]},
+    {id:'q9',name:'Lecture 30 min',desc:'Médecine, philo, neuro, stoïcisme...',xp:40,pid:'p1',phases:[1,2,3]},
+    {id:'q10',name:'Échecs / jeu stratégique',desc:'15 min blitz ou puzzle — pensée multi-coups',xp:35,pid:'p5',phases:[2,3]},
+    {id:'q11',name:"Dessin d'observation",desc:'5 min — percevoir les lignes et volumes réels avant de dessiner',xp:25,pid:'p3',phases:[3]},
+    {id:'q12',name:'Calcul mental chronométré',desc:'10 min — vitesse et chunking',xp:30,pid:'p1',phases:[2,3]},
+  ]
 };
+const PILLARS=[
+  {id:'p1',name:'Métacognition & apprentissage',icon:'🧠',color:'#a78bfa',satellites:'Mémoire · Calcul · Biais · Feynman'},
+  {id:'p2',name:'Régulation psychophysio',icon:'🫁',color:'#34d399',satellites:'Stress · Wim Hof · Sommeil · Récupération'},
+  {id:'p3',name:'Présence & observation',icon:'👁',color:'#60a5fa',satellites:'Sémiologie · Espace · Faits · Distances'},
+  {id:'p4',name:'Condition physique',icon:'⚡',color:'#fb923c',satellites:'Force · Endurance · Proprio · Réflexes'},
+  {id:'p5',name:'Influence & communication',icon:'🎯',color:'#fbbf24',satellites:'Rhétorique · Langues · Négociation · Stratégie'},
+];
+const CAPS=[
+  {n:'Mémoire',p:'p1'},{n:'Calcul mental',p:'p1'},
+  {n:'Contrôle émotionnel',p:'p2'},{n:'Récupération',p:'p2'},
+  {n:'Sémiologie physique',p:'p3'},{n:'Conscience spatiale',p:'p3'},
+  {n:'Force musculaire',p:'p4'},{n:'Endurance cardio',p:'p4'},
+  {n:'Rhétorique',p:'p5'},{n:'Langues',p:'p5'},
+];
+const MILESTONES=[
+  {lbl:'Premier jour',icon:'🌱',check:s=>s.days_total>=1},
+  {lbl:'7 jours streak',icon:'🔥',check:s=>s.streak>=7},
+  {lbl:'500 XP',icon:'⭐',check:s=>s.total_xp>=500},
+  {lbl:'21 jours streak',icon:'💎',check:s=>s.streak>=21},
+  {lbl:'Phase 2',icon:'⚡',check:s=>s.current_month>=4},
+  {lbl:'1000 XP',icon:'🏆',check:s=>s.total_xp>=1000},
+];
+const PCOLS={p1:'#a78bfa',p2:'#34d399',p3:'#60a5fa',p4:'#fb923c',p5:'#fbbf24'};
 
-// Matrice d'association des types d'actions vers les Classes RPG
-function obtenirClasseAssociee(typePillierOuForge) {
-  switch(typePillierOuForge) {
-    case 'physique': return 'guerrier';
-    case 'metacognition':
-    case 'regulation': return 'mage';
-    case 'presence':
-    case 'influence': return 'ombre';
-    case 'forge':
-    default: return 'aventurier';
-  }
+// Banque locale de Sidequests (Aléatoire)
+const BANQUE_SIDEQUESTS = [
+  {text: "L'Œil Clinique Social : Fais un compliment sincère et ultra-spécifique à un inconnu sur son style ou un accessoire.", pid: "p5"},
+  {text: "Le Brise-Glace Tactique : Demande une direction ou une recommandation à quelqu'un dans la rue sans sortir ton téléphone.", pid: "p5"},
+  {text: "L'Improvisation Neutre : Parle aujourd'hui sans utiliser aucun mot de remplissage (euuuh, genre, du coup).", pid: "p5"},
+  {text: "Scan d'urgence absolu : Dans le prochain lieu public, repère instantanément 3 issues et un objet utilisable en couverture.", pid: "p3"},
+  {text: "Vitesse d'ancrage : Regarde une personne 2 secondes, ferme les yeux, et liste mentalement sa posture et 2 détails vestimentaires.", pid: "p3"},
+  {text: "Hydratation flash : Bois un grand verre d'eau immédiatement pour réactiver la vigilance métabolique.", pid: "p2"},
+  {text: "Focus respiration : Fais 2 minutes de respiration triangulaire (4s inspire, 4s bloque, 4s expire) avant ta prochaine tâche.", pid: "p2"},
+  {text: "Détox numérique : Passe les 2 prochaines heures sans regarder aucun écran (hors urgence absolue).", pid: "p1"},
+  {text: "Calcul mental flash : Multiplie mentalement 3 paires de nombres à 2 chiffres dans la prochaine heure.", pid: "p1"},
+  {text: "Posture de combat : Reste debout ou assis avec une symétrie parfaite et un alignement vertébral pendant 15 minutes.", pid: "p4"},
+  {text: "Test d'équilibre complet : Tiens-toi sur une seule jambe, yeux fermés, pendant 45 secondes sans bouger.", pid: "p4"},
+  {text: "Anki inversé : Tente de réciter de mémoire 5 définitions médicales sans regarder les cartes.", pid: "p1"},
+  {text: "Micro-sieste de contrôle : Allonge-toi 10 minutes en contrôle respiratoire complet sans t'endormir.", pid: "p2"},
+  {text: "Analyse d'impact environnemental : Note le niveau sonore et la luminosité du lieu actuel, évalue son impact sur ton stress.", pid: "p3"},
+  {text: "L'art du silence : Écoute une conversation ou un groupe pendant 5 minutes sans intervenir une seule fois.", pid: "p5"},
+  {text: "Chrono-réflexes : Lance un petit objet (balle, clé) et rattrape-le avec la main non dominante 15 fois de suite.", pid: "p4"},
+  {text: "Rappel stoïcien : Identifie une contrariété récente et liste 2 raisons pour lesquelles elle échappe à ton contrôle.", pid: "p1"},
+  {text: "Douche contrastée : Termine ta prochaine douche par 60 secondes d'eau froide au maximum de tolérance.", pid: "p2"},
+  {text: "Estimation de foule : Compte précisément le nombre de personnes dans une pièce en moins de 10 secondes.", pid: "p3"},
+  {text: "Mémorisation de plaque : Retiens la plaque d'immatriculation de la prochaine voiture croisée pendant 1 heure.", pid: "p1"}
+];
+
+let UID=localStorage.getItem('sys12_uid')||null;
+let checkedToday={};
+let S={total_xp:0,streak:0,last_day:null,days_total:0,start_date:new Date().toISOString().slice(0,10),current_month:1,p1_xp:0,p2_xp:0,p3_xp:0,p4_xp:0,p5_xp:0};
+let LOG=[];
+let XP_HISTORY=[];
+let customQuests=[];
+let starVal=0;
+let chartXp=null,chartRadar=null;
+let syncTimer=null;
+let isDayLocked=false;
+
+function setupUser(){
+  const name=document.getElementById('setup-name').value.trim().toLowerCase().replace(/[^a-z0-9_]/g,'');
+  const errEl=document.getElementById('setup-err');
+  if(!name||name.length<2){errEl.classList.add('show');return;}
+  errEl.classList.remove('show');
+  UID=name;
+  localStorage.setItem('sys12_uid',UID);
+  document.getElementById('setup-overlay').style.display='none';
+  init();
 }
 
-// Moteur de calcul d'XP unifié avec triple impact et bonus
-function ajouterProgressionXP(xpDeBase, source) {
-  let xpCalculee = xpDeBase;
-  let estUnPilier = (source !== 'forge');
+function setSyncState(st){
+  const dot=document.getElementById('sync-dot');
+  dot.className='sync-dot'+(st==='syncing'?' syncing':st==='error'?' error':'');
+}
 
-  // 1. Application du multiplicateur automatique de 1.2x sur les Piliers
-  if (estUnPilier) {
-    xpCalculee = Math.round(xpCalculee * 1.2);
-  }
+async function loadFromSupabase(){
+  setSyncState('syncing');
+  try{
+    const [prog,logRaw,histRaw]=await Promise.all([
+      sbGet('sys_progress',UID),
+      sbGetMany('sys_log',UID,50),
+      sbGetMany('sys_xp_history',UID,60),
+    ]);
+    if(prog){
+      S={...S,...prog};
+      const start=new Date(S.start_date);
+      const now=new Date();
+      const md=(now.getFullYear()-start.getFullYear())*12+(now.getMonth()-start.getMonth())+1;
+      S.current_month=Math.max(1,Math.min(12,md));
+    }
+    if(Array.isArray(logRaw))LOG=logRaw;
+    if(Array.isArray(histRaw))XP_HISTORY=histRaw;
+    const today=todayKey();
+    checkedToday={};
+    LOG.forEach(l=>{
+      if(l.quest_id&&l.quest_id!=='review'&&l.created_at&&l.created_at.slice(0,10)===today){
+        checkedToday[l.quest_id]=true;
+      }
+    });
+    setSyncState('ok');
+  }catch(e){setSyncState('error');}
+}
 
-  // 2. Détection et application du bonus de rattrapage de +10%
-  let classeCible = obtenirClasseAssociee(source);
-  if (state.classeBénie === classeCible) {
-    xpCalculee = Math.round(xpCalculee * 1.1);
-  }
+async function saveProgress(){
+  setSyncState('syncing');
+  try{
+    await sbUpsert('sys_progress',{...S,user_id:UID,updated_at:new Date().toISOString()});
+    setSyncState('ok');
+  }catch(e){setSyncState('error');}
+}
 
-  // 3. Distribution Triple Impact
-  state.xp += xpCalculee;
-  if (estUnPilier) {
-    state.xpPiliers += xpCalculee;
-  } else {
-    state.xpForges += xpCalculee;
-  }
+function scheduleSave(){
+  clearTimeout(syncTimer);
+  syncTimer=setTimeout(saveProgress,1500);
+}
+
+function todayKey(){return new Date().toISOString().slice(0,10);}
+
+function getCurrentPhase(){
+  const m=S.current_month||1;
+  return PHASES.find(p=>p.months.includes(m))||PHASES[0];
+}
+
+function getBountyPillar(){
+  const pillars=['p1','p2','p3','p4','p5'];
+  let minXp=Infinity;
+  let minId='p1';
+  pillars.forEach(id=>{
+    const xp=S[id+'_xp']||0;
+    if(xp<minXp){minXp=xp;minId=id;}
+  });
+  return minId;
+}
+
+function getLv(xp){
+  let l=0;
+  for(let i=0;i<LEVELS.length;i++){if(xp>=LEVELS[i].min)l=i;}
+  return l;
+}
+
+function updateHeader(){
+  const xp=S.total_xp,lv=getLv(xp),nl=Math.min(lv+1,LEVELS.length-1);
+  const cur=LEVELS[lv].min,next=LEVELS[nl].min;
+  const pct=lv===LEVELS.length-1?100:Math.round((xp-cur)/(next-cur)*100);
+  document.getElementById('top-xp').textContent=xp+' XP';
+  document.getElementById('xp-big').textContent=xp;
+  document.getElementById('lv-name').textContent=LEVELS[lv].name;
+  document.getElementById('lv-bar').style.width=pct+'%';
+  document.getElementById('bar-cur').textContent=(xp-cur)+' / '+(next-cur)+' XP';
+  document.getElementById('bar-next').textContent='→ '+LEVELS[nl].name;
+  document.getElementById('streak-num').textContent='🔥 '+S.streak;
+  document.getElementById('days-total').textContent=S.days_total;
+  const ph=getCurrentPhase();
+  const banner=document.getElementById('phase-banner');
+  banner.className='phase-banner '+ph.cls;
+  banner.querySelector('.phase-icon').textContent=ph.icon;
+  banner.querySelector('.phase-name').textContent='Phase '+ph.id+' — '+ph.name;
+  banner.querySelector('.phase-desc').textContent=ph.desc;
+  document.getElementById('phase-prog').textContent='Mois '+S.current_month;
   
-  if(!state.classes[classeCible]) state.classes[classeCible] = 0;
-  state.classes[classeCible] += xpCalculee;
+  // Boussole Permanente UI
+  const bp=getBountyPillar();
+  const bpObj=PILLARS.find(p=>p.id===bp);
+  if(bpObj){
+    document.getElementById('bounty-banner').style.display='flex';
+    document.getElementById('bounty-desc').textContent=`Pilier ciblé : ${bpObj.name}. Toutes ses quêtes rapportent +25% XP.`;
+  }
 
-  saveAndRender();
+  const missed=S.last_day&&(new Date()-new Date(S.last_day))/86400000>3;
+  document.getElementById('alert').classList.toggle('show',!!missed&&S.days_total>0);
 }
 
-// Bilan hebdomadaire du Dimanche Soir
-function executerBilanDimanche() {
-  let g = state.classes.guerrier || 0;
-  let m = state.classes.mage || 0;
-  let o = state.classes.ombre || 0;
-  let a = state.classes.aventurier || 0;
+function renderQuetes(){
+  const phase=getCurrentPhase();
+  const bp=getBountyPillar();
+  
+  function qHTML(q,isMin){
+    const done=!!checkedToday[q.id];
+    const inPhase=q.phases.includes(phase.id);
+    const isBounty=(q.pid===bp);
+    const displayedXp=isBounty?Math.round(q.xp*1.25):q.xp;
+    
+    const phTag=!inPhase?`<span class="tag tag-ph">Phase ${q.phases[0]}+</span>`:'';
+    const minTag=isMin?`<span class="tag tag-min">minimum</span>`:'';
+    const bountyTag=isBounty?`<span class="tag tag-bounty">🚨 Prime +25%</span>`:'';
+    
+    const safeN=q.name.replace(/"/g,'&quot;');
+    const safeD=q.desc.replace(/"/g,'&quot;');
+    
+    let coachBtn=inPhase?`<button class="btn-coach" data-qid="${q.id}" data-qname="${safeN}" data-qdesc="${safeD}" onclick="event.stopPropagation();coachQuete(this)">💡 Coach</button>`:'';
+    
+    if(q.id === 'q5' && inPhase) {
+      coachBtn += `
+      <select class="coach-select" id="workout-type" onclick="event.stopPropagation();">
+        <option value="bodyweight">🧱 Poids du corps</option>
+        <option value="swim">🏊 Natation</option>
+        <option value="run">🏃 Course à pied</option>
+        <option value="auto">🎲 Choix du coach</option>
+      </select>
+      <button class="btn-coach" style="background:rgba(96,165,250,.1);border-color:rgba(96,165,250,.3);color:var(--blue);margin-left:4px;" onclick="event.stopPropagation();genererEntrainement(this)">🏋️ Générer</button>`;
+    }
 
-  let totalSemaine = g + m + o + a;
-  let listeClasses = [
-    { nom: 'guerrier', xp: g, titre: 'Guerrier Supérieur', couleur: '#f87171' },
-    { nom: 'mage', xp: m, titre: 'Mage Supérieur', couleur: '#60a5fa' },
-    { nom: 'ombre', xp: o, titre: 'Ombre Supérieure', couleur: '#c084fc' },
-    { nom: 'aventurier', xp: a, titre: 'Aventurier Supérieur', couleur: '#34d399' }
-  ];
+    return `<div class="quest${done?' done':''}${!inPhase?' locked':''}" onclick="toggleQuete('${q.id}')">
+      <div class="check">${done?'✓':''}</div>
+      <div class="q-info">
+        <div class="q-name">${q.name}</div>
+        <div class="q-desc">${q.desc}</div>
+        <div class="q-tags">${minTag}${phTag}${bountyTag}</div>
+        ${coachBtn}
+      </div>
+      <div class="q-xp">+${displayedXp} XP</div>
+    </div>`;
+  }
+  document.getElementById('quetes-min').innerHTML=QUETES.min.map(q=>qHTML(q,true)).join('');
+  document.getElementById('quetes-opt').innerHTML=QUETES.opt.map(q=>qHTML(q,false)).join('');
+}
 
-  // Cas critique : Égalité à zéro
-  if (totalSemaine === 0) {
-    state.titreAura = "Le Stagnant";
-    state.classeBénie = "";
-    document.documentElement.style.setProperty('--accent', '#777777');
-    alert("Bilan du Système : Vous n'avez pas progressé cette semaine. Titre punitif activé : [Le Stagnant].");
-    saveAndRender();
+async function toggleQuete(id){
+  if(isDayLocked){
+    alert("La journée est verrouillée. Clique sur 'Modifier la journée' pour faire des modifications.");
     return;
   }
+  const all=[...QUETES.min,...QUETES.opt];
+  const q=all.find(x=>x.id===id);
+  if(!q)return;
+  const today=todayKey();
+  const bp=getBountyPillar();
+  const finalXp=(q.pid===bp)?Math.round(q.xp*1.25):q.xp;
 
-  // Trouver max et min
-  listeClasses.sort((x, y) => y.xp - x.xp);
-  let maxClasse = listeClasses[0];
-  let minClasse = listeClasses[listeClasses.length - 1];
-
-  // Vérifier le Delta d'Équilibre Parfait (< 5% de différence relative ou globale)
-  let deltaPct = ((maxClasse.xp - minClasse.xp) / Math.max(maxClasse.xp, 1)) * 100;
-
-  if (deltaPct < 5) {
-    // Équilibre Parfait -> Aventurier Suprême
-    state.titreAura = "Aventurier Suprême";
-    document.documentElement.style.setProperty('--accent', '#e0e7ff'); // Blanc Électrique / Indigo très clair
-    document.getElementById('bilan-choix-souverain').style.display = 'block';
-    alert("✨ ÉQUILIBRE PARFAIT ATTEINT ! Vous obtenez le titre d'Aventurier Suprême. Choisissez votre bénédiction manuellement dans l'onglet Statuts.");
+  if(checkedToday[id]){
+    delete checkedToday[id];
+    S.total_xp=Math.max(0,S.total_xp-finalXp);
+    S[q.pid+'_xp']=Math.max(0,(S[q.pid+'_xp']||0)-finalXp);
+    LOG=LOG.filter(l=>!(l.quest_id===id&&l.created_at&&l.created_at.slice(0,10)===today));
+    sbDelete('sys_log',UID,id,today).catch(()=>{});
   } else {
-    // Cas Général
-    state.titreAura = maxClasse.titre;
-    state.classeBénie = minClasse.nom;
-    document.documentElement.style.setProperty('--accent', maxClasse.couleur);
-    alert(`Bilan du Système :\nClasse dominante : ${maxClasse.nom.toUpperCase()} -> Titre d'Aura : [${maxClasse.titre}].\nAlerte faiblesse : Votre ${minClasse.nom} a été délaissé. Bénédiction de compensation activée : +10% d'XP sur cette classe.`);
+    checkedToday[id]=true;
+    S.total_xp+=finalXp;
+    S[q.pid+'_xp']=Math.min(3000,(S[q.pid+'_xp']||0)+finalXp);
+    const entry={user_id:UID,quest_id:id,quest_name:q.name,xp:finalXp,pillar_id:q.pid,created_at:new Date().toISOString()};
+    LOG.unshift(entry);
+    if(LOG.length>60)LOG.pop();
+    sbInsert('sys_log',entry).catch(()=>{});
   }
-
-  saveAndRender();
+  scheduleSave();
+  renderQuetes();
+  updateHeader();
+  renderPiliers();
 }
 
-function choisirBenedictionSouverain(nomClasse) {
-  state.classeBénie = nomClasse;
-  document.getElementById('bilan-choix-souverain').style.display = 'none';
-  alert(`Bénédiction du Souverain validée : +10% d'XP octroyés sur la classe ${nomClasse.toUpperCase()} pour la semaine prochaine !`);
-  saveAndRender();
+// Logique Sidequest du Jour
+function initSidequest(){
+  const today=todayKey();
+  const saved=localStorage.getItem('sys12_sidequest');
+  let sq=null;
+  if(saved){
+    sq=JSON.parse(saved);
+    if(sq.date!==today) sq=null;
+  }
+  if(!sq){
+    const rand=BANQUE_SIDEQUESTS[Math.floor(Math.random()*BANQUE_SIDEQUESTS.length)];
+    sq={date:today,text:rand.text,pid:rand.pid,done:false,isIA:false};
+    localStorage.setItem('sys12_sidequest',JSON.stringify(sq));
+  }
+  updateSidequestUI();
 }
 
-// Logique d'affichage et navigation légère
-function switchTab(tabId) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+function updateSidequestUI(){
+  const sq=JSON.parse(localStorage.getItem('sys12_sidequest'));
+  if(!sq) return;
+  const item=document.getElementById('sidequest-item');
+  const chk=document.getElementById('sq-check');
+  document.getElementById('sidequest-text').textContent=sq.text;
   
-  const targetScreen = document.getElementById('screen-' + tabId);
-  if(targetScreen) targetScreen.classList.add('active');
+  const bp=getBountyPillar();
+  const baseXp=30;
+  const finalXp=(sq.pid===bp)?Math.round(baseXp*1.25):baseXp;
+  document.getElementById('sq-xp-display').textContent=`+${finalXp} XP` + ((sq.pid===bp)?' 🚨':'');
+
+  if(sq.done){
+    item.classList.add('done');
+    chk.textContent='✓';
+  }else{
+    item.classList.remove('done');
+    chk.textContent='';
+  }
+}
+
+function toggleSidequest(){
+  if(isDayLocked) return;
+  const sq=JSON.parse(localStorage.getItem('sys12_sidequest'));
+  if(!sq) return;
+  const today=todayKey();
   
-  // Recherche du bouton via l'attribut onclick
-  document.querySelectorAll('.tab-bar .tab-btn').forEach(btn => {
-    if(btn.getAttribute('onclick').includes(tabId)) {
-      btn.classList.add('active');
-    }
+  const bp=getBountyPillar();
+  const baseXp=30;
+  const finalXp=(sq.pid===bp)?Math.round(baseXp*1.25):baseXp;
+
+  if(sq.done){
+    sq.done=false;
+    S.total_xp=Math.max(0,S.total_xp-finalXp);
+    if(sq.pid) S[sq.pid+'_xp']=Math.max(0,(S[sq.pid+'_xp']||0)-finalXp);
+    LOG=LOG.filter(l=>!(l.quest_id==='sidequest'&&l.created_at&&l.created_at.slice(0,10)===today));
+    sbDelete('sys_log',UID,'sidequest',today).catch(()=>{});
+  }else{
+    sq.done=true;
+    S.total_xp+=finalXp;
+    if(sq.pid) S[sq.pid+'_xp']=Math.min(3000,(S[sq.pid+'_xp']||0)+finalXp);
+    const entry={user_id:UID,quest_id:'sidequest',quest_name:`[Sidequest] ${sq.text.slice(0,40)}...`,xp:finalXp,pillar_id:sq.pid||'p1',created_at:new Date().toISOString()};
+    LOG.unshift(entry);
+    sbInsert('sys_log',entry).catch(()=>{});
+  }
+  localStorage.setItem('sys12_sidequest',JSON.stringify(sq));
+  updateSidequestUI();
+  scheduleSave();
+  updateHeader();
+}
+
+async function rerollSidequestIA(){
+  if(isDayLocked) return;
+  const btn=document.getElementById('btn-reroll');
+  btn.textContent="Création en cours par l'IA...";
+  btn.disabled=true;
+  
+  const prompt=buildCtx()+"\n\nGénère une 'sidequest' (quête secondaire) utile, concrète et rapide (max 15 min) pour Eliseo aujourd'hui. Thème recommandé : sors-le de sa zone de confort, fais-le pratiquer un brise-glace de sociabilité, de l'observation humaine ou un exercice d'assurance tactique. Donne uniquement l'énoncé direct en 2 lignes max. Sans markdown.";
+  const res=await callGemini(prompt);
+  
+  const sq={date:todayKey(),text:res,pid:'p5',done:false,isIA:true};
+  localStorage.setItem('sys12_sidequest',JSON.stringify(sq));
+  updateSidequestUI();
+  
+  btn.textContent="🎲 Relancer via le Coach (IA)";
+  btn.disabled=false;
+}
+
+// Gestion des Quêtes Personnelles (Livre)
+function loadCustomQuests(){
+  customQuests=JSON.parse(localStorage.getItem('sys12_custom_quests')||'[]');
+  renderCustomQuests();
+}
+
+function saveCustomQuests(){
+  localStorage.setItem('sys12_custom_quests',JSON.stringify(customQuests));
+  renderCustomQuests();
+}
+
+function renderCqSelectors(){
+  document.getElementById('cq-pillar').innerHTML=PILLARS.map(p=>`<option value="${p.id}">${p.icon} ${p.name.split(' ')[0]}</option>`).join('');
+}
+
+function ajouterQuetePerso(){
+  const nameEl=document.getElementById('cq-name');
+  const name=nameEl.value.trim();
+  if(!name) return;
+  const pid=document.getElementById('cq-pillar').value;
+  const diff=document.getElementById('cq-diff').value;
+  const type=document.getElementById('cq-type').value;
+  
+  let xp=10;
+  if(diff==='medium') xp=25;
+  if(diff==='hard') xp=50;
+
+  const nq={id:'cq_'+Date.now(),name:name,pid:pid,xp:xp,type:type,done:false};
+  customQuests.push(nq);
+  nameEl.value='';
+  saveCustomQuests();
+}
+
+function renderCustomQuests(){
+  const listEl=document.getElementById('custom-quests-list');
+  if(!customQuests.length){
+    listEl.innerHTML='<div class="empty-state">Aucune quête forgée pour le moment.</div>';
+    return;
+  }
+  const bp=getBountyPillar();
+
+  listEl.innerHTML=customQuests.map(q=>{
+    const isBounty=(q.pid===bp);
+    const finalXp=isBounty?Math.round(q.xp*1.25):q.xp;
+    const bountyTag=isBounty?`<span class="tag tag-bounty">🚨 +25%</span>`:'';
+    const typeTag=`<span class="tag tag-ph">${q.type==='oneshot'?'One-shot':'Récurrente'}</span>`;
+    
+    return `<div class="quest${q.done?' done':''}" onclick="toggleCustomQuest('${q.id}')">
+      <div class="check">${q.done?'✓':''}</div>
+      <div class="q-info">
+        <div class="q-name">${q.name}</div>
+        <div class="q-tags">${typeTag}${bountyTag}</div>
+      </div>
+      <div class="q-xp">+${finalXp} XP</div>
+    </div>`;
+  }).join('');
+}
+
+function toggleCustomQuest(id){
+  if(isDayLocked) return;
+  const q=customQuests.find(x=>x.id===id);
+  if(!q) return;
+  const today=todayKey();
+  const bp=getBountyPillar();
+  const finalXp=(q.pid===bp)?Math.round(q.xp*1.25):q.xp;
+
+  if(q.done){
+    q.done=false;
+    S.total_xp=Math.max(0,S.total_xp-finalXp);
+    S[q.pid+'_xp']=Math.max(0,(S[q.pid+'_xp']||0)-finalXp);
+    LOG=LOG.filter(l=>!(l.quest_id===id&&l.created_at&&l.created_at.slice(0,10)===today));
+    sbDelete('sys_log',UID,id,today).catch(()=>{});
+  }else{
+    q.done=true;
+    S.total_xp+=finalXp;
+    S[q.pid+'_xp']=Math.min(3000,(S[q.pid+'_xp']||0)+finalXp);
+    const entry={user_id:UID,quest_id:id,quest_name:`[Perso] ${q.name}`,xp:finalXp,pillar_id:q.pid,created_at:new Date().toISOString()};
+    LOG.unshift(entry);
+    sbInsert('sys_log',entry).catch(()=>{});
+  }
+  saveCustomQuests();
+  scheduleSave();
+  updateHeader();
+}
+
+async function validerJour(){
+  const today=todayKey();
+  if(S.last_day!==today){
+    if(S.last_day){
+      const diff=(new Date(today)-new Date(S.last_day))/86400000;
+      S.streak=diff<=1?S.streak+1:1;
+    }else{S.streak=1;}
+    S.last_day=today;
+    S.days_total++;
+    const histEntry={user_id:UID,xp:S.total_xp,created_at:new Date().toISOString()};
+    XP_HISTORY.unshift(histEntry);
+    if(XP_HISTORY.length>60)XP_HISTORY.pop();
+    sbInsert('sys_xp_history',histEntry).catch(()=>{});
+  }
+  
+  // Nettoyage de fin de journée pour le Livre des Quêtes
+  customQuests=customQuests.filter(q=>!(q.type==='oneshot' && q.done===true));
+  customQuests.forEach(q=>{if(q.type==='recurrent') q.done=false;});
+  localStorage.setItem('sys12_custom_quests',JSON.stringify(customQuests));
+  renderCustomQuests();
+
+  isDayLocked=true;
+  updateValidationButton();
+  scheduleSave();
+  updateHeader();
+  goTab('stats',document.querySelectorAll('.tab-btn')[3]);
+}
+
+function modifierJour(){
+  isDayLocked=false;
+  updateValidationButton();
+}
+
+function updateValidationButton(){
+  const btn=document.getElementById('btn-valider');
+  if(!btn)return;
+  if(isDayLocked){
+    btn.textContent="✏️ Modifier la journée";
+    btn.setAttribute('onclick','modifierJour()');
+    btn.style.background="linear-gradient(135deg, #4b5563, #374151)";
+  }else{
+    btn.textContent="✓ Valider la journée";
+    btn.setAttribute('onclick','validerJour()');
+    btn.style.background="linear-gradient(135deg,var(--accent2),var(--accent))";
+  }
+}
+
+function renderPiliers(){
+  document.getElementById('piliers-list').innerHTML=PILLARS.map(p=>{
+    const xp=S[p.id+'_xp']||0;
+    const pct=Math.min(100,Math.round(xp/3000*100));
+    const lv=Math.floor(xp/600)+1;
+    return `<div class="pillar">
+      <div class="pillar-top">
+        <div class="pillar-icon" style="background:${p.color}22">${p.icon}</div>
+        <div class="pillar-name">${p.name}</div>
+        <div class="pillar-lv">Niv. ${lv}</div>
+      </div>
+      <div class="bar-wrap"><div class="bar-fill" style="width:${pct}%;background:${p.color}"></div></div>
+      <div class="bar-label"><span>${xp} XP</span><span>${pct}%</span></div>
+      <div class="pillar-sats">${p.satellites}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderStats(){
+  const today=todayKey();
+  const activeDays=[...new Set(LOG.map(l=>l.created_at&&l.created_at.slice(0,10)).filter(Boolean))];
+  let hm='';
+  for(let i=59;i>=0;i--){
+    const d=new Date();d.setDate(d.getDate()-i);
+    const key=d.toISOString().slice(0,10);
+    const isToday=key===today;
+    const on=activeDays.includes(key);
+    hm+=`<div class="hm-sq${on&&!isToday?' on':''}${isToday?' today':''}"></div>`;
+  }
+  document.getElementById('heatmap').innerHTML=hm;
+
+  document.getElementById('cap-grid').innerHTML=CAPS.map(c=>{
+    const xp=S[c.p+'_xp']||0;
+    const pct=Math.min(100,Math.round(xp/3000*100));
+    return `<div class="cap-item">
+      <div class="cap-name">${c.n}</div>
+      <div class="cap-pct" style="color:${PCOLS[c.p]}">${pct}%</div>
+      <div class="cap-bar"><div class="cap-fill" style="width:${pct}%;background:${PCOLS[c.p]}"></div></div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('milestones').innerHTML=MILESTONES.map(m=>{
+    const ok=m.check(S);
+    return `<div class="ms-item${ok?' reached':''}">
+      <div class="ms-icon">${m.icon}</div>
+      <div class="ms-label">${m.lbl}</div>
+      <div class="ms-status">${ok?'✓ Atteint':'En cours'}</div>
+    </div>`;
+  }).join('');
+
+  const logEl=document.getElementById('log-list');
+  if(!LOG.length){logEl.innerHTML='<div class="empty-state">Aucune action enregistrée</div>';}
+  else{logEl.innerHTML=LOG.slice(0,15).map(l=>`
+    <div class="log-entry">
+      <div class="log-dot" style="background:${PCOLS[l.pillar_id]||'#888'}"></div>
+      <div class="log-text">${l.quest_name}</div>
+      <span class="log-xp">+${l.xp}</span>
+      <span class="log-time">${l.created_at?l.created_at.slice(11,16):''}</span>
+    </div>`).join('');}
+
+  const xpCtx=document.getElementById('chart-xp').getContext('2d');
+  const sorted=[...XP_HISTORY].sort((a,b)=>new Date(a.created_at)-new Date(b.created_at)).slice(-20);
+  const xpLabels=sorted.map(h=>h.created_at?h.created_at.slice(5,10):'');
+  const xpData=sorted.map(h=>h.xp);
+  if(chartXp)chartXp.destroy();
+  chartXp=new Chart(xpCtx,{type:'line',data:{labels:xpLabels.length?xpLabels:['—'],datasets:[{data:xpData.length?xpData:[0],borderColor:'#a78bfa',backgroundColor:'rgba(124,58,237,0.15)',borderWidth:2,pointRadius:3,pointBackgroundColor:'#a78bfa',fill:true,tension:.4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#555',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'}},y:{ticks:{color:'#555',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'},beginAtZero:true}}}});
+
+  const rCtx=document.getElementById('chart-radar').getContext('2d');
+  const rLabels=PILLARS.map(p=>p.icon+' '+p.name.split(' ')[0]);
+  const rData=PILLARS.map(p=>Math.min(100,Math.round((S[p.id+'_xp']||0)/3000*100)));
+  if(chartRadar)chartRadar.destroy();
+  chartRadar=new Chart(rCtx,{type:'radar',data:{labels:rLabels,datasets:[{data:rData,borderColor:'#a78bfa',backgroundColor:'rgba(124,58,237,0.18)',borderWidth:2,pointBackgroundColor:'#a78bfa',pointRadius:4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{r:{min:0,max:100,ticks:{display:false},grid:{color:'rgba(255,255,255,0.07)'},pointLabels:{color:'#999',font:{size:11}},angleLines:{color:'rgba(255,255,255,0.06)'}}}}});
+}
+
+function setStar(v){
+  starVal=v;
+  document.querySelectorAll('.star').forEach((s,i)=>s.classList.toggle('on',i<v));
+}
+
+async function sauvegarderRevue(){
+  const rev={user_id:UID,stars:starVal,went_well:document.getElementById('rv-bien').value,resisted:document.getElementById('rv-resist').value,next_change:document.getElementById('rv-change').value,created_at:new Date().toISOString()};
+  S.total_xp+=100;
+  const entry={user_id:UID,quest_id:'review',quest_name:'Revue hebdomadaire',xp:100,pillar_id:'p1',created_at:new Date().toISOString()};
+  LOG.unshift(entry);
+  sbInsert('sys_log',entry).catch(()=>{});
+  sbInsert('sys_reviews',rev).catch(()=>{});
+  scheduleSave();
+  updateHeader();
+  const _bien=document.getElementById('rv-bien').value;
+  const _resist=document.getElementById('rv-resist').value;
+  const _change=document.getElementById('rv-change').value;
+  const _stars=starVal;
+  ['rv-bien','rv-resist','rv-change'].forEach(id=>document.getElementById(id).value='');
+  starVal=0;
+  document.querySelectorAll('.star').forEach(s=>s.classList.remove('on'));
+  genererBilanRevue(_bien,_resist,_change,_stars);
+}
+
+function goTab(id,btn){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(id==='stats')renderStats();
+  if(id==='piliers')renderPiliers();
+  if(id==='book') { updateSidequestUI(); renderCustomQuests(); }
+  if(id==='today') renderQuetes();
+}
+
+async function init(){
+  await loadFromSupabase();
+  isDayLocked=(S.last_day===todayKey());
+  updateValidationButton();
+  updateHeader();
+  renderQuetes();
+  renderCqSelectors();
+  initSidequest();
+  loadCustomQuests();
+  loadWelcomeMessage();
+}
+
+if(!UID){
+  document.getElementById('setup-overlay').style.display='flex';
+}else{
+  init();
+}
+
+const WORKER_URL='https://evolution-ai.eliseobuti.workers.dev';
+
+function callGemini(prompt){
+  return new Promise(function(resolve){
+    try{
+      const xhr=new XMLHttpRequest();
+      xhr.open('POST', WORKER_URL, true);
+      xhr.setRequestHeader('Content-Type','application/json');
+      xhr.timeout=15000;
+      xhr.onload=function(){
+        try{
+          const d=JSON.parse(xhr.responseText);
+          resolve(d.text||'Réponse invalide.');
+        }catch(e){resolve('Erreur parsing: '+xhr.responseText.slice(0,80));}
+      };
+      xhr.onerror=function(){resolve('Erreur réseau XHR.');};
+      xhr.ontimeout=function(){resolve('Timeout — réessaie.');};
+      xhr.send(JSON.stringify({prompt:prompt}));
+    }catch(e){resolve('Erreur: '+e.message);}
   });
 }
 
-function saveAndRender() {
-  localStorage.setItem('projet_evolution_state', JSON.stringify(state));
-  renderUI();
+const SYSTEM_CONTEXT=`Tu es le coach personnel d'Eliseo, 19 ans, etudiant suisse en annee sabbatique apres sa maturite gymnasiale (moyenne 5.0). Il envisage des etudes de medecine. Il a 4 mois d'armee en fevrier. Il voyage parfois.
+
+PROFIL PHYSIQUE: Nageur regulier (2x/semaine, 1h15, ~3km/session). Bonne base physique (pompes, tractions faciles). Cardio ameliorable.
+
+SYSTEME 12 MOIS — 5 PILIERS:
+1. Metacognition & apprentissage (memoire, calcul mental, bais cognitifs, methode Feynman, transfert inter-domaines)
+2. Regulation psychophysiologique (respiration, Wim Hof, sommeil, stress, controle emotionnel)
+3. Presence & observation (semiologie clinique factuelle, conscience spatiale, detection elements tactiques et environnementaux, sans psychologisation)
+4. Condition physique (force, endurance zone 2, proprioception, reflexes, coordination)
+5. Influence & communication (rhetorique, langues, negociation, echecs/strategie)
+
+3 PHASES:
+- Phase 1 (mois 1-3): Fondations — installer les routines a friction minimale
+- Phase 2 (mois 4-8): Intensification — integration des satellites, armee comme laboratoire social
+- Phase 3 (mois 9-12): Consolidation — mesure, ajustement, extension
+
+PHILOSOPHIE: Pratique deliberee > repetition passive. Stress + recuperation = croissance. Identite stable bat motivation fluctuante. Seuil minimum (20 min/jour) non-negociable meme les mauvais jours.
+
+PASSIONS: Piano, dessin (decompress), cinema (Wes Anderson, Jim Jarmusch, Jake Gyllenhaal), mode streetwear/vintage/gorpcore, vie sociale.
+
+Reponds toujours en francais, de facon directe, concrete et adaptee au niveau actuel d'Eliseo. Pas de markdown.`;
+
+function buildCtx(){
+  const ph=getCurrentPhase();
+  const ps=PILLARS.map(function(p){return p.name.split(' ')[0]+': '+(S[p.id+'_xp']||0)+'XP';}).join(', ');
+  const dynamicCtx='Progression actuelle — Phase '+ph.id+' ('+ph.name+'), mois '+S.current_month+'/12. XP total: '+S.total_xp+'. Streak: '+S.streak+' jours consecutifs. Piliers: '+ps+'.';
+  return SYSTEM_CONTEXT+'\n\n'+dynamicCtx;
 }
 
-function renderUI() {
-  // Rendu des scores du haut
-  document.getElementById('top-xp').textContent = state.xp + " XP";
-  document.getElementById('xp-big').textContent = state.xp;
-  document.getElementById('txt-global-xp').textContent = state.xp + " XP";
-  document.getElementById('txt-piliers-xp').textContent = state.xpPiliers + " XP";
-  document.getElementById('txt-forges-xp').textContent = state.xpForges + " XP";
-  
-  // Remplissage dynamique des barres multi-niveaux du haut
-  let maxJaugeVisuelle = Math.max(state.xp, 100);
-  document.getElementById('bar-global-xp').style.width = ((state.xp / maxJaugeVisuelle) * 100) + "%";
-  document.getElementById('bar-piliers-xp').style.width = ((state.xpPiliers / Math.max(state.xpPiliers + state.xpForges, 1)) * 100) + "%";
-  document.getElementById('bar-forges-xp').style.width = ((state.xpForges / Math.max(state.xpPiliers + state.xpForges, 1)) * 100) + "%";
-  
-  // Rendu de l'onglet statuts RPG
-  document.getElementById('lbl-current-aura').textContent = state.titreAura;
-  document.getElementById('rpg-aura-title').textContent = state.titreAura;
-  
-  let g = state.classes.guerrier || 0;
-  let m = state.classes.mage || 0;
-  let o = state.classes.ombre || 0;
-  let a = state.classes.aventurier || 0;
-  
-  document.getElementById('xp-guerrier-txt').textContent = g + " XP" + (state.classeBénie === 'guerrier' ? ' (+10% 🌟)' : '');
-  document.getElementById('xp-mage-txt').textContent = m + " XP" + (state.classeBénie === 'mage' ? ' (+10% 🌟)' : '');
-  document.getElementById('xp-ombre-txt').textContent = o + " XP" + (state.classeBénie === 'ombre' ? ' (+10% 🌟)' : '');
-  document.getElementById('xp-aventurier-txt').textContent = a + " XP" + (state.classeBénie === 'aventurier' ? ' (+10% 🌟)' : '');
-  
-  let maxClasseXp = Math.max(g, m, o, a, 100);
-  document.getElementById('bar-guerrier').style.width = ((g / maxClasseXp) * 100) + "%";
-  document.getElementById('bar-mage').style.width = ((m / maxClasseXp) * 100) + "%";
-  document.getElementById('bar-ombre').style.width = ((o / maxClasseXp) * 100) + "%";
-  document.getElementById('bar-aventurier').style.width = ((a / maxClasseXp) * 100) + "%";
-  
-  // Triggers de base
-  document.getElementById('streak-num').textContent = "🔥 " + (state.streak || 0);
-  document.getElementById('days-total').textContent = state.totalDays || 0;
+function loadWelcomeMessage(){
+  if(!UID)return;
+  const el=document.getElementById('ai-welcome');
+  const txt=document.getElementById('ai-welcome-text');
+  el.style.display='block';
+  txt.textContent="Bonjour Eliseo ! Ton protocole d'observation factuelle et tes paquets d'étymologie sur Anki sont configurés pour optimiser ta préparation clinique et militaire. Prêt à passer à l'action ?";
 }
 
-// Simulation de validation de journée ou tâche pour le test
-function validerJour() {
-  // Ajoute de l'XP de test basée sur les piliers
-  ajouterProgressionXP(100, 'physique');
-  alert("Journée validée ! Progression ajoutée au Guerrier (Pilier conditions physiques) avec le multiplicateur de base.");
+async function envoyerMessageCoach(){
+  const input=document.getElementById('coach-free-input');
+  const chatBox=document.getElementById('coach-chat-messages');
+  const msg=input.value.trim();
+  if(!msg)return;
+  
+  chatBox.style.display='flex';
+  const userEl=document.createElement('div');
+  userEl.className='chat-msg user';
+  userEl.textContent='👉 Toi : '+msg;
+  chatBox.appendChild(userEl);
+  
+  const coachEl=document.createElement('div');
+  coachEl.className='chat-msg coach';
+  coachEl.textContent='🤖 Coach : Réflexion...';
+  chatBox.appendChild(coachEl);
+  
+  chatBox.scrollTop=chatBox.scrollHeight;
+  input.value='';
+  
+  const prompt=buildCtx()+'\n\nVoici le message d\'Eliseo: "'+msg+'". Réponds de manière directe, analytique et motivante. Sans markdown.';
+  const responseText=await callGemini(prompt);
+  
+  coachEl.textContent='🤖 Coach : '+responseText;
+  chatBox.scrollTop=chatBox.scrollHeight;
 }
 
-function ajouterQuetePerso() {
-  let name = document.getElementById('cq-name').value || "Nouvelle quête Forgée";
-  let sourcePillar = document.getElementById('cq-pillar').value || "forge";
-  let diff = document.getElementById('cq-diff').value;
+async function coachQuete(btn){
+  const qId=btn.getAttribute('data-qid');
+  const qName=btn.getAttribute('data-qname');
+  const qDesc=btn.getAttribute('data-qdesc');
+  const existingId='coach-'+qId;
+  const existing=document.getElementById(existingId);
+  if(existing){existing.remove();return;}
+  const card=document.createElement('div');
+  card.className='ai-card';
+  card.id=existingId;
+  card.style.marginTop='6px';
+  card.innerHTML='<div class="ai-header"><span style="font-size:16px">💡</span><span class="ai-label">Conseils</span></div><div class="ai-body" id="txt-'+qId+'">Chargement...</div>';
+  btn.closest('.quest').after(card);
   
-  let baseBonus = 10;
-  if(diff === 'medium') baseBonus = 25;
-  if(diff === 'hard') baseBonus = 50;
-  
-  ajouterProgressionXP(baseBonus, sourcePillar);
-  alert(`Quête [${name}] validée ! Impact appliqué sur l'alignement RPG.`);
-  document.getElementById('cq-name').value = "";
-}
-
-// Initialisation au chargement
-window.addEventListener('DOMContentLoaded', () => {
-  let saved = localStorage.getItem('projet_evolution_state');
-  if(saved) {
-    try {
-      state = Object.assign(state, JSON.parse(saved));
-    } catch(e) {}
+  let consigneSpecifique = "";
+  if(qId === 'q3') {
+    consigneSpecifique = " Interdiction absolue de parler de détection de mensonges, de psychologie, d'intentions ou de micro-expressions. Donne uniquement des exercices de repérage de faits anatomiques/mécaniques (asymétries, démarche, posture) et de tactique spatiale (calcul de distances à l'oeil nu, angles morts, repérage des sorties) utiles pour l'armée et la clinique.";
   }
-  renderUI();
-});
+
+  const prompt=buildCtx()+' Quete: "'+qName+'" ('+qDesc+').'+consigneSpecifique+' Donne 3 conseils pratiques et concrets pour bien realiser cette quete aujourd hui. 4 lignes max. Pas de markdown ni tirets.';
+  const bodyEl=document.getElementById('txt-'+qId);
+  if(bodyEl) bodyEl.textContent=await callGemini(prompt);
+}
+
+async function genererEntrainement(btn) {
+  const existingId = 'workout-generated';
+  const existing = document.getElementById(existingId);
+  if(existing){existing.remove(); return;}
+  
+  const selectEl = document.getElementById('workout-type');
+  const selectedDomain = selectEl ? selectEl.value : 'auto';
+  
+  const card = document.createElement('div');
+  card.className = 'ai-card';
+  card.id = existingId;
+  card.style.marginTop = '6px';
+  card.style.border = '0.5px solid rgba(96,165,250,.3)';
+  card.style.background = 'linear-gradient(135deg,rgba(96,165,250,.12),rgba(14,14,16,.08))';
+  card.innerHTML = '<div class="ai-header"><span style="font-size:16px">🏋️</span><span class="ai-label" style="color:var(--blue)">Séance sur-mesure</span></div><div class="ai-body" id="txt-workout">Analyse du domaine choisi et calcul du protocole adaptatif...</div>';
+  btn.closest('.quest').after(card);
+  
+  const historiquesRecents = LOG.slice(0, 10).map(l => l.quest_name).join(', ');
+  
+  let domaineInstructions = "";
+  if(selectedDomain === "bodyweight") {
+    domaineInstructions = "L'entraînement DOIT obligatoirement être axé sur le POIDS DU CORPS / CALISTHÉNIE (en utilisant sa bonne base en pompes, tractions, ou des variantes complexes comme du tempo ou de la pliométrie).";
+  } else if(selectedDomain === "swim") {
+    domaineInstructions = "L'entraînement DOIT obligatoirement être un protocole de NATATION en piscine (séries en mètres, nages, allures, ou exercices techniques, adapté à sa capacité de faire 3km par session).";
+  } else if(selectedDomain === "run") {
+    domaineInstructions = "L'entraînement DOIT obligatoirement être de la COURSE À PIED / CARDIO EXTÉRIEUR (axé soit sur son point faible à améliorer : le foncier en zone 2, soit du fractionné/HIIT haute intensité).";
+  } else {
+    domaineInstructions = "Laisse libre cours à ton expertise de coach pour choisir le domaine (natation, course ou poids du corps) le plus pertinent selon son historique récent.";
+  }
+
+  const prompt = buildCtx() + `
+  En tant que coach sportif, génère un entraînement physique précis de 30 à 45 minutes pour Eliseo.
+  CONTRAINTE DE SÉLECTION : ${domaineInstructions}
+  
+  Prends également en compte son profil général et son historique récent d'actions: [${historiquesRecents}].
+  
+  Format de réponse obligatoire (sois hyper concis, direct et condensé) :
+  1. Domaine et Objectif ciblé (ex: Natation - Vitesse explosive ou Calisthénie - Volume de force)
+  2. Échauffement rapide
+  3. Corps de séance : Exercices/Séries exactes, répétitions ou distances, temps de récupération très précis.
+  
+  Maximum 7 lignes. Pas de markdown, pas de listes à puces ou tirets (sauts de ligne simples).`;
+  
+  const bodyEl = document.getElementById('txt-workout');
+  if(bodyEl) bodyEl.textContent = await callGemini(prompt);
+}
+
+async function genererBilanRevue(bien,resist,change,stars){
+  const el=document.getElementById('ai-bilan');
+  const txt=document.getElementById('ai-bilan-text');
+  el.style.display='block';
+  txt.textContent='Analyse de ta semaine...';
+  const prompt=buildCtx()+' Revue ('+stars+'/5). Ce qui a marche: "'+bien+'". Ce qui a resiste: "'+resist+'". Changement prevu: "'+change+'". Bilan: 1 point fort a consolider, 1 conseil sur le point de friction, 1 suggestion concrete pour la semaine prochaine. 5-6 lignes. Direct. Pas de markdown.';
+  txt.textContent=await callGemini(prompt);
+}
 </script>
 </body>
 </html>
