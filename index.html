@@ -1,804 +1,592 @@
 <!DOCTYPE html>
-<html lang="fr" class="dark">
+<html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Projet Évolution - Système de Guidage</title>
-    <!-- Tailwind CSS & FontAwesome -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chart.js pour le Radar d'Équilibre -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        .hidden { display: none !important; }
-        .electric-glow {
-            box-shadow: 0 0 15px rgba(168, 85, 247, 0.4);
-            animation: pulse-glow 2s infinite alternate;
-        }
-        @keyframes pulse-glow {
-            0% { box-shadow: 0 0 5px rgba(168, 85, 247, 0.2); }
-            100% { box-shadow: 0 0 20px rgba(168, 85, 247, 0.6); }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Évolution">
+<title>Projet Évolution</title>
+<link rel="icon" type="image/jpeg" href="favicon.jpg?v=3">
+<link rel="apple-touch-icon" href="favicon.jpg?v=3">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#0e0e10;
+  --card:#18181c;
+  --card2:#222228;
+  --border:rgba(255,255,255,0.07);
+  --text:#f0f0f0;
+  --muted:#777;
+  --accent:#a78bfa;
+  --accent2:#7c3aed;
+  --green:#34d399;
+  --amber:#fbbf24;
+  --coral:#f87171;
+  --blue:#60a5fa;
+  --orange:#fb923c;
+  --r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;font-size:15px;min-height:100dvh;padding-bottom:calc(76px + env(safe-area-inset-bottom));}
+.screen{display:none;padding:14px;max-width:500px;margin:0 auto;}
+.screen.active{display:block;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 14px 6px;max-width:500px;margin:0 auto;}
+.topbar-title{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--green);transition:background .3s;}
+.sync-dot.syncing{background:var(--amber);animation:pulse 1s infinite;}
+.sync-dot.error{background:var(--coral);}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.top-xp{font-size:13px;font-weight:700;color:var(--accent);}
+.phase-banner{border-radius:10px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;}
+.ph1{background:rgba(52,211,153,.1);border:0.5px solid rgba(52,211,153,.25);}
+.ph2{background:rgba(96,165,250,.1);border:0.5px solid rgba(96,165,250,.25);}
+.ph3{background:rgba(167,139,250,.1);border:0.5px solid rgba(167,139,250,.25);}
+.phase-icon{font-size:20px;}
+.phase-info{flex:1;}
+.phase-name{font-size:13px;font-weight:700;}
+.phase-desc{font-size:11px;color:var(--muted);margin-top:1px;}
+.phase-prog{font-size:11px;font-weight:600;margin-left:auto;}
+.ph1 .phase-prog{color:var(--green);}
+.ph2 .phase-prog{color:var(--blue);}
+.ph3 .phase-prog{color:var(--accent);}
+.xp-hero{background:var(--card);border:0.5px solid var(--border);border-radius:var(--r);padding:18px 16px 14px;margin-bottom:12px;text-align:center;}
+.xp-big{font-size:54px;font-weight:800;letter-spacing:-2px;background:linear-gradient(135deg,var(--accent),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;}
+.xp-level{font-size:14px;color:var(--muted);margin-top:4px;}
+.xp-level span{color:var(--accent);font-weight:600;}
+.bar-wrap{background:rgba(255,255,255,0.06);border-radius:6px;height:6px;overflow:hidden;margin-top:12px;}
+.bar-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--accent2),var(--accent));transition:width .5s ease;}
+.bar-label{display:flex;justify-content:space-between;margin-top:5px;font-size:11px;color:var(--muted);}
+.streak-row{display:flex;gap:10px;margin-bottom:12px;}
+.streak-card{flex:1;background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:14px;text-align:center;}
+.streak-num{font-size:28px;font-weight:800;}
+.streak-lbl{font-size:11px;color:var(--muted);margin-top:2px;}
+.section-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:14px 0 8px;}
+.quest{display:flex;align-items:center;gap:12px;background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:13px 14px;margin-bottom:8px;cursor:pointer;transition:all .15s;user-select:none;}
+.quest:active{transform:scale(0.98);opacity:.8;}
+.quest.done{opacity:.4;}
+.quest.done .q-name{text-decoration:line-through;}
+.quest.locked{opacity:.25;cursor:default;pointer-events:none;}
+.check{width:22px;height:22px;border-radius:7px;border:1.5px solid rgba(255,255,255,0.2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .2s;}
+.quest.done .check{background:var(--green);border-color:var(--green);}
+.q-info{flex:1;min-width:0;}
+.q-name{font-size:14px;font-weight:500;line-height:1.3;}
+.q-desc{font-size:12px;color:var(--muted);margin-top:2px;}
+.q-tags{display:flex;gap:5px;margin-top:4px;flex-wrap:wrap;}
+.tag{font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;}
+.tag-min{background:rgba(167,139,250,.15);color:var(--accent);}
+.tag-ph{background:rgba(255,255,255,.07);color:var(--muted);}
+.tag-bounty{background:rgba(251,191,36,.15);color:var(--amber);}
+.q-xp{font-size:13px;font-weight:700;color:var(--accent);flex-shrink:0;}
+.btn-main{width:100%;background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;border:none;border-radius:14px;padding:16px;font-size:16px;font-weight:700;cursor:pointer;margin-top:14px;transition:opacity .15s;font-family:inherit;}
+.btn-main:active{opacity:.8;}
+.alert{background:rgba(251,191,36,.1);border:0.5px solid rgba(251,191,36,.3);border-radius:10px;padding:12px 14px;font-size:13px;color:#fbbf24;margin-bottom:12px;display:none;}
+.alert.show{display:block;}
+.pillar{background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;}
+.pillar-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.pillar-icon{font-size:20px;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.pillar-name{font-size:14px;font-weight:600;flex:1;}
+.pillar-lv{font-size:12px;color:var(--muted);}
+.pillar-sats{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;}
+.chart-card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px;}
+.chart-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+.cap-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.cap-item{background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:10px 12px;}
+.cap-name{font-size:11px;color:var(--muted);margin-bottom:4px;}
+.cap-pct{font-size:16px;font-weight:700;margin-bottom:4px;}
+.cap-bar{height:4px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden;}
+.cap-fill{height:100%;border-radius:2px;transition:width .4s;}
+.heatmap{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px;}
+.hm-sq{width:12px;height:12px;border-radius:2px;background:rgba(255,255,255,0.05);}
+.hm-sq.on{background:var(--accent2);}
+.hm-sq.today{background:var(--accent);box-shadow:0 0 6px var(--accent);}
+.hm-legend{font-size:11px;color:var(--muted);display:flex;gap:14px;margin-bottom:4px;}
+.hm-legend span{display:flex;align-items:center;gap:5px;}
+.ms-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.ms-item{background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:12px;}
+.ms-item.reached{border-color:rgba(52,211,153,.4);background:rgba(52,211,153,.06);}
+.ms-icon{font-size:20px;margin-bottom:4px;}
+.ms-label{font-size:12px;font-weight:600;}
+.ms-status{font-size:11px;color:var(--muted);margin-top:2px;}
+.ms-item.reached .ms-status{color:var(--green);}
+.log-entry{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border);}
+.log-entry:last-child{border-bottom:none;}
+.log-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.log-text{flex:1;font-size:13px;}
+.log-xp{font-size:12px;font-weight:700;color:var(--accent);}
+.log-time{font-size:11px;color:var(--muted);}
+.rev-card{background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px;}
+.rev-q{font-size:14px;font-weight:600;margin-bottom:10px;}
+.stars{display:flex;gap:6px;}
+.star{font-size:26px;opacity:.2;cursor:pointer;transition:opacity .1s;}
+.star.on{opacity:1;}
+textarea{width:100%;background:rgba(255,255,255,.05);border:0.5px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-family:inherit;font-size:13px;resize:none;min-height:72px;outline:none;}
+textarea:focus{border-color:rgba(167,139,250,.5);}
+.setup-overlay{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;align-items:center;justify-content:center;padding:24px;}
+.setup-box{background:var(--card);border:0.5px solid var(--border);border-radius:20px;padding:28px 24px;width:100%;max-width:420px;}
+.setup-title{font-size:20px;font-weight:800;margin-bottom:6px;}
+.setup-sub{font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.5;}
+.setup-label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;}
+.setup-input{width:100%;background:rgba(255,255,255,.06);border:0.5px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-family:inherit;font-size:14px;outline:none;margin-bottom:16px;}
+.setup-input:focus{border-color:rgba(167,139,250,.5);}
+.setup-hint{font-size:12px;color:var(--muted);margin-bottom:20px;line-height:1.5;}
+.setup-err{font-size:12px;color:var(--coral);margin-bottom:12px;display:none;}
+.setup-err.show{display:block;}
+.tab-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(14,14,16,.94);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:0.5px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:100;}
+.tab-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:10px 2px;border:none;background:none;color:var(--muted);font-size:9px;font-family:inherit;cursor:pointer;transition:color .15s;min-height:56px;}
+.tab-btn.active{color:var(--accent);}
+.tab-icon{font-size:20px;line-height:1;}
+.empty-state{color:var(--muted);font-size:13px;padding:28px 0;text-align:center;}
+
+.ai-card{background:linear-gradient(135deg,rgba(124,58,237,.12),rgba(96,165,250,.08));border:0.5px solid rgba(167,139,250,.25);border-radius:12px;padding:14px 16px;margin-bottom:10px;}
+.ai-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.ai-label{font-size:11px;font-weight:700;color:var(--accent);letter-spacing:.05em;text-transform:uppercase;}
+.ai-body{font-size:13px;color:var(--text);line-height:1.65;white-space:pre-wrap;}
+.chat-messages-box{max-height:220px;overflow-y:auto;margin-top:10px;padding-top:10px;border-top:0.5px solid var(--border);display:flex;flex-direction:column;gap:10px;}
+.chat-msg{font-size:13px;line-height:1.5;white-space:pre-wrap;padding:4px 0;}
+.chat-msg.user{color:var(--blue);font-weight:500;}
+.chat-msg.coach{color:var(--text);}
+.coach-chat-wrap{margin-top:12px;display:flex;gap:8px;}
+.coach-input{flex:1;background:rgba(255,255,255,0.06);border:0.5px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:inherit;font-size:13px;outline:none;}
+.coach-input:focus{border-color:rgba(167,139,250,0.5);}
+.coach-send{background:var(--accent2);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;}
+.coach-send:active{opacity:0.8;}
+.btn-coach{background:rgba(167,139,250,.1);border:0.5px solid rgba(167,139,250,.3);border-radius:8px;padding:5px 11px;font-size:11px;font-weight:600;color:var(--accent);cursor:pointer;font-family:inherit;display:inline-block;margin-top:6px;}
+.coach-select{background:rgba(24,24,28,0.9);border:0.5px solid rgba(255,255,255,0.15);color:var(--text);border-radius:6px;padding:4px 8px;font-size:11px;font-family:inherit;outline:none;margin-top:6px;vertical-align:middle;}
+
+/* Formulaires Livre des Quêtes */
+.form-group{margin-bottom:12px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.form-select, .form-input{width:100%;background:rgba(255,255,255,.05);border:0.5px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-family:inherit;font-size:13px;outline:none;}
+.form-select:focus, .form-input:focus{border-color:var(--accent);}
+.btn-sm{padding:10px 14px;font-size:13px;font-weight:600;border-radius:8px;border:none;cursor:pointer;font-family:inherit;}
+.btn-accent{background:var(--accent2);color:#fff;}
+.btn-muted{background:rgba(255,255,255,0.06);color:var(--text);border:0.5px solid var(--border);}
+.btn-accent:active, .btn-muted:active{opacity:0.8;}
+.sidequest-box{background:linear-gradient(135deg,rgba(251,191,36,0.1),rgba(249,146,60,0.05));border:0.5px solid rgba(251,191,36,0.25);border-radius:12px;padding:14px;margin-bottom:14px;}
+.sidequest-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.sidequest-title{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--amber);letter-spacing:0.05em;}
+.sidequest-xp{font-size:12px;font-weight:700;color:var(--amber);}
+</style>
 </head>
-<body class="bg-neutral-950 text-neutral-100 font-sans min-h-screen flex flex-col antialiased selection:bg-purple-500/30">
+<body>
 
-    <!-- ========================================== -->
-    <!-- MOTEUR TRIPLE IMPACT : LES 3 JAUGES EN HAUT-->
-    <!-- ========================================== -->
-    <div id="triple-xp-engine" class="w-full grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-neutral-900/90 border-b border-neutral-800 backdrop-blur sticky top-0 z-50">
-        <!-- Jauge 1 : XP Globale -->
-        <div class="bg-neutral-950/50 p-2.5 rounded-lg border border-neutral-800/40">
-            <div class="flex justify-between text-[11px] font-mono mb-1">
-                <span class="font-bold text-amber-400"><i class="fa-solid var(--fa-star, \f005) mr-1"></i> AVATAR GLOBAL (Niv. <span id="global-level">1</span>)</span>
-                <span id="global-xp-text" class="text-neutral-400">0 / 5000 XP</span>
-            </div>
-            <div class="w-full h-2 bg-neutral-800 rounded-full overflow-hidden">
-                <div id="global-xp-bar" class="h-full bg-gradient-to-r from-amber-600 to-amber-400 transition-all duration-300" style="width: 0%"></div>
-            </div>
+<div class="setup-overlay" id="setup-overlay" style="display:none">
+  <div class="setup-box">
+    <div class="setup-title">Bienvenue 👋</div>
+    <div class="setup-sub">Entre ton identifiant pour synchroniser ta progression sur tous tes appareils.</div>
+    <div class="setup-label">Ton prénom ou pseudo</div>
+    <input class="setup-input" id="setup-name" placeholder="ex: eliseo" maxlength="30" autocomplete="off" autocorrect="off" autocapitalize="off">
+    <div class="setup-hint">Même identifiant sur tous tes appareils. Lettres et chiffres uniquement.</div>
+    <div class="setup-err" id="setup-err">Identifiant invalide. Lettres et chiffres uniquement.</div>
+    <button class="btn-main" style="margin-top:0" onclick="setupUser()">Commencer →</button>
+  </div>
+</div>
+
+<div class="topbar">
+  <div class="topbar-title">Projet Évolution</div>
+  <div class="topbar-right">
+    <div class="sync-dot" id="sync-dot"></div>
+    <div class="top-xp" id="top-xp">0 XP</div>
+  </div>
+</div>
+
+<div style="max-width:500px; margin:0 auto; padding: 0 14px 10px;">
+  <div style="background:var(--card); border:0.5px solid var(--border); border-radius:10px; padding:10px 12px; display:flex; flex-direction:column; gap:6px;">
+    <div>
+      <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:2px;"><span style="font-weight:700; color:var(--accent);">⭐ XP GLOBALE</span><span id="txt-global-xp">0 XP</span></div>
+      <div style="height:5px; background:rgba(255,255,255,0.05); border-radius:3px; overflow:hidden;"><div id="bar-global-xp" style="width:0%; height:100%; background:linear-gradient(90deg, var(--accent2), var(--accent));"></div></div>
+    </div>
+    <div>
+      <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:2px;"><span style="font-weight:700; color:var(--blue);">💎 JAUGE PILIERS (1.2x)</span><span id="txt-piliers-xp">0 XP</span></div>
+      <div style="height:5px; background:rgba(255,255,255,0.05); border-radius:3px; overflow:hidden;"><div id="bar-piliers-xp" style="width:0%; height:100%; background:var(--blue);"></div></div>
+    </div>
+    <div>
+      <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:2px;"><span style="font-weight:700; color:var(--green);">⚔️ JAUGE QUÊTES FORGÉES</span><span id="txt-forges-xp">0 XP</span></div>
+      <div style="height:5px; background:rgba(255,255,255,0.05); border-radius:3px; overflow:hidden;"><div id="bar-forges-xp" style="width:0%; height:100%; background:var(--green);"></div></div>
+    </div>
+  </div>
+</div>
+
+<div id="screen-today" class="screen active">
+  <div id="alert" class="alert">⚠️ 3 jours sans activité — protocole minimum : 20 min.</div>
+  
+  <div id="bounty-banner" class="phase-banner" style="background:rgba(251,191,36,.08);border:0.5px solid rgba(251,191,36,.25);margin-bottom:12px;display:none;">
+    <div class="phase-icon">🚨</div>
+    <div class="phase-info">
+      <div class="phase-name" style="color:var(--amber)">Boussole : Prime du Jour activée !</div>
+      <div class="phase-desc" id="bounty-desc" style="color:rgba(255,255,255,0.7)">+25% XP sur toutes les quêtes liées au pilier le plus bas.</div>
+    </div>
+  </div>
+
+  <div id="ai-welcome" class="ai-card" style="display:none">
+    <div class="ai-header"><span style="font-size:16px">🤖</span><span class="ai-label">Coach IA</span></div>
+    <div class="ai-body" id="ai-welcome-text"></div>
+    <div id="coach-chat-messages" class="chat-messages-box" style="display:none"></div>
+    <div class="coach-chat-wrap">
+      <input type="text" id="coach-free-input" class="coach-input" placeholder="Discuter avec ton coach..." autocomplete="off">
+      <button class="coach-send" onclick="envoyerMessageCoach()">Envoyer</button>
+    </div>
+  </div>
+
+  <div id="phase-banner" class="phase-banner ph1">
+    <div class="phase-icon">🌱</div>
+    <div class="phase-info">
+      <div class="phase-name">Phase 1 — Fondations</div>
+      <div class="phase-desc">Installer les routines à friction minimale</div>
+    </div>
+    <div class="phase-prog" id="phase-prog">Mois 1</div>
+  </div>
+  <div class="xp-hero">
+    <div class="xp-big" id="xp-big">0</div>
+    <div class="xp-level">Aura Active : <span id="lbl-current-aura" style="font-weight:bold; color:var(--accent);">Initié</span></div>
+    <div class="bar-wrap"><div class="bar-fill" id="lv-bar" style="width:0%"></div></div>
+    <div class="bar-label"><span id="bar-cur">0 / 500 XP</span><span id="bar-next">→ Suivant</span></div>
+  </div>
+  <div class="streak-row">
+    <div class="streak-card">
+      <div class="streak-num" style="color:#fb923c" id="streak-num">🔥 0</div>
+      <div class="streak-lbl">jours consécutifs</div>
+    </div>
+    <div class="streak-card">
+      <div class="streak-num" style="color:var(--blue)" id="days-total">0</div>
+      <div class="streak-lbl">jours actifs</div>
+    </div>
+  </div>
+  <div class="section-title">Minimum — 20 min</div>
+  <div id="quetes-min"></div>
+  <div class="section-title">Optimal</div>
+  <div id="quetes-opt"></div>
+  <button class="btn-main" id="btn-valider" onclick="validerJour()">✓ Valider la journée</button>
+</div>
+
+<div id="screen-book" class="screen">
+  <div class="sidequest-box" id="sidequest-card">
+    <div class="sidequest-header">
+      <div class="sidequest-title">🎲 Sidequest du Jour (Aléatoire)</div>
+      <div class="sidequest-xp" id="sq-xp-display">+30 XP</div>
+    </div>
+    <div class="quest" id="sidequest-item" onclick="toggleSidequest()" style="margin-bottom:8px;">
+      <div class="check" id="sq-check"></div>
+      <div class="q-info">
+        <div class="q-name" id="sidequest-text">Chargement du défi...</div>
+        <div class="q-desc" id="sidequest-sub">Zone de confort, sociabilité et observation de terrain.</div>
+      </div>
+    </div>
+    <button class="btn-sm btn-muted" id="btn-reroll" onclick="rerollSidequestIA()" style="width:100%;">🎲 Relancer via le Coach (IA)</button>
+  </div>
+  <div class="rev-card">
+    <div class="chart-title" style="margin-bottom:10px;">Forges de Quêtes Personnelles</div>
+    <div class="form-group">
+      <input type="text" id="cq-name" class="form-input" placeholder="Nom de ta tâche ou objectif..." autocomplete="off">
+    </div>
+    <div class="form-row">
+      <select id="cq-pillar" class="form-select">
+         <option value="physique">Conditions physiques (Guerrier)</option>
+         <option value="metacognition">Métacognition & Apprentissage (Mage)</option>
+         <option value="regulation">Régulation psycho-physio (Mage)</option>
+         <option value="presence">Présence & Observation (Ombre)</option>
+         <option value="influence">Influence & Communication (Ombre)</option>
+         <option value="forge">Quête Forgée Exclusive (Aventurier)</option>
+      </select>
+      <select id="cq-diff" class="form-select">
+        <option value="easy">Facile (10 XP)</option>
+        <option value="medium">Moyen (25 XP)</option>
+        <option value="hard">Difficile (50 XP)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <select id="cq-type" class="form-select">
+        <option value="oneshot">One-shot (To-Do ponctuelle)</option>
+        <option value="recurrent">Récurrente (Quotidienne)</option>
+      </select>
+    </div>
+    <button class="btn-sm btn-accent" onclick="ajouterQuetePerso()" style="width:100%;">🔨 Forger la Quête</button>
+  </div>
+  <div class="section-title">Quêtes Forgées Actives</div>
+  <div id="forged-quests-list"></div>
+</div>
+
+<div id="screen-status" class="screen">
+  <div class="chart-card">
+    <div class="chart-title">👑 Statut Général & Alignement de Classe</div>
+    <div id="rpg-aura-box" style="padding:12px; border-radius:10px; background:rgba(255,255,255,0.03); text-align:center; margin-bottom:14px;">
+      <div style="font-size:12px; color:var(--muted);">Titre Hebdomadaire Actuel</div>
+      <div id="rpg-aura-title" style="font-size:20px; font-weight:800; color:var(--accent); margin-top:4px;">Initié</div>
+    </div>
+    
+    <div class="section-title" style="margin-top:0;">Niveau des 4 Classes RPG</div>
+    <div class="cap-grid" style="grid-template-columns:1fr; gap:12px;">
+      <div class="cap-item" style="border-left: 4px solid #f87171;">
+        <div style="display:flex; justify-content:between; align-items:center; width:100%;">
+          <div class="cap-name" style="flex:1; font-weight:600; color:#fff;">LE GUERRIER (Force & Vitalité)</div>
+          <div id="xp-guerrier-txt" style="font-size:12px; font-weight:700; color:#f87171;">0 XP</div>
         </div>
-        <!-- Jauge 2 : Jauge Cumulée des Piliers -->
-        <div class="bg-neutral-950/50 p-2.5 rounded-lg border border-neutral-800/40">
-            <div class="flex justify-between text-[11px] font-mono mb-1">
-                <span class="font-bold text-blue-400"><i class="fa-solid fa-layer-group mr-1"></i> CUMUL DES PILIERS</span>
-                <span id="piliers-xp-text" class="text-neutral-400">0 XP</span>
-            </div>
-            <div class="w-full h-2 bg-neutral-800 rounded-full overflow-hidden">
-                <div id="piliers-xp-bar" class="h-full bg-gradient-to-r from-blue-600 to-blue-400 transition-all duration-300" style="width: 0%"></div>
-            </div>
+        <div style="font-size:11px; color:var(--muted); margin-bottom:6px;">Alimenté par : Conditions physiques</div>
+        <div class="cap-bar"><div id="bar-guerrier" class="cap-fill" style="width:0%; background:#f87171;"></div></div>
+      </div>
+      <div class="cap-item" style="border-left: 4px solid #60a5fa;">
+        <div style="display:flex; justify-content:between; align-items:center; width:100%;">
+          <div class="cap-name" style="flex:1; font-weight:600; color:#fff;">LE MAGE (Esprit & Volonté)</div>
+          <div id="xp-mage-txt" style="font-size:12px; font-weight:700; color:#60a5fa;">0 XP</div>
         </div>
-        <!-- Jauge 3 : Jauge Cumulée des Quêtes Forgées -->
-        <div class="bg-neutral-950/50 p-2.5 rounded-lg border border-neutral-800/40">
-            <div class="flex justify-between text-[11px] font-mono mb-1">
-                <span class="font-bold text-emerald-400"><i class="fa-solid fa-hammer mr-1"></i> QUÊTES FORGÉES</span>
-                <span id="forged-xp-text" class="text-neutral-400">0 XP</span>
-            </div>
-            <div class="w-full h-2 bg-neutral-800 rounded-full overflow-hidden">
-                <div id="forged-xp-bar" class="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 transition-all duration-300" style="width: 0%"></div>
-            </div>
+        <div style="font-size:11px; color:var(--muted); margin-bottom:6px;">Alimenté par : Métacognition, Apprentissage & Régulation</div>
+        <div class="cap-bar"><div id="bar-mage" class="cap-fill" style="width:0%; background:#60a5fa;"></div></div>
+      </div>
+      <div class="cap-item" style="border-left: 4px solid #c084fc;">
+        <div style="display:flex; justify-content:between; align-items:center; width:100%;">
+          <div class="cap-name" style="flex:1; font-weight:600; color:#fff;">L'OMBRE (Perception & Stratégie)</div>
+          <div id="xp-ombre-txt" style="font-size:12px; font-weight:700; color:#c084fc;">0 XP</div>
         </div>
+        <div style="font-size:11px; color:var(--muted); margin-bottom:6px;">Alimenté par : Présence, Observation & Influence</div>
+        <div class="cap-bar"><div id="bar-ombre" class="cap-fill" style="width:0%; background:#c084fc;"></div></div>
+      </div>
+      <div class="cap-item" style="border-left: 4px solid #34d399;">
+        <div style="display:flex; justify-content:between; align-items:center; width:100%;">
+          <div class="cap-name" style="flex:1; font-weight:600; color:#fff;">L'AVENTURIER (Adaptabilité)</div>
+          <div id="xp-aventurier-txt" style="font-size:12px; font-weight:700; color:#34d399;">0 XP</div>
+        </div>
+        <div style="font-size:11px; color:var(--muted); margin-bottom:6px;">Alimenté par : Quêtes Forgées et Imprévus exclusifs</div>
+        <div class="cap-bar"><div id="bar-aventurier" class="cap-fill" style="width:0%; background:#34d399;"></div></div>
+      </div>
     </div>
 
-    <!-- BOUSSOLE DYNAMIQUE (BOUNTY BANNER) -->
-    <div id="bounty-banner" class="bg-gradient-to-r from-amber-950/40 via-neutral-950 to-neutral-950 border-b border-amber-900/30 p-3 text-center text-xs text-amber-300/90 font-mono hidden">
-        <i class="fa-solid fa-compass animate-spin-slow mr-1.5"></i> PILIER LE PLUS FAIBLE DÉTECTÉ : Bonus passif de <span class="font-bold text-amber-400">+25% XP</span> activé sur ses objectifs directs.
+    <button class="btn-main" style="background:var(--card2); font-size:13px; padding:10px;" onclick="executerBilanDimanche()">📊 Simuler / Déclencher le Bilan du Dimanche Soir</button>
+    <div id="bilan-choix-souverain" style="display:none; margin-top:12px; padding:10px; background:rgba(167,139,250,0.1); border:0.5px solid var(--accent); border-radius:8px;">
+      <div style="font-size:12px; font-weight:bold; color:var(--accent); margin-bottom:6px;">👑 Équilibre parfait ! Choisissez votre bénédiction (+10%) :</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+        <button class="btn-sm btn-muted" onclick="choisirBenedictionSouverain('guerrier')">Guerrier</button>
+        <button class="btn-sm btn-muted" onclick="choisirBenedictionSouverain('mage')">Mage</button>
+        <button class="btn-sm btn-muted" onclick="choisirBenedictionSouverain('ombre')">Ombre</button>
+        <button class="btn-sm btn-muted" onclick="choisirBenedictionSouverain('aventurier')">Aventurier</button>
+      </div>
     </div>
+  </div>
+</div>
 
-    <!-- MAIN CONTAINER -->
-    <main class="flex-1 max-w-6xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
-        
-        <!-- SIDEBAR : NAVIGATION & PROFIL -->
-        <div class="lg:col-span-1 flex flex-col gap-4">
-            <!-- Profil d'Eliseo -->
-            <div class="bg-neutral-900 border border-neutral-800 p-4 rounded-xl text-center">
-                <div class="w-16 h-16 bg-gradient-to-tr from-purple-600 to-blue-500 rounded-full mx-auto flex items-center justify-center text-xl font-black text-white tracking-wider shadow-inner">
-                    EB
-                </div>
-                <h1 class="text-lg font-bold mt-3 tracking-tight">Eliseo Buti</h1>
-                <p class="text-[11px] text-neutral-400 uppercase tracking-widest font-mono mt-0.5">Maturité Militaire / Médecine</p>
-                <div class="mt-3 inline-block px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-purple-950 text-purple-400 border border-purple-800">
-                    Phase 1 : Fondations (Mois 1-3)
-                </div>
-            </div>
+<nav class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('today')">
+    <span class="tab-icon">☀️</span><span>Aujourd'hui</span>
+  </button>
+  <button class="tab-btn" onclick="switchTab('book')">
+    <span class="tab-icon">📖</span><span>Quêtes</span>
+  </button>
+  <button class="tab-btn" onclick="switchTab('status')">
+    <span class="tab-icon">🛡️</span><span>Statuts</span>
+  </button>
+</nav>
 
-            <!-- Liens de Navigation Onglets -->
-            <nav class="flex flex-col gap-1 bg-neutral-900/50 border border-neutral-800/60 p-1.5 rounded-xl">
-                <button onclick="switchTab('dashboard')" id="btn-dashboard" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition text-purple-400 bg-neutral-900 border border-neutral-800/50">
-                    <i class="fa-solid fa-gauge w-4"></i> Tableau de Bord
-                </button>
-                <button onclick="switchTab('status')" id="btn-status" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition text-neutral-400 hover:bg-neutral-900 hover:text-white">
-                    <i class="fa-solid fa-id-card w-4"></i> Statuts & Classes
-                </button>
-                <button onclick="switchTab('quests')" id="btn-quests" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition text-neutral-400 hover:bg-neutral-900 hover:text-white">
-                    <i class="fa-solid fa-scroll w-4"></i> Quêtes Quotidiennes
-                </button>
-                <button onclick="switchTab('coach')" id="btn-coach" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition text-neutral-400 hover:bg-neutral-900 hover:text-white">
-                    <i class="fa-solid fa-brain w-4"></i> Coach IA & Analyse
-                </button>
-            </nav>
-        </div>
+<script>
+// État global préservé et enrichi pour le moteur RPG
+let state = {
+  xp: 0,
+  xpPiliers: 0,
+  xpForges: 0,
+  streak: 0,
+  totalDays: 0,
+  user: '',
+  classes: {
+    guerrier: 0,
+    mage: 0,
+    ombre: 0,
+    aventurier: 0
+  },
+  titreAura: "Initié",
+  classeBénie: "", // Recevra +10% d'XP
+};
 
-        <!-- CONTENU CENTRAL DYNAMIQUE -->
-        <div class="lg:col-span-3">
-            
-            <!-- ONGLET 1 : TABLEAU DE BORD (DASHBOARD) -->
-            <div id="tab-dashboard" class="tab-content flex flex-col gap-6">
-                <!-- Section Quête Unique Déterministe du Jour -->
-                <div class="bg-neutral-900/80 border border-neutral-800 p-4 rounded-xl relative overflow-hidden">
-                    <div class="absolute top-0 right-0 px-3 py-1 bg-amber-500/10 border-l border-b border-amber-500/20 text-[10px] text-amber-400 font-mono rounded-bl-lg">
-                        SIDEQUEST DU JOUR
-                    </div>
-                    <h3 id="sidequest-title" class="font-bold text-sm tracking-wide text-amber-400">Génération du défi déterministe...</h3>
-                    <p id="sidequest-desc" class="text-xs text-neutral-400 mt-1">Veuillez patienter pendant l'alignement temporel des systèmes.</p>
-                    <div class="mt-3 flex gap-2">
-                        <button onclick="completeSidequest()" class="px-3 py-1 bg-amber-600 hover:bg-amber-500 text-neutral-950 font-bold text-xs rounded transition flex items-center gap-1">
-                            <i class="fa-solid fa-check"></i> Valider (+150 XP)
-                        </button>
-                    </div>
-                </div>
+// Matrice d'association des types d'actions vers les Classes RPG
+function obtenirClasseAssociee(typePillierOuForge) {
+  switch(typePillierOuForge) {
+    case 'physique': return 'guerrier';
+    case 'metacognition':
+    case 'regulation': return 'mage';
+    case 'presence':
+    case 'influence': return 'ombre';
+    case 'forge':
+    default: return 'aventurier';
+  }
+}
 
-                <!-- Grille des 5 Piliers Réels (Visualisation Graphique & Niveaux) -->
-                <div>
-                    <h2 class="text-sm font-bold uppercase tracking-wider text-neutral-400 mb-3 font-mono">Les 5 Piliers d'Évolution (Max 3000 XP)</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <!-- Pilier 1 -->
-                        <div class="bg-neutral-900 p-4 rounded-xl border border-neutral-800">
-                            <div class="flex justify-between items-center mb-1 text-xs">
-                                <span class="font-bold">1. Métacognition & Apprentissage</span>
-                                <span id="val-metacognition" class="font-mono text-neutral-400">0 / 3000 XP</span>
-                            </div>
-                            <div class="w-full h-1.5 bg-neutral-800 rounded-full overflow-hidden">
-                                <div id="bar-metacognition" class="h-full bg-blue-500" style="width: 0%"></div>
-                            </div>
-                        </div>
-                        <!-- Pilier 2 -->
-                        <div class="bg-neutral-900 p-4 rounded-xl border border-neutral-800">
-                            <div class="flex justify-between items-center mb-1 text-xs">
-                                <span class="font-bold">2. Régulation Psychophysiologique</span>
-                                <span id="val-regulation" class="font-mono text-neutral-400">0 / 3000 XP</span>
-                            </div>
-                            <div class="w-full h-1.5 bg-neutral-800 rounded-full overflow-hidden">
-                                <div id="bar-regulation" class="h-full bg-cyan-500" style="width: 0%"></div>
-                            </div>
-                        </div>
-                        <!-- Pilier 3 -->
-                        <div class="bg-neutral-900 p-4 rounded-xl border border-neutral-800">
-                            <div class="flex justify-between items-center mb-1 text-xs">
-                                <span class="font-bold">3. Présence & Observation</span>
-                                <span id="val-presence" class="font-mono text-neutral-400">0 / 3000 XP</span>
-                            </div>
-                            <div class="w-full h-1.5 bg-neutral-800 rounded-full overflow-hidden">
-                                <div id="bar-presence" class="h-full bg-purple-500" style="width: 0%"></div>
-                            </div>
-                        </div>
-                        <!-- Pilier 4 -->
-                        <div class="bg-neutral-900 p-4 rounded-xl border border-neutral-800">
-                            <div class="flex justify-between items-center mb-1 text-xs">
-                                <span class="font-bold">4. Condition Physique</span>
-                                <span id="val-physique" class="font-mono text-neutral-400">0 / 3000 XP</span>
-                            </div>
-                            <div class="w-full h-1.5 bg-neutral-800 rounded-full overflow-hidden">
-                                <div id="bar-physique" class="h-full bg-red-500" style="width: 0%"></div>
-                            </div>
-                        </div>
-                        <!-- Pilier 5 -->
-                        <div class="bg-neutral-900 p-4 rounded-xl border border-neutral-800 md:col-span-2">
-                            <div class="flex justify-between items-center mb-1 text-xs">
-                                <span class="font-bold">5. Influence & Communication</span>
-                                <span id="val-influence" class="font-mono text-neutral-400">0 / 3000 XP</span>
-                            </div>
-                            <div class="w-full h-1.5 bg-neutral-800 rounded-full overflow-hidden">
-                                <div id="bar-influence" class="h-full bg-orange-500" style="width: 0%"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+// Moteur de calcul d'XP unifié avec triple impact et bonus
+function ajouterProgressionXP(xpDeBase, source) {
+  let xpCalculee = xpDeBase;
+  let estUnPilier = (source !== 'forge');
 
-                <!-- Radar Chart Visualisation -->
-                <div class="bg-neutral-900 p-4 rounded-xl border border-neutral-800 flex flex-col items-center">
-                    <h3 class="text-xs font-mono font-bold text-neutral-400 mb-4 uppercase">Géométrie de l'Équilibre Personnel</h3>
-                    <div class="w-full max-w-[320px] h-[320px]">
-                        <canvas id="radarChart"></canvas>
-                    </div>
-                </div>
-            </div>
+  // 1. Application du multiplicateur automatique de 1.2x sur les Piliers
+  if (estUnPilier) {
+    xpCalculee = Math.round(xpCalculee * 1.2);
+  }
 
-            <!-- ========================================== -->
-            <!-- NOUVEL ONGLET 2 : STATUTS & CLASSES (UI)   -->
-            <!-- ========================================== -->
-            <div id="tab-status" class="tab-content hidden flex flex-col gap-6">
-                <!-- Section Titre d'Aura Hebdomadaire -->
-                <div id="aura-banner" class="mb-2 p-5 rounded-xl border transition-all duration-300 bg-neutral-900 border-neutral-800 text-center">
-                    <span class="text-[10px] uppercase tracking-widest text-neutral-400 font-mono">Statut d'Aura Actuel</span>
-                    <h2 id="aura-title" class="text-2xl font-black mt-1 tracking-tight text-white">CIVIL / LE STAGNANT</h2>
-                    <p id="aura-desc" class="text-xs text-neutral-400 mt-2 max-w-lg mx-auto">Aucune activité enregistrée cette semaine. Le Système attend votre Éveil.</p>
-                    
-                    <!-- Sélecteur de Bénédiction (Masqué par défaut) -->
-                    <div id="sovereign-choice-container" class="mt-4 p-3 bg-neutral-950/80 border border-purple-900/50 rounded-lg hidden">
-                        <p class="text-xs text-amber-400 font-bold mb-2.5">✨ ÉQUILIBRE PARFAIT : Sélectionnez votre Bénédiction Hebdomadaire (+10% XP) :</p>
-                        <div class="flex flex-wrap justify-center gap-2">
-                            <button onclick="selectSovereignBlessing('guerrier')" class="px-3 py-1 text-xs bg-red-950/60 text-red-400 border border-red-800 rounded hover:bg-red-900/80 transition font-medium">⚔️ Guerrier</button>
-                            <button onclick="selectSovereignBlessing('mage')" class="px-3 py-1 text-xs bg-blue-950/60 text-blue-400 border border-blue-800 rounded hover:bg-blue-900/80 transition font-medium">🔮 Mage</button>
-                            <button onclick="selectSovereignBlessing('ombre')" class="px-3 py-1 text-xs bg-purple-950/60 text-purple-400 border border-purple-800 rounded hover:bg-purple-900/80 transition font-medium">👁️ Ombre</button>
-                            <button onclick="selectSovereignBlessing('aventurier')" class="px-3 py-1 text-xs bg-emerald-950/60 text-emerald-400 border border-emerald-800 rounded hover:bg-emerald-900/80 transition font-medium">🎒 Aventurier</button>
-                        </div>
-                    </div>
-                </div>
+  // 2. Détection et application du bonus de rattrapage de +10%
+  let classeCible = obtenirClasseAssociee(source);
+  if (state.classeBénie === classeCible) {
+    xpCalculee = Math.round(xpCalculee * 1.1);
+  }
 
-                <!-- Cartographie complète des 4 Classes RPG -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- CLASSE : LE GUERRIER -->
-                    <div class="bg-neutral-900 border border-neutral-800 p-4 rounded-xl relative overflow-hidden">
-                        <div class="absolute top-0 left-0 w-1 h-full bg-red-600"></div>
-                        <div class="flex justify-between items-start mb-2">
-                            <div>
-                                <h3 class="font-bold text-red-500 tracking-wide flex items-center gap-2">
-                                    <span>⚔️ LE GUERRIER</span>
-                                    <span id="blessing-guerrier" class="text-[9px] font-mono bg-red-950 text-red-400 px-1.5 py-0.5 rounded border border-red-800/80 hidden">BÉNÉDICTION +10%</span>
-                                </h3>
-                                <p class="text-[11px] text-neutral-400 mt-0.5">Force, nutrition, sommeil lourd et endurance.</p>
-                            </div>
-                            <span id="lvl-guerrier" class="text-xs font-mono font-bold bg-neutral-800 px-2 py-0.5 rounded text-neutral-300">Niv. 1</span>
-                        </div>
-                        <div class="mt-4">
-                            <div class="flex justify-between text-xs font-mono text-neutral-400 mb-1">
-                                <span>Progression de Classe</span>
-                                <span id="xp-text-guerrier">0 / 1000 XP</span>
-                            </div>
-                            <div class="w-full h-2 bg-neutral-800 rounded-full overflow-hidden">
-                                <div id="bar-guerrier" class="h-full bg-gradient-to-r from-red-700 to-red-500 transition-all duration-500" style="width: 0%"></div>
-                            </div>
-                        </div>
-                        <div class="mt-3 pt-2 border-t border-neutral-800/60 flex items-center justify-between text-[10px] text-neutral-500">
-                            <span>Alimentation : Condition Physique</span>
-                            <span id="weekly-guerrier" class="font-mono text-neutral-400">0 XP accumulés</span>
-                        </div>
-                    </div>
+  // 3. Distribution Triple Impact
+  state.xp += xpCalculee;
+  if (estUnPilier) {
+    state.xpPiliers += xpCalculee;
+  } else {
+    state.xpForges += xpCalculee;
+  }
+  
+  if(!state.classes[classeCible]) state.classes[classeCible] = 0;
+  state.classes[classeCible] += xpCalculee;
 
-                    <!-- CLASSE : LE MAGE -->
-                    <div class="bg-neutral-900 border border-neutral-800 p-4 rounded-xl relative overflow-hidden">
-                        <div class="absolute top-0 left-0 w-1 h-full bg-blue-600"></div>
-                        <div class="flex justify-between items-start mb-2">
-                            <div>
-                                <h3 class="font-bold text-blue-400 tracking-wide flex items-center gap-2">
-                                    <span>🔮 LE MAGE</span>
-                                    <span id="blessing-mage" class="text-[9px] font-mono bg-blue-950 text-blue-400 px-1.5 py-0.5 rounded border border-blue-800/80 hidden">BÉNÉDICTION +10%</span>
-                                </h3>
-                                <p class="text-[11px] text-neutral-400 mt-0.5">Focus cognitif, études profondes et gestion de l'énergie interne.</p>
-                            </div>
-                            <span id="lvl-mage" class="text-xs font-mono font-bold bg-neutral-800 px-2 py-0.5 rounded text-neutral-300">Niv. 1</span>
-                        </div>
-                        <div class="mt-4">
-                            <div class="flex justify-between text-xs font-mono text-neutral-400 mb-1">
-                                <span>Progression de Classe</span>
-                                <span id="xp-text-mage">0 / 1000 XP</span>
-                            </div>
-                            <div class="w-full h-2 bg-neutral-800 rounded-full overflow-hidden">
-                                <div id="bar-mage" class="h-full bg-gradient-to-r from-blue-700 to-blue-500 transition-all duration-500" style="width: 0%"></div>
-                            </div>
-                        </div>
-                        <div class="mt-3 pt-2 border-t border-neutral-800/60 flex items-center justify-between text-[10px] text-neutral-500">
-                            <span>Alimentation : Métacognition + Régulation</span>
-                            <span id="weekly-mage" class="font-mono text-neutral-400">0 XP accumulés</span>
-                        </div>
-                    </div>
+  saveAndRender();
+}
 
-                    <!-- CLASSE : L'OMBRE -->
-                    <div class="bg-neutral-900 border border-neutral-800 p-4 rounded-xl relative overflow-hidden">
-                        <div class="absolute top-0 left-0 w-1 h-full bg-purple-600"></div>
-                        <div class="flex justify-between items-start mb-2">
-                            <div>
-                                <h3 class="font-bold text-purple-400 tracking-wide flex items-center gap-2">
-                                    <span>👁️ L'OMBRE</span>
-                                    <span id="blessing-ombre" class="text-[9px] font-mono bg-purple-950 text-purple-400 px-1.5 py-0.5 rounded border border-purple-800/80 hidden">BÉNÉDICTION +10%</span>
-                                </h3>
-                                <p class="text-[11px] text-neutral-400 mt-0.5">Vigilance clinique contextuelle, analyse tactique et rhétorique.</p>
-                            </div>
-                            <span id="lvl-ombre" class="text-xs font-mono font-bold bg-neutral-800 px-2 py-0.5 rounded text-neutral-300">Niv. 1</span>
-                        </div>
-                        <div class="mt-4">
-                            <div class="flex justify-between text-xs font-mono text-neutral-400 mb-1">
-                                <span>Progression de Classe</span>
-                                <span id="xp-text-ombre">0 / 1000 XP</span>
-                            </div>
-                            <div class="w-full h-2 bg-neutral-800 rounded-full overflow-hidden">
-                                <div id="bar-ombre" class="h-full bg-gradient-to-r from-purple-700 to-purple-500 transition-all duration-500" style="width: 0%"></div>
-                            </div>
-                        </div>
-                        <div class="mt-3 pt-2 border-t border-neutral-800/60 flex items-center justify-between text-[10px] text-neutral-500">
-                            <span>Alimentation : Présence + Influence</span>
-                            <span id="weekly-ombre" class="font-mono text-neutral-400">0 XP accumulés</span>
-                        </div>
-                    </div>
+// Bilan hebdomadaire du Dimanche Soir
+function executerBilanDimanche() {
+  let g = state.classes.guerrier || 0;
+  let m = state.classes.mage || 0;
+  let o = state.classes.ombre || 0;
+  let a = state.classes.aventurier || 0;
 
-                    <!-- CLASSE : L'AVENTURIER -->
-                    <div class="bg-neutral-900 border border-neutral-800 p-4 rounded-xl relative overflow-hidden">
-                        <div class="absolute top-0 left-0 w-1 h-full bg-emerald-600"></div>
-                        <div class="flex justify-between items-start mb-2">
-                            <div>
-                                <h3 class="font-bold text-emerald-400 tracking-wide flex items-center gap-2">
-                                    <span>🎒 L'AVENTURIER</span>
-                                    <span id="blessing-aventurier" class="text-[9px] font-mono bg-emerald-950 text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-800/80 hidden">BÉNÉDICTION +10%</span>
-                                </h3>
-                                <p class="text-[11px] text-neutral-400 mt-0.5">Adaptabilité immédiate, résolution des urgences et quêtes forgées.</p>
-                            </div>
-                            <span id="lvl-aventurier" class="text-xs font-mono font-bold bg-neutral-800 px-2 py-0.5 rounded text-neutral-300">Niv. 1</span>
-                        </div>
-                        <div class="mt-4">
-                            <div class="flex justify-between text-xs font-mono text-neutral-400 mb-1">
-                                <span>Progression de Classe</span>
-                                <span id="xp-text-aventurier">0 / 1000 XP</span>
-                            </div>
-                            <div class="w-full h-2 bg-neutral-800 rounded-full overflow-hidden">
-                                <div id="bar-aventurier" class="h-full bg-gradient-to-r from-emerald-700 to-emerald-500 transition-all duration-500" style="width: 0%"></div>
-                            </div>
-                        </div>
-                        <div class="mt-3 pt-2 border-t border-neutral-800/60 flex items-center justify-between text-[10px] text-neutral-500">
-                            <span>Alimentation : Quêtes Forgées Exclusivement</span>
-                            <span id="weekly-aventurier" class="font-mono text-neutral-400">0 XP accumulés</span>
-                        </div>
-                    </div>
-                </div>
+  let totalSemaine = g + m + o + a;
+  let listeClasses = [
+    { nom: 'guerrier', xp: g, titre: 'Guerrier Supérieur', couleur: '#f87171' },
+    { nom: 'mage', xp: m, titre: 'Mage Supérieur', couleur: '#60a5fa' },
+    { nom: 'ombre', xp: o, titre: 'Ombre Supérieure', couleur: '#c084fc' },
+    { nom: 'aventurier', xp: a, titre: 'Aventurier Supérieur', couleur: '#34d399' }
+  ];
 
-                <!-- Simulation de boucle de fin de semaine -->
-                <div class="p-4 bg-neutral-900/40 border border-neutral-800/80 rounded-xl flex items-center justify-between flex-wrap gap-4">
-                    <div class="text-xs max-w-md text-neutral-400">
-                        <span class="font-bold text-neutral-300">Moteur de Bilan Synchrone :</span> Chaque dimanche soir, le système verrouille ton statut d'Aura, calcule les dispersions (Deltas) et assigne les bonus.
-                    </div>
-                    <button onclick="runSundayReview()" class="px-4 py-2 bg-neutral-800 text-neutral-200 border border-neutral-700 hover:bg-neutral-700 rounded-lg text-xs font-mono font-bold transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-bolt"></i> Exécuter le Bilan du Dimanche Soir
-                    </button>
-                </div>
-            </div>
+  // Cas critique : Égalité à zéro
+  if (totalSemaine === 0) {
+    state.titreAura = "Le Stagnant";
+    state.classeBénie = "";
+    document.documentElement.style.setProperty('--accent', '#777777');
+    alert("Bilan du Système : Vous n'avez pas progressé cette semaine. Titre punitif activé : [Le Stagnant].");
+    saveAndRender();
+    return;
+  }
 
-            <!-- ONGLET 3 : QUÊTES QUOTIDIENNES -->
-            <div id="tab-quests" class="tab-content hidden flex flex-col gap-6">
-                <!-- Zone d'injection des Quêtes des Piliers -->
-                <div>
-                    <h2 class="text-xs font-mono font-bold uppercase text-neutral-400 tracking-wider mb-3">Quêtes de Piliers Stratégiques (Bonus 1.2x Natif)</h2>
-                    <div class="flex flex-col gap-2">
-                        <div class="bg-neutral-900 p-3.5 rounded-xl border border-neutral-800 flex justify-between items-center">
-                            <div>
-                                <span class="text-[10px] bg-blue-950 text-blue-400 border border-blue-900 px-2 py-0.5 rounded font-mono uppercase">Métacognition</span>
-                                <h4 class="text-sm font-bold mt-1 text-white">Anki : Étymologie Médicale & Feynman</h4>
-                            </div>
-                            <button onclick="processTaskValidation('metacognition', 100)" class="px-3 py-1.5 bg-neutral-800 hover:bg-blue-900 hover:text-white rounded border border-neutral-700 text-xs font-mono transition font-bold">+100 XP Base</button>
-                        </div>
-                        <div class="bg-neutral-900 p-3.5 rounded-xl border border-neutral-800 flex justify-between items-center">
-                            <div>
-                                <span class="text-[10px] bg-cyan-950 text-cyan-400 border border-cyan-900 px-2 py-0.5 rounded font-mono uppercase">Régulation</span>
-                                <h4 class="text-sm font-bold mt-1 text-white">Cohérence Cardiaque / Protocole Wim Hof</h4>
-                            </div>
-                            <button onclick="processTaskValidation('regulation', 80)" class="px-3 py-1.5 bg-neutral-800 hover:bg-cyan-900 hover:text-white rounded border border-neutral-700 text-xs font-mono transition font-bold">+80 XP Base</button>
-                        </div>
-                        <div class="bg-neutral-900 p-3.5 rounded-xl border border-neutral-800 flex justify-between items-center">
-                            <div>
-                                <span class="text-[10px] bg-purple-950 text-purple-400 border border-purple-900 px-2 py-0.5 rounded font-mono uppercase">Présence</span>
-                                <h4 class="text-sm font-bold mt-1 text-white">Sémiologie Factuelle (Zéro interprétation psychologique)</h4>
-                            </div>
-                            <button onclick="processTaskValidation('presence', 120)" class="px-3 py-1.5 bg-neutral-800 hover:bg-purple-900 hover:text-white rounded border border-neutral-700 text-xs font-mono transition font-bold">+120 XP Base</button>
-                        </div>
-                        <div class="bg-neutral-900 p-3.5 rounded-xl border border-neutral-800 flex justify-between items-center">
-                            <div>
-                                <span class="text-[10px] bg-red-950 text-red-400 border border-red-900 px-2 py-0.5 rounded font-mono uppercase">Condition Physique</span>
-                                <h4 class="text-sm font-bold mt-1 text-white">Entraînement Calisthénie ou Session Natation (3 km)</h4>
-                            </div>
-                            <button onclick="processTaskValidation('physique', 150)" class="px-3 py-1.5 bg-neutral-800 hover:bg-red-900 hover:text-white rounded border border-neutral-700 text-xs font-mono transition font-bold">+150 XP Base</button>
-                        </div>
-                        <div class="bg-neutral-900 p-3.5 rounded-xl border border-neutral-800 flex justify-between items-center">
-                            <div>
-                                <span class="text-[10px] bg-orange-950 text-orange-400 border border-orange-900 px-2 py-0.5 rounded font-mono uppercase">Influence</span>
-                                <h4 class="text-sm font-bold mt-1 text-white">Rhétorique Active, Langues ou Échecs</h4>
-                            </div>
-                            <button onclick="processTaskValidation('influence', 100)" class="px-3 py-1.5 bg-neutral-800 hover:bg-orange-900 hover:text-white rounded border border-neutral-700 text-xs font-mono transition font-bold">+100 XP Base</button>
-                        </div>
-                    </div>
-                </div>
+  // Trouver max et min
+  listeClasses.sort((x, y) => y.xp - x.xp);
+  let maxClasse = listeClasses[0];
+  let minClasse = listeClasses[listeClasses.length - 1];
 
-                <!-- Section Forge : Quêtes Instantanées Forgées (Alimentation Aventurier) -->
-                <div class="border-t border-neutral-900 pt-4">
-                    <h2 class="text-xs font-mono font-bold uppercase text-neutral-400 tracking-wider mb-3">La Forge d'Imprévus (Alimente l'Aventurier)</h2>
-                    <div class="bg-neutral-900 p-4 rounded-xl border border-neutral-800">
-                        <p class="text-xs text-neutral-400 mb-3">Un imprévu surgit ? Une tâche domestique ou un défi non planifié ? Forgez une quête sur le tas.</p>
-                        <div class="flex gap-2">
-                            <input type="text" id="forge-title-input" placeholder="Ex: Réparer l'évier, Ranger le matériel militaire..." class="flex-1 bg-neutral-950 text-sm border border-neutral-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-purple-600">
-                            <button onclick="forgeInstantQuest()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 font-bold text-xs rounded-lg text-neutral-950 font-mono transition uppercase">Forger (+50 XP)</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+  // Vérifier le Delta d'Équilibre Parfait (< 5% de différence relative ou globale)
+  let deltaPct = ((maxClasse.xp - minClasse.xp) / Math.max(maxClasse.xp, 1)) * 100;
 
-            <!-- ONGLET 4 : COACH IA & CONVERSATION -->
-            <div id="tab-coach" class="tab-content hidden flex flex-col gap-4">
-                <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4 flex-1 flex flex-col min-h-[400px]">
-                    <div class="text-xs font-mono text-neutral-400 uppercase tracking-wider border-b border-neutral-800 pb-2 mb-3 flex items-center gap-1.5">
-                        <i class="fa-solid fa-robot"></i> Interface Cognitive Externe (Gemini Worker)
-                    </div>
-                    <!-- Zone d'affichage des messages -->
-                    <div id="chat-output" class="flex-1 overflow-y-auto text-xs flex flex-col gap-3 pr-2 font-mono max-h-[350px]">
-                        <div class="text-neutral-400 italic">[Système] Connexion établie. Posez vos questions d'analyse clinique ou demandez une feuille de route physique sur mesure. Pas d'interprétation psychologique tolérée.</div>
-                    </div>
-                    <!-- Zone de saisie utilisateur -->
-                    <div class="mt-4 flex gap-2 border-t border-neutral-800 pt-3">
-                        <input type="text" id="chat-input" placeholder="Formuler une demande de protocole de calisthénie ou rapport..." class="flex-1 bg-neutral-950 border border-neutral-800 text-xs px-3 py-2 rounded-lg focus:outline-none text-white focus:border-purple-600">
-                        <button onclick="sendChatMessage()" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-xs font-bold font-mono text-white rounded-lg transition">TRANSMETTRE</button>
-                    </div>
-                </div>
-            </div>
+  if (deltaPct < 5) {
+    // Équilibre Parfait -> Aventurier Suprême
+    state.titreAura = "Aventurier Suprême";
+    document.documentElement.style.setProperty('--accent', '#e0e7ff'); // Blanc Électrique / Indigo très clair
+    document.getElementById('bilan-choix-souverain').style.display = 'block';
+    alert("✨ ÉQUILIBRE PARFAIT ATTEINT ! Vous obtenez le titre d'Aventurier Suprême. Choisissez votre bénédiction manuellement dans l'onglet Statuts.");
+  } else {
+    // Cas Général
+    state.titreAura = maxClasse.titre;
+    state.classeBénie = minClasse.nom;
+    document.documentElement.style.setProperty('--accent', maxClasse.couleur);
+    alert(`Bilan du Système :\nClasse dominante : ${maxClasse.nom.toUpperCase()} -> Titre d'Aura : [${maxClasse.titre}].\nAlerte faiblesse : Votre ${minClasse.nom} a été délaissé. Bénédiction de compensation activée : +10% d'XP sur cette classe.`);
+  }
 
-        </div>
-    </main>
+  saveAndRender();
+}
 
-    <!-- FOOTER STATIQUE -->
-    <footer class="w-full text-center py-4 text-[10px] text-neutral-600 border-t border-neutral-900 font-mono">
-        PROJET ÉVOLUTION v2.5 // FLUX D'XP ENTONNOIR TRIPLE // 2026
-    </footer>
+function choisirBenedictionSouverain(nomClasse) {
+  state.classeBénie = nomClasse;
+  document.getElementById('bilan-choix-souverain').style.display = 'none';
+  alert(`Bénédiction du Souverain validée : +10% d'XP octroyés sur la classe ${nomClasse.toUpperCase()} pour la semaine prochaine !`);
+  saveAndRender();
+}
 
-    <!-- LOGIQUE JAVASCRIPT TECHNIQUE ET SAUVEGARDE -->
-    <script>
-        // CONFIGURATION RADAR CHART INITIAL
-        let ctx = document.getElementById('radarChart').getContext('2d');
-        let radarChart = new Chart(ctx, {
-            type: 'radar',
-            data: {
-                labels: ['Apprentissage', 'Régulation', 'Présence', 'Physique', 'Influence'],
-                datasets: [{
-                    label: 'Piliers Réels',
-                    data: [0, 0, 0, 0, 0],
-                    backgroundColor: 'rgba(147, 51, 234, 0.15)',
-                    borderColor: 'rgba(147, 51, 234, 0.8)',
-                    borderWidth: 1.5,
-                    pointBackgroundColor: '#a855f7'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    r: {
-                        grid: { color: '#262626' },
-                        angleLines: { color: '#262626' },
-                        suggestedMin: 0,
-                        suggestedMax: 3000,
-                        ticks: { display: false }
-                    }
-                },
-                plugins: { legend: { display: false } }
-            }
-        });
+// Logique d'affichage et navigation légère
+function switchTab(tabId) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  
+  const targetScreen = document.getElementById('screen-' + tabId);
+  if(targetScreen) targetScreen.classList.add('active');
+  
+  // Recherche du bouton via l'attribut onclick
+  document.querySelectorAll('.tab-bar .tab-btn').forEach(btn => {
+    if(btn.getAttribute('onclick').includes(tabId)) {
+      btn.classList.add('active');
+    }
+  });
+}
 
-        // STATE INITIAL DE L'AVATAR (Combinaison Profil + Matrice RPG)
-        let evolutionState = {
-            globalXp: 120, // Exemple d'XP pré-existante
-            piliersCumulativeXp: 0,
-            forgedCumulativeXp: 0,
-            activeBlessingClass: null, 
-            currentAura: "CIVIL / LE STAGNANT",
-            
-            // Les 5 piliers de vie (Max 3000 XP chacun)
-            piliers: {
-                metacognition: 450,
-                regulation: 300,
-                presence: 200,
-                physique: 900,
-                influence: 150
-            },
-            
-            // Les 4 classes d'impact issues de la nouvelle cartographie
-            classes: {
-                guerrier: { xp: 900, level: 1 },
-                mage: { xp: 750, level: 1 },
-                ombre: { xp: 350, level: 1 },
-                aventurier: { xp: 0, level: 1 }
-            },
-            
-            // Compteurs hebdomadaires réinitialisables le dimanche soir
-            weeklyXp: {
-                guerrier: 0,
-                mage: 0,
-                ombre: 0,
-                aventurier: 0
-            }
-        };
+function saveAndRender() {
+  localStorage.setItem('projet_evolution_state', JSON.stringify(state));
+  renderUI();
+}
 
-        // GESTIONNAIRE D'ONGLETS SANS RECHARGEMENT
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
-            
-            // Gestion visuelle des boutons actifs
-            ['dashboard', 'status', 'quests', 'coach'].forEach(id => {
-                const btn = document.getElementById(`btn-${id}`);
-                if(id === tabId) {
-                    btn.className = "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition text-purple-400 bg-neutral-900 border border-neutral-800/50";
-                } else {
-                    btn.className = "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition text-neutral-400 hover:bg-neutral-900 hover:text-white";
-                }
-            });
-        }
+function renderUI() {
+  // Rendu des scores du haut
+  document.getElementById('top-xp').textContent = state.xp + " XP";
+  document.getElementById('xp-big').textContent = state.xp;
+  document.getElementById('txt-global-xp').textContent = state.xp + " XP";
+  document.getElementById('txt-piliers-xp').textContent = state.xpPiliers + " XP";
+  document.getElementById('txt-forges-xp').textContent = state.xpForges + " XP";
+  
+  // Remplissage dynamique des barres multi-niveaux du haut
+  let maxJaugeVisuelle = Math.max(state.xp, 100);
+  document.getElementById('bar-global-xp').style.width = ((state.xp / maxJaugeVisuelle) * 100) + "%";
+  document.getElementById('bar-piliers-xp').style.width = ((state.xpPiliers / Math.max(state.xpPiliers + state.xpForges, 1)) * 100) + "%";
+  document.getElementById('bar-forges-xp').style.width = ((state.xpForges / Math.max(state.xpPiliers + state.xpForges, 1)) * 100) + "%";
+  
+  // Rendu de l'onglet statuts RPG
+  document.getElementById('lbl-current-aura').textContent = state.titreAura;
+  document.getElementById('rpg-aura-title').textContent = state.titreAura;
+  
+  let g = state.classes.guerrier || 0;
+  let m = state.classes.mage || 0;
+  let o = state.classes.ombre || 0;
+  let a = state.classes.aventurier || 0;
+  
+  document.getElementById('xp-guerrier-txt').textContent = g + " XP" + (state.classeBénie === 'guerrier' ? ' (+10% 🌟)' : '');
+  document.getElementById('xp-mage-txt').textContent = m + " XP" + (state.classeBénie === 'mage' ? ' (+10% 🌟)' : '');
+  document.getElementById('xp-ombre-txt').textContent = o + " XP" + (state.classeBénie === 'ombre' ? ' (+10% 🌟)' : '');
+  document.getElementById('xp-aventurier-txt').textContent = a + " XP" + (state.classeBénie === 'aventurier' ? ' (+10% 🌟)' : '');
+  
+  let maxClasseXp = Math.max(g, m, o, a, 100);
+  document.getElementById('bar-guerrier').style.width = ((g / maxClasseXp) * 100) + "%";
+  document.getElementById('bar-mage').style.width = ((m / maxClasseXp) * 100) + "%";
+  document.getElementById('bar-ombre').style.width = ((o / maxClasseXp) * 100) + "%";
+  document.getElementById('bar-aventurier').style.width = ((a / maxClasseXp) * 100) + "%";
+  
+  // Triggers de base
+  document.getElementById('streak-num').textContent = "🔥 " + (state.streak || 0);
+  document.getElementById('days-total').textContent = state.totalDays || 0;
+}
 
-        // GENERATION GENERIQUE ET DETERMINISTE DU DEFI QUOTIDIEN
-        function generateDailyDeterministicSidequest() {
-            const today = new Date().toISOString().slice(0, 10);
-            const mockUid = "ELISEO_PROJET_EVOLUTION_2026";
-            const inputHashString = today + mockUid;
-            
-            // Hachage basique de chaîne
-            let hash = 0;
-            for (let i = 0; i < inputHashString.length; i++) {
-                hash = inputHashString.charCodeAt(i) + ((hash << 5) - hash);
-            }
-            const index = Math.abs(hash) % 4;
+// Simulation de validation de journée ou tâche pour le test
+function validerJour() {
+  // Ajoute de l'XP de test basée sur les piliers
+  ajouterProgressionXP(100, 'physique');
+  alert("Journée validée ! Progression ajoutée au Guerrier (Pilier conditions physiques) avec le multiplicateur de base.");
+}
 
-            const sidequestsPool = [
-                { title: "Marche Tactique Temporelle", desc: "Effectuer 15 minutes de marche active en sémiologie stricte : notez uniquement l'architecture et les faits environnementaux sans aucune interprétation." },
-                { title: "Test d'Effort d'Apnée Wim Hof", desc: "Compléter 4 cycles de respiration contrôlée complets avant votre première séance cognitive." },
-                { title: "Mémorisation Flash de Racine Médicale", desc: "Injecter et valider 15 nouvelles cartes Anki d'étymologie grecque ou latine sans faire d'erreur de racine." },
-                { title: "Surcharge de Calisthénie Explosive", desc: "Réaliser un set propre de 50 pompes déclinées et 15 tractions strictes en moins de 4 minutes." }
-            ];
+function ajouterQuetePerso() {
+  let name = document.getElementById('cq-name').value || "Nouvelle quête Forgée";
+  let sourcePillar = document.getElementById('cq-pillar').value || "forge";
+  let diff = document.getElementById('cq-diff').value;
+  
+  let baseBonus = 10;
+  if(diff === 'medium') baseBonus = 25;
+  if(diff === 'hard') baseBonus = 50;
+  
+  ajouterProgressionXP(baseBonus, sourcePillar);
+  alert(`Quête [${name}] validée ! Impact appliqué sur l'alignement RPG.`);
+  document.getElementById('cq-name').value = "";
+}
 
-            const taskSelected = sidequestsPool[index];
-            document.getElementById('sidequest-title').innerText = `⚡ ${taskSelected.title}`;
-            document.getElementById('sidequest-desc').innerText = taskSelected.desc;
-        }
-
-        // COMPLÉTION DE LA SIDEQUEST DU JOUR
-        function completeSidequest() {
-            processTaskValidation('forge', 150);
-            alert("[Système] Sidequest validée avec succès. 150 XP de base propagés dans la classe Aventurier.");
-        }
-
-        // CRAFT ET INJECTION DE QUÊTES IN-SITU
-        function forgeInstantQuest() {
-            const input = document.getElementById('forge-title-input');
-            if(!input.value.trim()) return;
-            
-            // Envoi de la validation immédiate
-            processTaskValidation('forge', 50);
-            alert(`[Forge] Défi "${input.value}" forgé et surmonté ! +50 XP distribués.`);
-            input.value = "";
-        }
-
-        // ========================================== -->
-        // LE NOUVEAU MOTEUR DE CALCUL TRIPLE IMPACT  -->
-        // ========================================== -->
-        function processTaskValidation(sourceId, baseXp) {
-            let finalXp = baseXp;
-            let targetClass = '';
-            let isPilier = false;
-
-            // Étape 1 : Cartographie Pilier vers Classe et Multiplicateur 1.2x
-            switch(sourceId) {
-                case 'metacognition':
-                    evolutionState.piliers.metacognition = Math.min(3000, evolutionState.piliers.metacognition + baseXp);
-                    targetClass = 'mage';
-                    isPilier = true;
-                    break;
-                case 'regulation':
-                    evolutionState.piliers.regulation = Math.min(3000, evolutionState.piliers.regulation + baseXp);
-                    targetClass = 'mage';
-                    isPilier = true;
-                    break;
-                case 'presence':
-                    evolutionState.piliers.presence = Math.min(3000, evolutionState.piliers.presence + baseXp);
-                    targetClass = 'ombre';
-                    isPilier = true;
-                    break;
-                case 'influence':
-                    evolutionState.piliers.influence = Math.min(3000, evolutionState.piliers.influence + baseXp);
-                    targetClass = 'ombre';
-                    isPilier = true;
-                    break;
-                case 'physique':
-                    evolutionState.piliers.physique = Math.min(3000, evolutionState.piliers.physique + baseXp);
-                    targetClass = 'guerrier';
-                    isPilier = true;
-                    break;
-                case 'forge':
-                    targetClass = 'aventurier';
-                    isPilier = false;
-                    break;
-                default:
-                    targetClass = 'aventurier';
-            }
-
-            // Application du coefficient multiplicateur de Pilier (1.2x)
-            if (isPilier) {
-                finalXp = finalXp * 1.2;
-            }
-
-            // Étape 2 : Application du bonus passif de rattrapage / bénédiction (+10%)
-            if (evolutionState.activeBlessingClass === targetClass) {
-                finalXp = finalXp * 1.1;
-            }
-
-            finalXp = Math.round(finalXp);
-
-            // Étape 3 : LE TRIPLE IMPACT ET SYNCHRONISATION DES ENTONNOIRS
-            // Impact A : Jauge Globale
-            evolutionState.globalXp += finalXp;
-            
-            // Impact B : Jauge Cumulée de Catégorie
-            if (isPilier) {
-                evolutionState.piliersCumulativeXp += finalXp;
-            } else {
-                evolutionState.forgedCumulativeXp += finalXp;
-            }
-
-            // Impact C : Jauge d'impact de classe RPG (Total permanent + Compteur Hebdomadaire)
-            evolutionState.classes[targetClass].xp += finalXp;
-            evolutionState.weeklyXp[targetClass] += finalXp;
-
-            // Recalcul du niveau de classe sur paliers de 1000 XP
-            evolutionState.classes[targetClass].level = Math.floor(evolutionState.classes[targetClass].xp / 1000) + 1;
-
-            // Synchronisation instantanée Supabase & Données
-            syncWithSupabase(sourceId, finalXp);
-
-            // Rendu de l'UI
-            renderRpgEngineUi();
-        }
-
-        // REFRESH SYNCHRONE DE TOUTES LES COMPOSANTES DE L'INTERFACE
-        function renderRpgEngineUi() {
-            // 1. En-tête des 3 Jauges Globales
-            const currentGlobalLvl = Math.floor(evolutionState.globalXp / 5000) + 1;
-            document.getElementById('global-level').innerText = currentGlobalLvl;
-            document.getElementById('global-xp-text').innerText = `${evolutionState.globalXp} / ${currentGlobalLvl * 5000} XP`;
-            document.getElementById('global-xp-bar').style.width = `${(evolutionState.globalXp % (currentGlobalLvl * 5000)) / (currentGlobalLvl * 5000) * 100}%`;
-
-            document.getElementById('piliers-xp-text').innerText = `${evolutionState.piliersCumulativeXp} XP`;
-            document.getElementById('piliers-xp-bar').style.width = `${Math.min(100, (evolutionState.piliersCumulativeXp / 15000) * 100)}%`;
-
-            document.getElementById('forged-xp-text').innerText = `${evolutionState.forgedCumulativeXp} XP`;
-            document.getElementById('forged-xp-bar').style.width = `${Math.min(100, (evolutionState.forgedCumulativeXp / 5000) * 100)}%`;
-
-            // 2. Les 5 Piliers Réels (Fractions textuelles et barres)
-            const pilKeys = ['metacognition', 'regulation', 'presence', 'physique', 'influence'];
-            pilKeys.forEach(p => {
-                document.getElementById(`val-${p}`).innerText = `${evolutionState.piliers[p]} / 3000 XP`;
-                document.getElementById(`bar-${p}`).style.width = `${(evolutionState.piliers[p] / 3000) * 100}%`;
-            });
-
-            // Mise à jour de la boussole (recherche du pilier min)
-            let lowestPilier = pilKeys.reduce((min, p) => evolutionState.piliers[p] < evolutionState.piliers[min] ? p : min, pilKeys[0]);
-            if (evolutionState.piliers[lowestPilier] < 3000) {
-                document.getElementById('bounty-banner').classList.remove('hidden');
-            }
-
-            // Événement de rafraîchissement du graphique Radar
-            radarChart.data.datasets[0].data = [
-                evolutionState.piliers.metacognition,
-                evolutionState.piliers.regulation,
-                evolutionState.piliers.presence,
-                evolutionState.piliers.physique,
-                evolutionState.piliers.influence
-            ];
-            radarChart.update();
-
-            // 3. Les 4 Cartes de Classes (Menu Statuts)
-            const classKeys = ['guerrier', 'mage', 'ombre', 'aventurier'];
-            classKeys.forEach(cls => {
-                const clsTotalXp = evolutionState.classes[cls].xp;
-                const clsLvl = evolutionState.classes[cls].level;
-                const relativeXp = clsTotalXp % 1000;
-
-                document.getElementById(`lvl-${cls}`).innerText = `Niv. ${clsLvl}`;
-                document.getElementById(`xp-text-${cls}`).innerText = `${relativeXp} / 1000 XP (Cumul: ${clsTotalXp})`;
-                document.getElementById(`bar-${cls}`).style.width = `${(relativeXp / 1000) * 100}%`;
-                document.getElementById(`weekly-${cls}`).innerText = `${evolutionState.weeklyXp[cls]} XP accumulés`;
-
-                // Badge Bénédiction
-                if (evolutionState.activeBlessingClass === cls) {
-                    document.getElementById(`blessing-${cls}`).classList.remove('hidden');
-                } else {
-                    document.getElementById(`blessing-${cls}`).classList.add('hidden');
-                }
-            });
-
-            // 4. Gestion de la Bannière d'Aura Hebdomadaire
-            const auraBanner = document.getElementById('aura-banner');
-            auraBanner.className = "mb-2 p-5 rounded-xl border transition-all duration-300 text-center ";
-            
-            if (evolutionState.currentAura.includes("STAGNANT")) {
-                auraBanner.classList.add('bg-neutral-900', 'border-neutral-800', 'text-neutral-500');
-            } else if (evolutionState.currentAura.includes("SOUVERAIN") || evolutionState.currentAura.includes("SUPRÊME")) {
-                auraBanner.classList.add('bg-gradient-to-r', 'from-purple-950', 'via-neutral-900', 'to-indigo-950', 'border-purple-500', 'electric-glow');
-            } else if (evolutionState.currentAura.includes("GUERRIER")) {
-                auraBanner.classList.add('bg-red-950/40', 'border-red-900/60');
-            } else if (evolutionState.currentAura.includes("MAGE")) {
-                auraBanner.classList.add('bg-blue-950/40', 'border-blue-900/60');
-            } else if (evolutionState.currentAura.includes("OMBRE")) {
-                auraBanner.classList.add('bg-purple-950/40', 'border-purple-900/60');
-            } else if (evolutionState.currentAura.includes("AVENTURIER")) {
-                auraBanner.classList.add('bg-emerald-950/40', 'border-emerald-900/60');
-            }
-        }
-
-        // MOTEUR ARBITRAL : LE BILAN DU DIMANCHE SOIR
-        function runSundayReview() {
-            const weekly = evolutionState.weeklyXp;
-            const totalWeeklyXp = weekly.guerrier + weekly.mage + weekly.ombre + weekly.aventurier;
-
-            document.getElementById('sovereign-choice-container').classList.add('hidden');
-
-            // CAS CRITIQUE : Égalité à ZÉRO (Aura Stagnante)
-            if (totalWeeklyXp === 0) {
-                evolutionState.currentAura = "LE STAGNANT (RANG CIVIL)";
-                evolutionState.activeBlessingClass = null;
-                document.getElementById('aura-title').innerText = "LE STAGNANT";
-                document.getElementById('aura-desc').innerText = "Alerte du Système : Aucune activité enregistrée cette semaine. Votre avatar retourne au rang de civil. Reprenez l'entraînement immédiatement.";
-                renderRpgEngineUi();
-                return;
-            }
-
-            // Calcul des extremums pour le delta de dispersion
-            const currentWeekData = [
-                { name: 'guerrier', xp: weekly.guerrier },
-                { name: 'mage', xp: weekly.mage },
-                { name: 'ombre', xp: weekly.ombre },
-                { name: 'aventurier', xp: weekly.aventurier }
-            ];
-
-            currentWeekData.sort((a, b) => b.xp - a.xp);
-            const highestClass = currentWeekData[0];
-            const lowestClass = currentWeekData[currentWeekData.length - 1];
-
-            // Dispersion Relative (Delta = (Max - Min) / Max)
-            const delta = highestClass.xp > 0 ? (highestClass.xp - lowestClass.xp) / highestClass.xp : 0;
-
-            // CAS D'ÉQUILIBRE PARFAIT : Delta <= 5%
-            if (delta <= 0.05) {
-                evolutionState.currentAura = "L'AVENTURIER SUPRÊME (AURA DU SOUVERAIN)";
-                document.getElementById('aura-title').innerText = "✨ L'AVENTURIER SUPRÊME";
-                document.getElementById('aura-desc').innerText = "Équilibre absolu atteint sur l'ensemble de vos classes (Dispersion < 5%). Le design d'interface s'illumine en Blanc Électrique / Violet Royal. Choisissez votre bénédiction.";
-                document.getElementById('sovereign-choice-container').classList.remove('hidden');
-            } 
-            // CAS GÉNÉRAL : Attribution par Dominance
-            else {
-                const titleMapping = {
-                    guerrier: "⚔️ GUERRIER SUPÉRIEUR",
-                    mage: "🔮 MAGE SUPÉRIEUR",
-                    ombre: "👁️ OMBRE SUPÉRIEURE",
-                    aventurier: "🎒 AVENTURIER SUPÉRIEUR"
-                };
-
-                evolutionState.currentAura = titleMapping[highestClass.name];
-                document.getElementById('aura-title').innerText = evolutionState.currentAura;
-                document.getElementById('aura-desc').innerText = `Dominance hebdomadaire établie sur la classe : ${highestClass.name.toUpperCase()}.`;
-                
-                // Compensation automatique de la faiblesse
-                evolutionState.activeBlessingClass = lowestClass.name;
-                alert(`[Système] Bénédiction de compensation activée : La classe [${lowestClass.name.toUpperCase()}] était trop basse. Vous obtenez +10% d'XP sur celle-ci pour les 7 prochains jours.`);
-            }
-
-            // Archivage et reset du compteur hebdomadaire
-            evolutionState.weeklyXp = { guerrier: 0, mage: 0, ombre: 0, aventurier: 0 };
-            renderRpgEngineUi();
-        }
-
-        // ASSIGNATION DE LA BÉNÉDICTION PAR LE SOUVERAIN (ÉQUILIBRE)
-        function selectSovereignBlessing(className) {
-            evolutionState.activeBlessingClass = className;
-            document.getElementById('sovereign-choice-container').classList.add('hidden');
-            alert(`[Alignement] Choix pris en compte. Bénédiction de +10% XP verrouillée sur la classe : ${className.toUpperCase()}.`);
-            renderRpgEngineUi();
-        }
-
-        // SIMULATION ET INTERACTION SUPABASE (REST FETCH APIS)
-        function syncWithSupabase(source, totalXpAdded) {
-            console.log(`[Supabase Synchro] Push REST envoyé vers table sys_progress : Source -> ${source}, DeltaXP -> ${totalXpAdded}`);
-            // Exemple : fetch('https://supabase.co/rest/v1/sys_progress', { method: 'POST', body: JSON.stringify({...}) })
-        }
-
-        // REQUÊTES INTEGRATION GEMINI AI
-        async function sendChatMessage() {
-            const input = document.getElementById('chat-input');
-            const output = document.getElementById('chat-output');
-            if(!input.value.trim()) return;
-
-            const userText = input.value;
-            output.innerHTML += `<div class="text-white font-bold mt-2">✨ ÉLÉMENTALISTE : ${userText}</div>`;
-            input.value = "";
-
-            try {
-                // Requête HTTP POST standardisée vers le Cloudflare Worker de l'application
-                const response = await fetch('https://evolution-ai.eliseobuti.workers.dev', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt: userText, context: evolutionState })
-                });
-                const data = await response.json();
-                output.innerHTML += `<div class="text-purple-400 mt-1 bg-neutral-950 p-2 rounded border border-neutral-900">[Coach IA] ${data.reply}</div>`;
-            } catch (err) {
-                output.innerHTML += `<div class="text-red-500 mt-1">[Erreur] Échec de la liaison avec le serveur Cloudflare.</div>`;
-            }
-            output.scrollTop = output.scrollHeight;
-        }
-
-        // INITIALISATION LOGIQUE AU CHARGEMENT DE LA PAGE
-        generateDailyDeterministicSidequest();
-        renderRpgEngineUi();
-    </script>
+// Initialisation au chargement
+window.addEventListener('DOMContentLoaded', () => {
+  let saved = localStorage.getItem('projet_evolution_state');
+  if(saved) {
+    try {
+      state = Object.assign(state, JSON.parse(saved));
+    } catch(e) {}
+  }
+  renderUI();
+});
+</script>
 </body>
 </html>
