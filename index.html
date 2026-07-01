@@ -640,7 +640,7 @@ async function toggleQuete(id){
   renderPiliers();
 }
 
-// Logique Sidequest du Jour
+// Logique Sidequest du Jour (Sécurisée et Synchronisée entre écrans)
 function initSidequest(){
   const today=todayKey();
   const saved=localStorage.getItem('sys12_sidequest');
@@ -650,7 +650,15 @@ function initSidequest(){
     if(sq.date!==today) sq=null;
   }
   if(!sq){
-    const rand=BANQUE_SIDEQUESTS[Math.floor(Math.random()*BANQUE_SIDEQUESTS.length)];
+    // Algorithme de hachage déterministe basé sur Date + UID
+    // Les deux appareils génèrent ainsi EXACTEMENT le même défi au réveil
+    let hash = 0;
+    const seed = today + UID;
+    for (let i = 0; i < seed.length; i++) {
+      hash = seed.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const idx = Math.abs(hash) % BANQUE_SIDEQUESTS.length;
+    const rand = BANQUE_SIDEQUESTS[idx];
     sq={date:today,text:rand.text,pid:rand.pid,done:false,isIA:false};
     localStorage.setItem('sys12_sidequest',JSON.stringify(sq));
   }
@@ -669,7 +677,12 @@ function updateSidequestUI(){
   const finalXp=(sq.pid===bp)?Math.round(baseXp*1.25):baseXp;
   document.getElementById('sq-xp-display').textContent=`+${finalXp} XP` + ((sq.pid===bp)?' 🚨':'');
 
-  if(sq.done){
+  // L'état de validation s'aligne en temps réel sur la base de données globale
+  const isDoneGlobally = !!checkedToday['sidequest'];
+  sq.done = isDoneGlobally;
+  localStorage.setItem('sys12_sidequest', JSON.stringify(sq));
+
+  if(isDoneGlobally){
     item.classList.add('done');
     chk.textContent='✓';
   }else{
@@ -687,14 +700,17 @@ function toggleSidequest(){
   const bp=getBountyPillar();
   const baseXp=30;
   const finalXp=(sq.pid===bp)?Math.round(baseXp*1.25):baseXp;
+  const currentStatus = !!checkedToday['sidequest'];
 
-  if(sq.done){
+  if(currentStatus){
+    checkedToday['sidequest']=false;
     sq.done=false;
     S.total_xp=Math.max(0,S.total_xp-finalXp);
     if(sq.pid) S[sq.pid+'_xp']=Math.max(0,(S[sq.pid+'_xp']||0)-finalXp);
     LOG=LOG.filter(l=>!(l.quest_id==='sidequest'&&l.created_at&&l.created_at.slice(0,10)===today));
     sbDelete('sys_log',UID,'sidequest',today).catch(()=>{});
   }else{
+    checkedToday['sidequest']=true;
     sq.done=true;
     S.total_xp+=finalXp;
     if(sq.pid) S[sq.pid+'_xp']=Math.min(3000,(S[sq.pid+'_xp']||0)+finalXp);
