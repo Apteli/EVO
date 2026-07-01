@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="favicon.jpg?v=3">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-/* === TOUT LE STYLE EXISTANT, INCHANGÉ === */
+/* === TOUS LES STYLES (identiques à la version précédente) === */
 :root{--bg:#0e0e10;--card:#18181c;--card2:#222228;--border:rgba(255,255,255,0.07);--text:#f0f0f0;--muted:#777;--accent:#a78bfa;--accent2:#7c3aed;--green:#34d399;--amber:#fbbf24;--coral:#f87171;--blue:#60a5fa;--orange:#fb923c;--r:14px;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;font-size:15px;min-height:100dvh;padding-bottom:calc(76px + env(safe-area-inset-bottom));}
@@ -74,9 +74,11 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .tag-ph{background:rgba(255,255,255,.07);color:var(--muted);}
 .tag-aventurier{background:rgba(34,197,94,.15);color:#22c55e;}
 .q-xp{font-size:13px;font-weight:700;color:var(--accent);flex-shrink:0;}
-.quest-actions{display:flex;gap:6px;margin-left:8px;}
-.quest-actions button{background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:0 4px;}
-.quest-actions button:hover{color:var(--text);}
+.q-actions{display:flex;gap:4px;flex-shrink:0;}
+.q-actions button{background:rgba(255,255,255,0.06);border:0.5px solid var(--border);border-radius:6px;color:var(--muted);font-size:14px;padding:2px 6px;cursor:pointer;font-family:inherit;}
+.q-actions button:hover{background:rgba(255,255,255,0.12);}
+.q-actions button.del:hover{color:var(--coral);border-color:var(--coral);}
+.q-actions button.edit:hover{color:var(--blue);border-color:var(--blue);}
 .btn-main{width:100%;background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;border:none;border-radius:14px;padding:16px;font-size:16px;font-weight:700;cursor:pointer;margin-top:14px;transition:opacity .15s;font-family:inherit;}
 .btn-main:active{opacity:.8;}
 .alert{background:rgba(251,191,36,.1);border:0.5px solid rgba(251,191,36,.3);border-radius:10px;padding:12px 14px;font-size:13px;color:#fbbf24;margin-bottom:12px;display:none;}
@@ -200,10 +202,19 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 .choose-boost .boost-btn.selected{border-color:var(--accent);background:rgba(167,139,250,0.15);color:var(--accent);}
 .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--card2);border:0.5px solid var(--border);border-radius:10px;padding:12px 20px;font-size:13px;color:var(--text);z-index:200;opacity:0;transition:opacity .3s ease;pointer-events:none;max-width:90%;text-align:center;}
 .toast.show{opacity:1;pointer-events:auto;}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:300;display:none;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.show{display:flex;}
+.modal-box{background:var(--card);border:0.5px solid var(--border);border-radius:16px;padding:24px;width:100%;max-width:400px;}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:16px;}
+.modal-actions{display:flex;gap:10px;margin-top:16px;}
+.modal-actions button{flex:1;padding:10px;border-radius:10px;border:none;font-weight:600;cursor:pointer;font-family:inherit;}
+.modal-actions .btn-confirm{background:var(--accent2);color:#fff;}
+.modal-actions .btn-cancel{background:rgba(255,255,255,0.06);color:var(--text);border:0.5px solid var(--border);}
 </style>
 </head>
 <body>
 
+<!-- Setup Overlay -->
 <div class="setup-overlay" id="setup-overlay" style="display:none">
   <div class="setup-box">
     <div class="setup-title">Bienvenue 👋</div>
@@ -216,6 +227,33 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
   </div>
 </div>
 
+<!-- Modal d'édition -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal-box">
+    <div class="modal-title">✏️ Modifier la quête</div>
+    <div class="form-group">
+      <input type="text" id="edit-cq-name" class="form-input" placeholder="Nom de la quête...">
+    </div>
+    <div class="form-row">
+      <select id="edit-cq-diff" class="form-select">
+        <option value="easy">Facile (10 XP)</option>
+        <option value="medium">Moyen (25 XP)</option>
+        <option value="hard">Difficile (50 XP)</option>
+      </select>
+      <select id="edit-cq-type" class="form-select">
+        <option value="oneshot">One-shot</option>
+        <option value="recurrent">Récurrente</option>
+      </select>
+    </div>
+    <input type="hidden" id="edit-cq-id">
+    <div class="modal-actions">
+      <button class="btn-confirm" onclick="saveEditQuest()">💾 Sauvegarder</button>
+      <button class="btn-cancel" onclick="closeEditModal()">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- Top Bar -->
 <div class="topbar">
   <div class="topbar-title">Projet Évolution</div>
   <div class="topbar-right">
@@ -224,6 +262,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
   </div>
 </div>
 
+<!-- Écran Aujourd'hui -->
 <div id="screen-today" class="screen active">
   <div id="alert" class="alert">⚠️ 3 jours sans activité — protocole minimum : 20 min.</div>
   <div id="ai-welcome" class="ai-card" style="display:none">
@@ -244,9 +283,21 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
     <div class="phase-prog" id="phase-prog">Mois 1</div>
   </div>
   <div class="xp-bars-container">
-    <div class="xp-bar-row"><span class="xp-bar-label">👤</span><div class="xp-bar-track"><div class="xp-bar-fill global" id="bar-global" style="width:0%"></div></div><span class="xp-bar-value" id="bar-global-val">0 XP</span></div>
-    <div class="xp-bar-row"><span class="xp-bar-label">🧱</span><div class="xp-bar-track"><div class="xp-bar-fill pilliers" id="bar-pilliers" style="width:0%"></div></div><span class="xp-bar-value" id="bar-pilliers-val">0 XP</span></div>
-    <div class="xp-bar-row"><span class="xp-bar-label">⚔️</span><div class="xp-bar-track"><div class="xp-bar-fill forges" id="bar-forges" style="width:0%"></div></div><span class="xp-bar-value" id="bar-forges-val">0 XP</span></div>
+    <div class="xp-bar-row">
+      <span class="xp-bar-label">👤</span>
+      <div class="xp-bar-track"><div class="xp-bar-fill global" id="bar-global" style="width:0%"></div></div>
+      <span class="xp-bar-value" id="bar-global-val">0 XP</span>
+    </div>
+    <div class="xp-bar-row">
+      <span class="xp-bar-label">🧱</span>
+      <div class="xp-bar-track"><div class="xp-bar-fill pilliers" id="bar-pilliers" style="width:0%"></div></div>
+      <span class="xp-bar-value" id="bar-pilliers-val">0 XP</span>
+    </div>
+    <div class="xp-bar-row">
+      <span class="xp-bar-label">⚔️</span>
+      <div class="xp-bar-track"><div class="xp-bar-fill forges" id="bar-forges" style="width:0%"></div></div>
+      <span class="xp-bar-value" id="bar-forges-val">0 XP</span>
+    </div>
   </div>
   <div class="xp-hero">
     <div class="xp-big" id="xp-big">0</div>
@@ -255,8 +306,14 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
     <div class="bar-label"><span id="bar-cur">0 / 500 XP</span><span id="bar-next">→ Apprenti</span></div>
   </div>
   <div class="streak-row">
-    <div class="streak-card"><div class="streak-num" style="color:#fb923c" id="streak-num">🔥 0</div><div class="streak-lbl">jours consécutifs</div></div>
-    <div class="streak-card"><div class="streak-num" style="color:var(--blue)" id="days-total">0</div><div class="streak-lbl">jours actifs</div></div>
+    <div class="streak-card">
+      <div class="streak-num" style="color:#fb923c" id="streak-num">🔥 0</div>
+      <div class="streak-lbl">jours consécutifs</div>
+    </div>
+    <div class="streak-card">
+      <div class="streak-num" style="color:var(--blue)" id="days-total">0</div>
+      <div class="streak-lbl">jours actifs</div>
+    </div>
   </div>
   <div class="section-title">Minimum — 20 min</div>
   <div id="quetes-min"></div>
@@ -265,6 +322,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
   <button class="btn-main" id="btn-valider" onclick="validerJour()">✓ Valider la journée</button>
 </div>
 
+<!-- Écran Livre des Quêtes -->
 <div id="screen-book" class="screen">
   <div class="sidequest-box" id="sidequest-card">
     <div class="sidequest-header">
@@ -303,35 +361,123 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
   <div id="custom-quests-list"></div>
 </div>
 
-<div id="screen-piliers" class="screen"><div id="piliers-list"></div></div>
-
-<div id="screen-stats" class="screen">
-  <div class="chart-card"><div class="chart-title">XP cumulé — historique</div><canvas id="chart-xp" height="130"></canvas></div>
-  <div class="chart-card"><div class="chart-title">Équilibre des piliers</div><canvas id="chart-radar" height="200"></canvas></div>
-  <div class="section-title">Activité — 60 jours</div>
-  <div class="chart-card"><div class="heatmap" id="heatmap"></div><div class="hm-legend"><span><div class="hm-sq on" style="display:inline-block;width:10px;height:10px;border-radius:2px"></div> actif</span><span><div class="hm-sq today" style="display:inline-block;width:10px;height:10px;border-radius:2px"></div> aujourd'hui</span></div></div>
-  <div class="section-title">Capacités développées</div><div class="cap-grid" id="cap-grid"></div>
-  <div class="section-title">Jalons</div><div class="ms-grid" id="milestones"></div>
-  <div class="section-title">Journal des actions</div><div class="chart-card" id="log-list"><div class="empty-state">Aucune action enregistrée</div></div>
+<!-- Écran Piliers -->
+<div id="screen-piliers" class="screen">
+  <div id="piliers-list"></div>
 </div>
 
+<!-- Écran Stats -->
+<div id="screen-stats" class="screen">
+  <div class="chart-card">
+    <div class="chart-title">XP cumulé — historique</div>
+    <canvas id="chart-xp" height="130"></canvas>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title">Équilibre des piliers</div>
+    <canvas id="chart-radar" height="200"></canvas>
+  </div>
+  <div class="section-title">Activité — 60 jours</div>
+  <div class="chart-card">
+    <div class="heatmap" id="heatmap"></div>
+    <div class="hm-legend">
+      <span><div class="hm-sq on" style="display:inline-block;width:10px;height:10px;border-radius:2px"></div> actif</span>
+      <span><div class="hm-sq today" style="display:inline-block;width:10px;height:10px;border-radius:2px"></div> aujourd'hui</span>
+    </div>
+  </div>
+  <div class="section-title">Capacités développées</div>
+  <div class="cap-grid" id="cap-grid"></div>
+  <div class="section-title">Jalons</div>
+  <div class="ms-grid" id="milestones"></div>
+  <div class="section-title">Journal des actions</div>
+  <div class="chart-card" id="log-list"><div class="empty-state">Aucune action enregistrée</div></div>
+</div>
+
+<!-- Écran Revue -->
 <div id="screen-revue" class="screen">
-  <div class="rev-card"><div class="rev-q">Cette semaine globalement</div><div class="stars" id="stars-row"><span class="star" onclick="setStar(1)">★</span><span class="star" onclick="setStar(2)">★</span><span class="star" onclick="setStar(3)">★</span><span class="star" onclick="setStar(4)">★</span><span class="star" onclick="setStar(5)">★</span></div></div>
-  <div class="rev-card"><div class="rev-q">Ce qui a bien fonctionné</div><textarea id="rv-bien" placeholder="Habitudes tenues, progrès..."></textarea></div>
-  <div class="rev-card"><div class="rev-q">Ce qui a résisté</div><textarea id="rv-resist" placeholder="Friction, abandons, raisons..."></textarea></div>
-  <div class="rev-card"><div class="rev-q">Ce que je change cette semaine</div><textarea id="rv-change" placeholder="Un ajustement concret..."></textarea></div>
+  <div class="rev-card">
+    <div class="rev-q">Cette semaine globalement</div>
+    <div class="stars" id="stars-row">
+      <span class="star" onclick="setStar(1)">★</span>
+      <span class="star" onclick="setStar(2)">★</span>
+      <span class="star" onclick="setStar(3)">★</span>
+      <span class="star" onclick="setStar(4)">★</span>
+      <span class="star" onclick="setStar(5)">★</span>
+    </div>
+  </div>
+  <div class="rev-card">
+    <div class="rev-q">Ce qui a bien fonctionné</div>
+    <textarea id="rv-bien" placeholder="Habitudes tenues, progrès..."></textarea>
+  </div>
+  <div class="rev-card">
+    <div class="rev-q">Ce qui a résisté</div>
+    <textarea id="rv-resist" placeholder="Friction, abandons, raisons..."></textarea>
+  </div>
+  <div class="rev-card">
+    <div class="rev-q">Ce que je change cette semaine</div>
+    <textarea id="rv-change" placeholder="Un ajustement concret..."></textarea>
+  </div>
   <button class="btn-main" onclick="sauvegarderRevue()">Sauvegarder +100 XP</button>
   <div id="ai-bilan" class="ai-card" style="display:none;margin-top:12px;"><div class="ai-header"><span style="font-size:16px">🧠</span><span class="ai-label">Bilan IA</span></div><div class="ai-body" id="ai-bilan-text"></div></div>
 </div>
 
+<!-- Écran Avatar -->
 <div id="screen-avatar" class="screen">
-  <div id="aura-banner" class="aura-banner"><div class="aura-icon" id="aura-icon">⚔️</div><div class="aura-info"><div class="aura-name" id="aura-name">Aventurier</div><div class="aura-desc" id="aura-desc">Classe dominante de la semaine</div></div></div>
-  <div class="avatar-card"><div class="avatar-title">📊 Niveaux de Classe</div><div class="avatar-subtitle">Progression dans les 4 disciplines</div><div class="class-grid" id="class-grid"><div class="class-item" id="class-guerrier"><div class="class-icon">⚔️</div><div class="class-name">Guerrier</div><div class="class-level" id="guerrier-level">Niv. 1</div><div class="class-bar"><div class="class-bar-fill guerrier" id="guerrier-bar" style="width:0%"></div></div></div><div class="class-item" id="class-mage"><div class="class-icon">🔮</div><div class="class-name">Mage</div><div class="class-level" id="mage-level">Niv. 1</div><div class="class-bar"><div class="class-bar-fill mage" id="mage-bar" style="width:0%"></div></div></div><div class="class-item" id="class-ombre"><div class="class-icon">🌑</div><div class="class-name">Ombre</div><div class="class-level" id="ombre-level">Niv. 1</div><div class="class-bar"><div class="class-bar-fill ombre" id="ombre-bar" style="width:0%"></div></div></div><div class="class-item" id="class-aventurier"><div class="class-icon">🎒</div><div class="class-name">Aventurier</div><div class="class-level" id="aventurier-level">Niv. 1</div><div class="class-bar"><div class="class-bar-fill aventurier" id="aventurier-bar" style="width:0%"></div></div></div></div></div>
-  <div class="avatar-card"><div class="avatar-title">⚡ Bénédiction Active</div><div class="avatar-subtitle" id="benediction-desc">Aucune bénédiction active</div><div id="choose-boost-container" style="display:none;"><div class="avatar-subtitle" style="margin-bottom:4px;">Choisis ta classe bénéficiaire du +10% pour la semaine :</div><div class="choose-boost" id="choose-boost"></div><button class="bilan-btn" onclick="confirmerBoost()">Confirmer le choix</button></div></div>
-  <div class="avatar-card"><div class="avatar-title">📋 Historique des Bilans</div><div id="bilan-history"><div class="empty-state">Aucun bilan enregistré</div></div></div>
+  <div id="aura-banner" class="aura-banner">
+    <div class="aura-icon" id="aura-icon">⚔️</div>
+    <div class="aura-info">
+      <div class="aura-name" id="aura-name">Aventurier</div>
+      <div class="aura-desc" id="aura-desc">Classe dominante de la semaine</div>
+    </div>
+  </div>
+  <div class="avatar-card">
+    <div class="avatar-title">📊 Niveaux de Classe</div>
+    <div class="avatar-subtitle">Progression dans les 4 disciplines</div>
+    <div class="class-grid" id="class-grid">
+      <div class="class-item" id="class-guerrier">
+        <div class="class-icon">⚔️</div>
+        <div class="class-name">Guerrier</div>
+        <div class="class-level" id="guerrier-level">Niv. 1</div>
+        <div class="class-bar"><div class="class-bar-fill guerrier" id="guerrier-bar" style="width:0%"></div></div>
+      </div>
+      <div class="class-item" id="class-mage">
+        <div class="class-icon">🔮</div>
+        <div class="class-name">Mage</div>
+        <div class="class-level" id="mage-level">Niv. 1</div>
+        <div class="class-bar"><div class="class-bar-fill mage" id="mage-bar" style="width:0%"></div></div>
+      </div>
+      <div class="class-item" id="class-ombre">
+        <div class="class-icon">🌑</div>
+        <div class="class-name">Ombre</div>
+        <div class="class-level" id="ombre-level">Niv. 1</div>
+        <div class="class-bar"><div class="class-bar-fill ombre" id="ombre-bar" style="width:0%"></div></div>
+      </div>
+      <div class="class-item" id="class-aventurier">
+        <div class="class-icon">🎒</div>
+        <div class="class-name">Aventurier</div>
+        <div class="class-level" id="aventurier-level">Niv. 1</div>
+        <div class="class-bar"><div class="class-bar-fill aventurier" id="aventurier-bar" style="width:0%"></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="avatar-card">
+    <div class="avatar-title">⚡ Bénédiction Active</div>
+    <div class="avatar-subtitle" id="benediction-desc">Aucune bénédiction active</div>
+    <div id="choose-boost-container" style="display:none;">
+      <div class="avatar-subtitle" style="margin-bottom:4px;">Choisis ta classe bénéficiaire du +10% pour la semaine :</div>
+      <div class="choose-boost" id="choose-boost"></div>
+      <button class="bilan-btn" onclick="confirmerBoost()">Confirmer le choix</button>
+    </div>
+  </div>
+  <div class="avatar-card">
+    <div class="avatar-title">📋 Historique des Bilans</div>
+    <div id="bilan-history">
+      <div class="empty-state">Aucun bilan enregistré</div>
+    </div>
+  </div>
   <button class="bilan-btn" onclick="lancerBilanHebdo()" id="btn-bilan-hebdo">📊 Lancer le Bilan Hebdomadaire</button>
 </div>
 
+<!-- Tab Bar -->
 <div class="tab-bar">
   <button class="tab-btn active" onclick="goTab('today',this)"><span class="tab-icon">☀️</span>Aujourd'hui</button>
   <button class="tab-btn" onclick="goTab('book',this)"><span class="tab-icon">📖</span>Livre</button>
@@ -347,149 +493,17 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 // ============================================================
 // CONFIGURATION
 // ============================================================
-const SB_URL='https://nlicstxewcrzjliyslkm.supabase.co';
-const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5saWNzdHhld2NyempsaXlzbGttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1ODg1NzUsImV4cCI6MjA5ODE2NDU3NX0.CTHaV_iM50Q_sA1l8_5rVL7b4nU8XonYRcds8Z702GI';
-const HDR={'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=representation'};
+const SB_URL = 'https://nlicstxewcrzjliyslkm.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5saWNzdHhld2NyempsaXlzbGttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1ODg1NzUsImV4cCI6MjA5ODE2NDU3NX0.CTHaV_iM50Q_sA1l8_5rVL7b4nU8XonYRcds8Z702GI';
+const HDR = {
+  'Content-Type': 'application/json',
+  'apikey': SB_KEY,
+  'Authorization': 'Bearer ' + SB_KEY,
+  'Prefer': 'return=representation'
+};
+
 const MAX_PILLIER_XP = 100000;
 
-// ============================================================
-// DONNÉES STATIQUES (inchangées)
-// ============================================================
-const LEVELS=[
-  {min:0,name:'Initié'},{min:500,name:'Apprenti'},{min:1200,name:'Praticien'},
-  {min:2500,name:'Expert'},{min:5000,name:'Maître'},{min:10000,name:'Architecte'}
-];
-const PHASES=[
-  {id:1,months:[1,2,3],name:'Fondations',desc:'Installer les routines à friction minimale',icon:'🌱',cls:'ph1'},
-  {id:2,months:[4,5,6,7,8],name:'Intensification',desc:'Intégration des satellites, armée comme labo',icon:'⚡',cls:'ph2'},
-  {id:3,months:[9,10,11,12],name:'Consolidation',desc:'Mesure, ajustement, extension du système',icon:'💎',cls:'ph3'},
-];
-const QUETES={
-  min:[
-    {id:'q1',name:'Respiration / cohérence cardiaque',desc:'5 min box breathing ou cohérence cardiaque',xp:30,pid:'p2',phases:[1,2,3]},
-    {id:'q2',name:'Anki — cartes du jour',desc:'10 min, minimum 10 cartes (Étymologie médicale)',xp:40,pid:'p1',phases:[1,2,3]},
-    {id:'q3',name:'Sémiologie factuelle & conscience spatiale',desc:'1 fait physique noté (posture/marche) + 1 scan spatial (sorties/distances)',xp:20,pid:'p3',phases:[1,2,3]},
-  ],
-  opt:[
-    {id:'q4',name:'Bloc cognitif profond',desc:'45 min lecture technique, calcul ou méthode Feynman',xp:80,pid:'p1',phases:[1,2,3]},
-    {id:'q5',name:'Entraînement physique',desc:'30 min force, natation ou zone 2',xp:70,pid:'p4',phases:[1,2,3]},
-    {id:'q6',name:'Wim Hof / douche froide',desc:'Protocole respiration + exposition au froid',xp:50,pid:'p2',phases:[1,2,3]},
-    {id:'q7',name:'Langue ou rhétorique',desc:'30 min Pimsleur, Assimil ou débat oral',xp:60,pid:'p5',phases:[2,3]},
-    {id:'q8',name:'Journal décisionnel',desc:'5 min — 1 décision analysée pour biais cognitifs',xp:30,pid:'p1',phases:[1,2,3]},
-    {id:'q9',name:'Lecture 30 min',desc:'Médecine, philo, neuro, stoïcisme...',xp:40,pid:'p1',phases:[1,2,3]},
-    {id:'q10',name:'Échecs / jeu stratégique',desc:'15 min blitz ou puzzle — pensée multi-coups',xp:35,pid:'p5',phases:[2,3]},
-    {id:'q11',name:"Dessin d'observation",desc:'5 min — percevoir les lignes et volumes réels avant de dessiner',xp:25,pid:'p3',phases:[3]},
-    {id:'q12',name:'Calcul mental chronométré',desc:'10 min — vitesse et chunking',xp:30,pid:'p1',phases:[2,3]},
-  ]
-};
-const PILLARS=[
-  {id:'p1',name:'Métacognition & apprentissage',icon:'🧠',color:'#a78bfa',satellites:'Mémoire · Calcul · Biais · Feynman'},
-  {id:'p2',name:'Régulation psychophysio',icon:'🫁',color:'#34d399',satellites:'Stress · Wim Hof · Sommeil · Récupération'},
-  {id:'p3',name:'Présence & observation',icon:'👁',color:'#60a5fa',satellites:'Sémiologie · Espace · Faits · Distances'},
-  {id:'p4',name:'Condition physique',icon:'⚡',color:'#fb923c',satellites:'Force · Endurance · Proprio · Réflexes'},
-  {id:'p5',name:'Influence & communication',icon:'🎯',color:'#fbbf24',satellites:'Rhétorique · Langues · Négociation · Stratégie'},
-];
-const CAPS=[
-  {n:'Mémoire',p:'p1'},{n:'Calcul mental',p:'p1'},
-  {n:'Contrôle émotionnel',p:'p2'},{n:'Récupération',p:'p2'},
-  {n:'Sémiologie physique',p:'p3'},{n:'Conscience spatiale',p:'p3'},
-  {n:'Force musculaire',p:'p4'},{n:'Endurance cardio',p:'p4'},
-  {n:'Rhétorique',p:'p5'},{n:'Langues',p:'p5'},
-];
-const MILESTONES=[
-  {lbl:'Premier jour',icon:'🌱',check:s=>s.days_total>=1},
-  {lbl:'7 jours streak',icon:'🔥',check:s=>s.streak>=7},
-  {lbl:'500 XP',icon:'⭐',check:s=>s.total_xp>=500},
-  {lbl:'21 jours streak',icon:'💎',check:s=>s.streak>=21},
-  {lbl:'Phase 2',icon:'⚡',check:s=>s.current_month>=4},
-  {lbl:'1000 XP',icon:'🏆',check:s=>s.total_xp>=1000},
-];
-const PCOLS={p1:'#a78bfa',p2:'#34d399',p3:'#60a5fa',p4:'#fb923c',p5:'#fbbf24'};
-const PILIER_TO_CLASSE = {
-  'p4': 'guerrier',
-  'p1': 'mage',
-  'p2': 'mage',
-  'p3': 'ombre',
-  'p5': 'ombre'
-};
-const CLASSES = {
-  guerrier: { id: 'guerrier', name: 'Guerrier', icon: '⚔️', color: '#ef4444', barClass: 'guerrier' },
-  mage: { id: 'mage', name: 'Mage', icon: '🔮', color: '#3b82f6', barClass: 'mage' },
-  ombre: { id: 'ombre', name: 'Ombre', icon: '🌑', color: '#8b5cf6', barClass: 'ombre' },
-  aventurier: { id: 'aventurier', name: 'Aventurier', icon: '🎒', color: '#22c55e', barClass: 'aventurier' }
-};
-const BANQUE_SIDEQUESTS = [
-  {text: "L'Œil Clinique Social : Fais un compliment sincère et ultra-spécifique à un inconnu sur son style ou un accessoire.", pid: "p5"},
-  {text: "Le Brise-Glace Tactique : Demande une direction ou une recommandation à quelqu'un dans la rue sans sortir ton téléphone.", pid: "p5"},
-  {text: "L'Improvisation Neutre : Parle aujourd'hui sans utiliser aucun mot de remplissage (euuuh, genre, du coup).", pid: "p5"},
-  {text: "Scan d'urgence absolu : Dans le prochain lieu public, repère instantanément 3 issues et un objet utilisable en couverture.", pid: "p3"},
-  {text: "Vitesse d'ancrage : Regarde une personne 2 secondes, ferme les yeux, et liste mentalement sa posture et 2 détails vestimentaires.", pid: "p3"},
-  {text: "Hydratation flash : Bois un grand verre d'eau immédiatement pour réactiver la vigilance métabolique.", pid: "p2"},
-  {text: "Focus respiration : Fais 2 minutes de respiration triangulaire (4s inspire, 4s bloque, 4s expire) avant ta prochaine tâche.", pid: "p2"},
-  {text: "Détox numérique : Passe les 2 prochaines heures sans regarder aucun écran (hors urgence absolue).", pid: "p1"},
-  {text: "Calcul mental flash : Multiplie mentalement 3 paires de nombres à 2 chiffres dans la prochaine heure.", pid: "p1"},
-  {text: "Posture de combat : Reste debout ou assis avec une symétrie parfaite et un alignement vertébral pendant 15 minutes.", pid: "p4"},
-  {text: "Test d'équilibre complet : Tiens-toi sur une seule jambe, yeux fermés, pendant 45 secondes sans bouger.", pid: "p4"},
-  {text: "Anki inversé : Tente de réciter de mémoire 5 définitions médicales sans regarder les cartes.", pid: "p1"},
-  {text: "Micro-sieste de contrôle : Allonge-toi 10 minutes en contrôle respiratoire complet sans t'endormir.", pid: "p2"},
-  {text: "Analyse d'impact environnemental : Note le niveau sonore et la luminosité du lieu actuel, évalue son impact sur ton stress.", pid: "p3"},
-  {text: "L'art du silence : Écoute une conversation ou un groupe pendant 5 minutes sans intervenir une seule fois.", pid: "p5"},
-  {text: "Chrono-réflexes : Lance un petit objet (balle, clé) et rattrape-le avec la main non dominante 15 fois de suite.", pid: "p4"},
-  {text: "Rappel stoïcien : Identifie une contrariété récente et liste 2 raisons pour lesquelles elle échappe à ton contrôle.", pid: "p1"},
-  {text: "Douche contrastée : Termine ta prochaine douche par 60 secondes d'eau froide au maximum de tolérance.", pid: "p2"},
-  {text: "Estimation de foule : Compte précisément le nombre de personnes dans une pièce en moins de 10 secondes.", pid: "p3"},
-  {text: "Mémorisation de plaque : Retiens la plaque d'immatriculation de la prochaine voiture croisée pendant 1 heure.", pid: "p1"}
-];
-
-// ============================================================
-// VARIABLES GLOBALES
-// ============================================================
-let UID=localStorage.getItem('sys12_uid')||null;
-let checkedToday={};
-let S={total_xp:0,streak:0,last_day:null,days_total:0,start_date:new Date().toISOString().slice(0,10),current_month:1,p1_xp:0,p2_xp:0,p3_xp:0,p4_xp:0,p5_xp:0};
-let LOG=[];
-let XP_HISTORY=[];
-let customQuests=[];
-let starVal=0;
-let chartXp=null,chartRadar=null;
-let syncTimer=null;
-let isDayLocked=false;
-let classXP = { guerrier: 0, mage: 0, ombre: 0, aventurier: 0 };
-let weeklyClassXP = { guerrier: 0, mage: 0, ombre: 0, aventurier: 0 };
-let currentAura = null;
-let boostClass = null;
-let isSouverain = false;
-let isStagnant = false;
-let lastBilanDate = null;
-let boostSelectionPending = false;
-let bilanHistory = [];
-let currentSidequest = null;
-
-// ============================================================
-// FONCTIONS SUPABASE
-// ============================================================
-async function sbGet(table,uid){
-  const r=await fetch(`${SB_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(uid)}&limit=1`,{headers:HDR});
-  const d=await r.json();
-  return d&&d[0]?d[0]:null;
-}
-async function sbUpsert(table,obj){
-  return fetch(`${SB_URL}/rest/v1/${table}`,{method:'POST',headers:{...HDR,'Prefer':'resolution=merge-duplicates,return=representation'},body:JSON.stringify(obj)});
-}
-async function sbInsert(table,obj){
-  return fetch(`${SB_URL}/rest/v1/${table}`,{method:'POST',headers:HDR,body:JSON.stringify(obj)});
-}
-async function sbDelete(table,uid,questId,day){
-  return fetch(`${SB_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(uid)}&quest_id=eq.${questId}&created_at=gte.${day}T00:00:00&created_at=lte.${day}T23:59:59`,{method:'DELETE',headers:HDR});
-}
-async function sbGetMany(table,uid,limit=30){
-  const r=await fetch(`${SB_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(uid)}&order=created_at.desc&limit=${limit}`,{headers:HDR});
-  return r.json();
-}
-
-// ============================================================
-// SYSTÈME DE RANGS POUR PILIERS (inchangé)
-// ============================================================
 const PILLAR_RANKS = [
   { level: 1, xp: 0, title: 'Apprenti' },
   { level: 2, xp: 600, title: 'Praticien' },
@@ -517,6 +531,7 @@ const PILLAR_RANKS = [
   { level: 24, xp: 58000, title: 'Primordial' },
   { level: 25, xp: 62000, title: 'Éternel' },
 ];
+
 function getPillarRank(xp) {
   let rank = PILLAR_RANKS[0];
   for (const r of PILLAR_RANKS) {
@@ -524,6 +539,7 @@ function getPillarRank(xp) {
   }
   return rank;
 }
+
 function getPillarLevel(xp) {
   let level = 1;
   for (const r of PILLAR_RANKS) {
@@ -531,6 +547,7 @@ function getPillarLevel(xp) {
   }
   return level;
 }
+
 function getNextPillarRank(xp) {
   let next = null;
   for (const r of PILLAR_RANKS) {
@@ -544,18 +561,162 @@ function getNextPillarRank(xp) {
 }
 
 // ============================================================
+// FONCTIONS SUPABASE
+// ============================================================
+async function sbGet(table, uid) {
+  const r = await fetch(`${SB_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(uid)}&limit=1`, { headers: HDR });
+  const d = await r.json();
+  return d && d[0] ? d[0] : null;
+}
+
+async function sbUpsert(table, obj) {
+  return fetch(`${SB_URL}/rest/v1/${table}`, {
+    method: 'POST',
+    headers: { ...HDR, 'Prefer': 'resolution=merge-duplicates,return=representation' },
+    body: JSON.stringify(obj)
+  });
+}
+
+async function sbInsert(table, obj) {
+  return fetch(`${SB_URL}/rest/v1/${table}`, { method: 'POST', headers: HDR, body: JSON.stringify(obj) });
+}
+
+async function sbDelete(table, uid, questId, day) {
+  return fetch(`${SB_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(uid)}&quest_id=eq.${questId}&created_at=gte.${day}T00:00:00&created_at=lte.${day}T23:59:59`, { method: 'DELETE', headers: HDR });
+}
+
+async function sbGetMany(table, uid, limit = 30) {
+  const r = await fetch(`${SB_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(uid)}&order=created_at.desc&limit=${limit}`, { headers: HDR });
+  return r.json();
+}
+
+// ============================================================
+// DONNÉES STATIQUES
+// ============================================================
+const LEVELS = [
+  { min: 0, name: 'Initié' }, { min: 500, name: 'Apprenti' }, { min: 1200, name: 'Praticien' },
+  { min: 2500, name: 'Expert' }, { min: 5000, name: 'Maître' }, { min: 10000, name: 'Architecte' }
+];
+const PHASES = [
+  { id: 1, months: [1, 2, 3], name: 'Fondations', desc: 'Installer les routines à friction minimale', icon: '🌱', cls: 'ph1' },
+  { id: 2, months: [4, 5, 6, 7, 8], name: 'Intensification', desc: 'Intégration des satellites, armée comme labo', icon: '⚡', cls: 'ph2' },
+  { id: 3, months: [9, 10, 11, 12], name: 'Consolidation', desc: 'Mesure, ajustement, extension du système', icon: '💎', cls: 'ph3' },
+];
+const QUETES = {
+  min: [
+    { id: 'q1', name: 'Respiration / cohérence cardiaque', desc: '5 min box breathing ou cohérence cardiaque', xp: 30, pid: 'p2', phases: [1, 2, 3] },
+    { id: 'q2', name: 'Anki — cartes du jour', desc: '10 min, minimum 10 cartes (Étymologie médicale)', xp: 40, pid: 'p1', phases: [1, 2, 3] },
+    { id: 'q3', name: 'Sémiologie factuelle & conscience spatiale', desc: '1 fait physique noté (posture/marche) + 1 scan spatial (sorties/distances)', xp: 20, pid: 'p3', phases: [1, 2, 3] },
+  ],
+  opt: [
+    { id: 'q4', name: 'Bloc cognitif profond', desc: '45 min lecture technique, calcul ou méthode Feynman', xp: 80, pid: 'p1', phases: [1, 2, 3] },
+    { id: 'q5', name: 'Entraînement physique', desc: '30 min force, natation ou zone 2', xp: 70, pid: 'p4', phases: [1, 2, 3] },
+    { id: 'q6', name: 'Wim Hof / douche froide', desc: 'Protocole respiration + exposition au froid', xp: 50, pid: 'p2', phases: [1, 2, 3] },
+    { id: 'q7', name: 'Langue ou rhétorique', desc: '30 min Pimsleur, Assimil ou débat oral', xp: 60, pid: 'p5', phases: [2, 3] },
+    { id: 'q8', name: 'Journal décisionnel', desc: '5 min — 1 décision analysée pour biais cognitifs', xp: 30, pid: 'p1', phases: [1, 2, 3] },
+    { id: 'q9', name: 'Lecture 30 min', desc: 'Médecine, philo, neuro, stoïcisme...', xp: 40, pid: 'p1', phases: [1, 2, 3] },
+    { id: 'q10', name: 'Échecs / jeu stratégique', desc: '15 min blitz ou puzzle — pensée multi-coups', xp: 35, pid: 'p5', phases: [2, 3] },
+    { id: 'q11', name: "Dessin d'observation", desc: '5 min — percevoir les lignes et volumes réels avant de dessiner', xp: 25, pid: 'p3', phases: [3] },
+    { id: 'q12', name: 'Calcul mental chronométré', desc: '10 min — vitesse et chunking', xp: 30, pid: 'p1', phases: [2, 3] },
+  ]
+};
+const PILLARS = [
+  { id: 'p1', name: 'Métacognition & apprentissage', icon: '🧠', color: '#a78bfa', satellites: 'Mémoire · Calcul · Biais · Feynman' },
+  { id: 'p2', name: 'Régulation psychophysio', icon: '🫁', color: '#34d399', satellites: 'Stress · Wim Hof · Sommeil · Récupération' },
+  { id: 'p3', name: 'Présence & observation', icon: '👁', color: '#60a5fa', satellites: 'Sémiologie · Espace · Faits · Distances' },
+  { id: 'p4', name: 'Condition physique', icon: '⚡', color: '#fb923c', satellites: 'Force · Endurance · Proprio · Réflexes' },
+  { id: 'p5', name: 'Influence & communication', icon: '🎯', color: '#fbbf24', satellites: 'Rhétorique · Langues · Négociation · Stratégie' },
+];
+const CAPS = [
+  { n: 'Mémoire', p: 'p1' }, { n: 'Calcul mental', p: 'p1' },
+  { n: 'Contrôle émotionnel', p: 'p2' }, { n: 'Récupération', p: 'p2' },
+  { n: 'Sémiologie physique', p: 'p3' }, { n: 'Conscience spatiale', p: 'p3' },
+  { n: 'Force musculaire', p: 'p4' }, { n: 'Endurance cardio', p: 'p4' },
+  { n: 'Rhétorique', p: 'p5' }, { n: 'Langues', p: 'p5' },
+];
+const MILESTONES = [
+  { lbl: 'Premier jour', icon: '🌱', check: s => s.days_total >= 1 },
+  { lbl: '7 jours streak', icon: '🔥', check: s => s.streak >= 7 },
+  { lbl: '500 XP', icon: '⭐', check: s => s.total_xp >= 500 },
+  { lbl: '21 jours streak', icon: '💎', check: s => s.streak >= 21 },
+  { lbl: 'Phase 2', icon: '⚡', check: s => s.current_month >= 4 },
+  { lbl: '1000 XP', icon: '🏆', check: s => s.total_xp >= 1000 },
+];
+const PCOLS = { p1: '#a78bfa', p2: '#34d399', p3: '#60a5fa', p4: '#fb923c', p5: '#fbbf24' };
+const PILIER_TO_CLASSE = { 'p4': 'guerrier', 'p1': 'mage', 'p2': 'mage', 'p3': 'ombre', 'p5': 'ombre' };
+const CLASSES = {
+  guerrier: { id: 'guerrier', name: 'Guerrier', icon: '⚔️', color: '#ef4444', barClass: 'guerrier' },
+  mage: { id: 'mage', name: 'Mage', icon: '🔮', color: '#3b82f6', barClass: 'mage' },
+  ombre: { id: 'ombre', name: 'Ombre', icon: '🌑', color: '#8b5cf6', barClass: 'ombre' },
+  aventurier: { id: 'aventurier', name: 'Aventurier', icon: '🎒', color: '#22c55e', barClass: 'aventurier' }
+};
+const BANQUE_SIDEQUESTS = [
+  { text: "L'Œil Clinique Social : Fais un compliment sincère et ultra-spécifique à un inconnu sur son style ou un accessoire.", pid: "p5" },
+  { text: "Le Brise-Glace Tactique : Demande une direction ou une recommandation à quelqu'un dans la rue sans sortir ton téléphone.", pid: "p5" },
+  { text: "L'Improvisation Neutre : Parle aujourd'hui sans utiliser aucun mot de remplissage (euuuh, genre, du coup).", pid: "p5" },
+  { text: "Scan d'urgence absolu : Dans le prochain lieu public, repère instantanément 3 issues et un objet utilisable en couverture.", pid: "p3" },
+  { text: "Vitesse d'ancrage : Regarde une personne 2 secondes, ferme les yeux, et liste mentalement sa posture et 2 détails vestimentaires.", pid: "p3" },
+  { text: "Hydratation flash : Bois un grand verre d'eau immédiatement pour réactiver la vigilance métabolique.", pid: "p2" },
+  { text: "Focus respiration : Fais 2 minutes de respiration triangulaire (4s inspire, 4s bloque, 4s expire) avant ta prochaine tâche.", pid: "p2" },
+  { text: "Détox numérique : Passe les 2 prochaines heures sans regarder aucun écran (hors urgence absolue).", pid: "p1" },
+  { text: "Calcul mental flash : Multiplie mentalement 3 paires de nombres à 2 chiffres dans la prochaine heure.", pid: "p1" },
+  { text: "Posture de combat : Reste debout ou assis avec une symétrie parfaite et un alignement vertébral pendant 15 minutes.", pid: "p4" },
+  { text: "Test d'équilibre complet : Tiens-toi sur une seule jambe, yeux fermés, pendant 45 secondes sans bouger.", pid: "p4" },
+  { text: "Anki inversé : Tente de réciter de mémoire 5 définitions médicales sans regarder les cartes.", pid: "p1" },
+  { text: "Micro-sieste de contrôle : Allonge-toi 10 minutes en contrôle respiratoire complet sans t'endormir.", pid: "p2" },
+  { text: "Analyse d'impact environnemental : Note le niveau sonore et la luminosité du lieu actuel, évalue son impact sur ton stress.", pid: "p3" },
+  { text: "L'art du silence : Écoute une conversation ou un groupe pendant 5 minutes sans intervenir une seule fois.", pid: "p5" },
+  { text: "Chrono-réflexes : Lance un petit objet (balle, clé) et rattrape-le avec la main non dominante 15 fois de suite.", pid: "p4" },
+  { text: "Rappel stoïcien : Identifie une contrariété récente et liste 2 raisons pour lesquelles elle échappe à ton contrôle.", pid: "p1" },
+  { text: "Douche contrastée : Termine ta prochaine douche par 60 secondes d'eau froide au maximum de tolérance.", pid: "p2" },
+  { text: "Estimation de foule : Compte précisément le nombre de personnes dans une pièce en moins de 10 secondes.", pid: "p3" },
+  { text: "Mémorisation de plaque : Retiens la plaque d'immatriculation de la prochaine voiture croisée pendant 1 heure.", pid: "p1" }
+];
+
+// ============================================================
+// VARIABLES GLOBALES
+// ============================================================
+let UID = localStorage.getItem('sys12_uid') || null;
+let checkedToday = {};
+let S = {
+  total_xp: 0, streak: 0, last_day: null, days_total: 0,
+  start_date: new Date().toISOString().slice(0, 10), current_month: 1,
+  p1_xp: 0, p2_xp: 0, p3_xp: 0, p4_xp: 0, p5_xp: 0
+};
+let LOG = [];
+let XP_HISTORY = [];
+let customQuests = [];
+let starVal = 0;
+let chartXp = null, chartRadar = null;
+let syncTimer = null;
+let isDayLocked = false;
+let classXP = { guerrier: 0, mage: 0, ombre: 0, aventurier: 0 };
+let weeklyClassXP = { guerrier: 0, mage: 0, ombre: 0, aventurier: 0 };
+let currentAura = null;
+let boostClass = null;
+let isSouverain = false;
+let isStagnant = false;
+let lastBilanDate = null;
+let bilanHistory = [];
+let currentSidequest = null;
+let editQuestId = null;
+let isProcessing = false; // 🔒 Verrou pour éviter les doubles appels
+
+// ============================================================
 // FONCTIONS UTILITAIRES
 // ============================================================
-function toast(msg){
-  const el=document.getElementById('toast');
-  el.textContent=msg;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
   el.classList.add('show');
   clearTimeout(el._timeout);
-  el._timeout=setTimeout(()=>el.classList.remove('show'),3000);
+  el._timeout = setTimeout(() => el.classList.remove('show'), 3000);
 }
+
 function getClassForPillar(pid) {
   return PILIER_TO_CLASSE[pid] || 'aventurier';
 }
+
 function getClassLevel(xp) {
   if (xp < 100) return 1;
   if (xp < 300) return 2;
@@ -568,13 +729,16 @@ function getClassLevel(xp) {
   if (xp < 4500) return 9;
   return 10;
 }
+
 function getClassProgress(xp) {
   const maxXP = 5000;
   return Math.min(100, Math.round((xp / maxXP) * 100));
 }
+
 function getClassFromId(id) {
   return CLASSES[id] || null;
 }
+
 function getDominantClass(xpMap) {
   let max = 0;
   let dominant = null;
@@ -599,6 +763,7 @@ function getDominantClass(xpMap) {
   if (isBalanced && total > 0) return 'souverain';
   return dominant;
 }
+
 function getWeakestClass(xpMap) {
   let min = Infinity;
   let weakest = null;
@@ -610,6 +775,7 @@ function getWeakestClass(xpMap) {
   }
   return weakest;
 }
+
 function getBoostedXP(xp, classId, isPillar = false) {
   let boosted = xp;
   if (isPillar) {
@@ -620,6 +786,7 @@ function getBoostedXP(xp, classId, isPillar = false) {
   }
   return boosted;
 }
+
 function distributeClassXP(xp, pid, isCustom = false) {
   let classId;
   if (isCustom) {
@@ -634,32 +801,48 @@ function distributeClassXP(xp, pid, isCustom = false) {
 }
 
 // ============================================================
-// FONCTIONS SYNC SPÉCIFIQUES
+// FONCTIONS SUPABASE SPÉCIFIQUES
 // ============================================================
-async function saveCustomQuestsToDB() {
-  if (!UID) return;
+async function saveClassData() {
   try {
-    await sbUpsert('sys_custom_quests', {
+    await sbUpsert('sys_classes', {
       user_id: UID,
-      quests: JSON.stringify(customQuests),
+      guerrier_xp: classXP.guerrier || 0,
+      mage_xp: classXP.mage || 0,
+      ombre_xp: classXP.ombre || 0,
+      aventurier_xp: classXP.aventurier || 0,
       updated_at: new Date().toISOString()
     });
-  } catch(e) {
-    console.warn('Erreur sauvegarde quêtes personnelles:', e);
-  }
+  } catch (e) { console.warn('saveClassData:', e); }
 }
-async function loadCustomQuestsFromDB() {
-  if (!UID) return null;
+
+async function loadClassData() {
   try {
-    const data = await sbGet('sys_custom_quests', UID);
-    if (data && data.quests) {
-      return JSON.parse(data.quests);
+    const data = await sbGet('sys_classes', UID);
+    if (data) {
+      classXP.guerrier = data.guerrier_xp || 0;
+      classXP.mage = data.mage_xp || 0;
+      classXP.ombre = data.ombre_xp || 0;
+      classXP.aventurier = data.aventurier_xp || 0;
     }
-  } catch(e) {
-    console.warn('Erreur chargement quêtes personnelles:', e);
-  }
-  return null;
+  } catch (e) { console.warn('loadClassData:', e); }
 }
+
+async function loadBilanHistory() {
+  try {
+    const data = await sbGetMany('sys_bilans', UID, 10);
+    if (Array.isArray(data)) {
+      bilanHistory = data;
+    }
+  } catch (e) { console.warn('loadBilanHistory:', e); }
+}
+
+async function saveBilan(bilan) {
+  try {
+    await sbInsert('sys_bilans', { ...bilan, user_id: UID, created_at: new Date().toISOString() });
+  } catch (e) { console.warn('saveBilan:', e); }
+}
+
 async function saveSidequestToDB(sq) {
   if (!UID) return;
   try {
@@ -672,10 +855,9 @@ async function saveSidequestToDB(sq) {
       is_ia: sq.isIA || false,
       updated_at: new Date().toISOString()
     });
-  } catch(e) {
-    console.warn('Erreur sauvegarde sidequest:', e);
-  }
+  } catch (e) { console.warn('saveSidequestToDB:', e); }
 }
+
 async function loadSidequestFromDB() {
   if (!UID) return null;
   try {
@@ -689,74 +871,60 @@ async function loadSidequestFromDB() {
         isIA: data.is_ia || false
       };
     }
-  } catch(e) {
-    console.warn('Erreur chargement sidequest:', e);
-  }
+  } catch (e) { console.warn('loadSidequestFromDB:', e); }
   return null;
 }
-async function saveClassData() {
+
+async function saveCustomQuestsToDB() {
+  if (!UID) return;
   try {
-    await sbUpsert('sys_classes', {
+    await sbUpsert('sys_custom_quests', {
       user_id: UID,
-      guerrier_xp: classXP.guerrier || 0,
-      mage_xp: classXP.mage || 0,
-      ombre_xp: classXP.ombre || 0,
-      aventurier_xp: classXP.aventurier || 0,
+      quests: JSON.stringify(customQuests),
       updated_at: new Date().toISOString()
     });
-  } catch(e) {}
+  } catch (e) { console.warn('saveCustomQuestsToDB:', e); }
 }
-async function loadClassData() {
+
+async function loadCustomQuestsFromDB() {
+  if (!UID) return null;
   try {
-    const data = await sbGet('sys_classes', UID);
-    if (data) {
-      classXP.guerrier = data.guerrier_xp || 0;
-      classXP.mage = data.mage_xp || 0;
-      classXP.ombre = data.ombre_xp || 0;
-      classXP.aventurier = data.aventurier_xp || 0;
+    const data = await sbGet('sys_custom_quests', UID);
+    if (data && data.quests) {
+      return JSON.parse(data.quests);
     }
-  } catch(e) {}
-}
-async function loadBilanHistory() {
-  try {
-    const data = await sbGetMany('sys_bilans', UID, 10);
-    if (Array.isArray(data)) {
-      bilanHistory = data;
-    }
-  } catch(e) {}
-}
-async function saveBilan(bilan) {
-  try {
-    await sbInsert('sys_bilans', { ...bilan, user_id: UID, created_at: new Date().toISOString() });
-  } catch(e) {}
+  } catch (e) { console.warn('loadCustomQuestsFromDB:', e); }
+  return null;
 }
 
 // ============================================================
-// CHARGEMENT / SAUVEGARDE PRINCIPALE
+// INITIALISATION
 // ============================================================
-function setupUser(){
-  const name=document.getElementById('setup-name').value.trim().toLowerCase().replace(/[^a-z0-9_]/g,'');
-  const errEl=document.getElementById('setup-err');
-  if(!name||name.length<2){errEl.classList.add('show');return;}
+function setupUser() {
+  const name = document.getElementById('setup-name').value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+  const errEl = document.getElementById('setup-err');
+  if (!name || name.length < 2) { errEl.classList.add('show'); return; }
   errEl.classList.remove('show');
-  UID=name;
-  localStorage.setItem('sys12_uid',UID);
-  document.getElementById('setup-overlay').style.display='none';
+  UID = name;
+  localStorage.setItem('sys12_uid', UID);
+  document.getElementById('setup-overlay').style.display = 'none';
   init();
 }
-function setSyncState(st){
-  const dot=document.getElementById('sync-dot');
-  dot.className='sync-dot'+(st==='syncing'?' syncing':st==='error'?' error':'');
+
+function setSyncState(st) {
+  const dot = document.getElementById('sync-dot');
+  dot.className = 'sync-dot' + (st === 'syncing' ? ' syncing' : st === 'error' ? ' error' : '');
 }
-async function loadFromSupabase(){
+
+async function loadFromSupabase() {
   setSyncState('syncing');
-  try{
+  try {
     const [prog, logRaw, histRaw] = await Promise.all([
       sbGet('sys_progress', UID),
       sbGetMany('sys_log', UID, 50),
       sbGetMany('sys_xp_history', UID, 60),
     ]);
-    if(prog){
+    if (prog) {
       S = { ...S, ...prog };
       const start = new Date(S.start_date);
       const now = new Date();
@@ -764,13 +932,13 @@ async function loadFromSupabase(){
       let moisEcoules = Math.floor(diffJours / 30.44);
       S.current_month = Math.max(1, Math.min(12, moisEcoules + 1));
     }
-    if(Array.isArray(logRaw)) LOG = logRaw;
-    if(Array.isArray(histRaw)) XP_HISTORY = histRaw;
+    if (Array.isArray(logRaw)) LOG = logRaw;
+    if (Array.isArray(histRaw)) XP_HISTORY = histRaw;
 
     const today = todayKey();
     checkedToday = {};
     LOG.forEach(l => {
-      if(l.quest_id && l.quest_id !== 'review' && l.created_at && l.created_at.slice(0,10) === today){
+      if (l.quest_id && l.quest_id !== 'review' && l.created_at && l.created_at.slice(0, 10) === today) {
         checkedToday[l.quest_id] = true;
       }
     });
@@ -778,54 +946,9 @@ async function loadFromSupabase(){
     await loadClassData();
     await loadBilanHistory();
 
-    // Récupérer les quêtes personnelles depuis Supabase
-    const dbQuests = await loadCustomQuestsFromDB();
-    if (dbQuests && Array.isArray(dbQuests)) {
-      customQuests = dbQuests;
-      localStorage.setItem('sys12_custom_quests', JSON.stringify(customQuests));
-    } else {
-      const local = localStorage.getItem('sys12_custom_quests');
-      if (local) {
-        try { customQuests = JSON.parse(local); } catch(e) {}
-      }
-    }
-
-    // Récupérer la sidequest depuis Supabase (priorité absolue)
-    const dbSq = await loadSidequestFromDB();
-    const todayStr = todayKey();
-    if (dbSq && dbSq.date === todayStr) {
-      currentSidequest = dbSq;
-      localStorage.setItem('sys12_sidequest', JSON.stringify(currentSidequest));
-    } else {
-      const localSq = localStorage.getItem('sys12_sidequest');
-      if (localSq) {
-        try {
-          const parsed = JSON.parse(localSq);
-          if (parsed.date === todayStr) {
-            currentSidequest = parsed;
-          }
-        } catch(e) {}
-      }
-      if (!currentSidequest) {
-        const rand = BANQUE_SIDEQUESTS[Math.floor(Math.random() * BANQUE_SIDEQUESTS.length)];
-        currentSidequest = {
-          date: todayStr,
-          text: rand.text,
-          pid: rand.pid || 'p5',
-          done: false,
-          isIA: false
-        };
-        localStorage.setItem('sys12_sidequest', JSON.stringify(currentSidequest));
-        await saveSidequestToDB(currentSidequest);
-      } else {
-        await saveSidequestToDB(currentSidequest);
-      }
-    }
-
-    // Restaurer les données d'aura / boost
     const savedWeekly = localStorage.getItem('sys12_weekly_xp');
     if (savedWeekly) {
-      try { weeklyClassXP = JSON.parse(savedWeekly); } catch(e) {}
+      try { weeklyClassXP = JSON.parse(savedWeekly); } catch (e) {}
     }
     const savedAura = localStorage.getItem('sys12_aura');
     if (savedAura) {
@@ -836,19 +959,49 @@ async function loadFromSupabase(){
         isStagnant = auraData.isStagnant || false;
         boostClass = auraData.boostClass || null;
         lastBilanDate = auraData.lastBilanDate || null;
-      } catch(e) {}
+      } catch (e) {}
+    }
+
+    // ---- CHARGEMENT DES QUÊTES PERSONNELLES (PRIORITÉ SUPABASE) ----
+    const dbQuests = await loadCustomQuestsFromDB();
+    if (dbQuests && Array.isArray(dbQuests)) {
+      customQuests = dbQuests;
+      localStorage.setItem('sys12_custom_quests', JSON.stringify(customQuests));
+    } else {
+      customQuests = JSON.parse(localStorage.getItem('sys12_custom_quests') || '[]');
+    }
+
+    // ---- CHARGEMENT DE LA SIDEQUEST (PRIORITÉ SUPABASE) ----
+    const dbSq = await loadSidequestFromDB();
+    const todayStr = todayKey();
+
+    if (dbSq && dbSq.date === todayStr) {
+      currentSidequest = dbSq;
+      localStorage.setItem('sys12_sidequest', JSON.stringify(currentSidequest));
+    } else {
+      const rand = BANQUE_SIDEQUESTS[Math.floor(Math.random() * BANQUE_SIDEQUESTS.length)];
+      currentSidequest = {
+        date: todayStr,
+        text: rand.text,
+        pid: rand.pid || 'p5',
+        done: false,
+        isIA: false
+      };
+      localStorage.setItem('sys12_sidequest', JSON.stringify(currentSidequest));
+      await saveSidequestToDB(currentSidequest);
     }
 
     setSyncState('ok');
-  } catch(e) {
+  } catch (e) {
     setSyncState('error');
-    console.error('Erreur loadFromSupabase:', e);
+    console.error('loadFromSupabase:', e);
   }
 }
-async function saveProgress(){
+
+async function saveProgress() {
   setSyncState('syncing');
-  try{
-    await sbUpsert('sys_progress',{...S,user_id:UID,updated_at:new Date().toISOString()});
+  try {
+    await sbUpsert('sys_progress', { ...S, user_id: UID, updated_at: new Date().toISOString() });
     await saveClassData();
     await saveCustomQuestsToDB();
     if (currentSidequest) {
@@ -867,55 +1020,60 @@ async function saveProgress(){
       localStorage.setItem('sys12_sidequest', JSON.stringify(currentSidequest));
     }
     setSyncState('ok');
-  } catch(e) {
+  } catch (e) {
     setSyncState('error');
-    console.error('Erreur saveProgress:', e);
+    console.error('saveProgress:', e);
   }
 }
-function scheduleSave(){
+
+function scheduleSave() {
   clearTimeout(syncTimer);
-  syncTimer=setTimeout(saveProgress,1500);
+  syncTimer = setTimeout(saveProgress, 1500);
 }
-function todayKey(){return new Date().toISOString().slice(0,10);}
-function getCurrentPhase(){
-  const m=S.current_month||1;
-  return PHASES.find(p=>p.months.includes(m))||PHASES[0];
+
+function todayKey() { return new Date().toISOString().slice(0, 10); }
+
+function getCurrentPhase() {
+  const m = S.current_month || 1;
+  return PHASES.find(p => p.months.includes(m)) || PHASES[0];
 }
-function getLv(xp){
-  let l=0;
-  for(let i=0;i<LEVELS.length;i++){if(xp>=LEVELS[i].min)l=i;}
+
+function getLv(xp) {
+  let l = 0;
+  for (let i = 0; i < LEVELS.length; i++) { if (xp >= LEVELS[i].min) l = i; }
   return l;
 }
 
 // ============================================================
-// AFFICHAGE GLOBAL
+// AFFICHAGE PRINCIPAL
 // ============================================================
-function updateHeader(){
-  const xp=S.total_xp,lv=getLv(xp),nl=Math.min(lv+1,LEVELS.length-1);
-  const cur=LEVELS[lv].min,next=LEVELS[nl].min;
-  const pct=lv===LEVELS.length-1?100:Math.round((xp-cur)/(next-cur)*100);
-  document.getElementById('top-xp').textContent=xp+' XP';
-  document.getElementById('xp-big').textContent=xp;
-  document.getElementById('lv-name').textContent=LEVELS[lv].name;
-  document.getElementById('lv-bar').style.width=pct+'%';
-  document.getElementById('bar-cur').textContent=(xp-cur)+' / '+(next-cur)+' XP';
-  document.getElementById('bar-next').textContent='→ '+LEVELS[nl].name;
-  document.getElementById('streak-num').textContent='🔥 '+S.streak;
-  document.getElementById('days-total').textContent=S.days_total;
-  const ph=getCurrentPhase();
-  const banner=document.getElementById('phase-banner');
-  banner.className='phase-banner '+ph.cls;
-  banner.querySelector('.phase-icon').textContent=ph.icon;
-  banner.querySelector('.phase-name').textContent='Phase '+ph.id+' — '+ph.name;
-  banner.querySelector('.phase-desc').textContent=ph.desc;
-  document.getElementById('phase-prog').textContent='Mois '+S.current_month;
+function updateHeader() {
+  const xp = S.total_xp, lv = getLv(xp), nl = Math.min(lv + 1, LEVELS.length - 1);
+  const cur = LEVELS[lv].min, next = LEVELS[nl].min;
+  const pct = lv === LEVELS.length - 1 ? 100 : Math.round((xp - cur) / (next - cur) * 100);
+  document.getElementById('top-xp').textContent = xp + ' XP';
+  document.getElementById('xp-big').textContent = xp;
+  document.getElementById('lv-name').textContent = LEVELS[lv].name;
+  document.getElementById('lv-bar').style.width = pct + '%';
+  document.getElementById('bar-cur').textContent = (xp - cur) + ' / ' + (next - cur) + ' XP';
+  document.getElementById('bar-next').textContent = '→ ' + LEVELS[nl].name;
+  document.getElementById('streak-num').textContent = '🔥 ' + S.streak;
+  document.getElementById('days-total').textContent = S.days_total;
+  const ph = getCurrentPhase();
+  const banner = document.getElementById('phase-banner');
+  banner.className = 'phase-banner ' + ph.cls;
+  banner.querySelector('.phase-icon').textContent = ph.icon;
+  banner.querySelector('.phase-name').textContent = 'Phase ' + ph.id + ' — ' + ph.name;
+  banner.querySelector('.phase-desc').textContent = ph.desc;
+  document.getElementById('phase-prog').textContent = 'Mois ' + S.current_month;
 
-  const missed=S.last_day&&(new Date()-new Date(S.last_day))/86400000>3;
-  document.getElementById('alert').classList.toggle('show',!!missed&&S.days_total>0);
+  const missed = S.last_day && (new Date() - new Date(S.last_day)) / 86400000 > 3;
+  document.getElementById('alert').classList.toggle('show', !!missed && S.days_total > 0);
 
   updateXPbars();
   renderAvatar();
 }
+
 function updateXPbars() {
   const maxXP = 5000;
   const pilliersXP = (S.p1_xp || 0) + (S.p2_xp || 0) + (S.p3_xp || 0) + (S.p4_xp || 0) + (S.p5_xp || 0);
@@ -934,11 +1092,13 @@ function updateXPbars() {
 // ============================================================
 // QUÊTES PRÉ-DÉFINIES
 // ============================================================
-function renderQuetes(){
-  const phase=getCurrentPhase();
-  function qHTML(q,isMin){
-    const done=!!checkedToday[q.id];
-    const inPhase=q.phases.includes(phase.id);
+function renderQuetes() {
+  const phase = getCurrentPhase();
+
+  function qHTML(q, isMin) {
+    const done = !!checkedToday[q.id];
+    const inPhase = q.phases.includes(phase.id);
+
     let xp = q.xp;
     xp = Math.round(xp * 1.2);
     const classId = getClassForPillar(q.pid);
@@ -946,12 +1106,16 @@ function renderQuetes(){
       xp = Math.round(xp * 1.1);
     }
     const displayedXp = xp;
-    const phTag=!inPhase?`<span class="tag tag-ph">Phase ${q.phases[0]}+</span>`:'';
-    const minTag=isMin?`<span class="tag tag-min">minimum</span>`:'';
-    const safeN=q.name.replace(/"/g,'&quot;');
-    const safeD=q.desc.replace(/"/g,'&quot;');
-    let coachBtn=inPhase?`<button class="btn-coach" data-qid="${q.id}" data-qname="${safeN}" data-qdesc="${safeD}" onclick="event.stopPropagation();coachQuete(this)">💡 Coach</button>`:'';
-    if(q.id === 'q5' && inPhase) {
+
+    const phTag = !inPhase ? `<span class="tag tag-ph">Phase ${q.phases[0]}+</span>` : '';
+    const minTag = isMin ? `<span class="tag tag-min">minimum</span>` : '';
+
+    const safeN = q.name.replace(/"/g, '&quot;');
+    const safeD = q.desc.replace(/"/g, '&quot;');
+
+    let coachBtn = inPhase ? `<button class="btn-coach" data-qid="${q.id}" data-qname="${safeN}" data-qdesc="${safeD}" onclick="event.stopPropagation();coachQuete(this)">💡 Coach</button>` : '';
+
+    if (q.id === 'q5' && inPhase) {
       coachBtn += `
       <select class="coach-select" id="workout-type" onclick="event.stopPropagation();">
         <option value="bodyweight">🧱 Poids du corps</option>
@@ -961,8 +1125,9 @@ function renderQuetes(){
       </select>
       <button class="btn-coach" style="background:rgba(96,165,250,.1);border-color:rgba(96,165,250,.3);color:var(--blue);margin-left:4px;" onclick="event.stopPropagation();genererEntrainement(this)">🏋️ Générer</button>`;
     }
-    return `<div class="quest${done?' done':''}${!inPhase?' locked':''}" onclick="toggleQuete('${q.id}')">
-      <div class="check">${done?'✓':''}</div>
+
+    return `<div class="quest${done ? ' done' : ''}${!inPhase ? ' locked' : ''}" onclick="toggleQuete('${q.id}')">
+      <div class="check">${done ? '✓' : ''}</div>
       <div class="q-info">
         <div class="q-name">${q.name}</div>
         <div class="q-desc">${q.desc}</div>
@@ -972,18 +1137,20 @@ function renderQuetes(){
       <div class="q-xp">+${displayedXp} XP</div>
     </div>`;
   }
-  document.getElementById('quetes-min').innerHTML=QUETES.min.map(q=>qHTML(q,true)).join('');
-  document.getElementById('quetes-opt').innerHTML=QUETES.opt.map(q=>qHTML(q,false)).join('');
+  document.getElementById('quetes-min').innerHTML = QUETES.min.map(q => qHTML(q, true)).join('');
+  document.getElementById('quetes-opt').innerHTML = QUETES.opt.map(q => qHTML(q, false)).join('');
 }
-async function toggleQuete(id){
-  if(isDayLocked){
+
+async function toggleQuete(id) {
+  if (isDayLocked) {
     toast("⚠️ Journée verrouillée. Utilise 'Modifier la journée' pour ajuster.");
     return;
   }
-  const all=[...QUETES.min,...QUETES.opt];
-  const q=all.find(x=>x.id===id);
-  if(!q)return;
-  const today=todayKey();
+  const all = [...QUETES.min, ...QUETES.opt];
+  const q = all.find(x => x.id === id);
+  if (!q) return;
+  const today = todayKey();
+
   let xp = q.xp;
   xp = Math.round(xp * 1.2);
   const classId = getClassForPillar(q.pid);
@@ -991,27 +1158,29 @@ async function toggleQuete(id){
     xp = Math.round(xp * 1.1);
   }
   const finalXp = xp;
-  if(checkedToday[id]){
+
+  if (checkedToday[id]) {
     delete checkedToday[id];
-    S.total_xp=Math.max(0,S.total_xp-finalXp);
-    S[q.pid + '_xp']=Math.max(0,(S[q.pid + '_xp']||0)-finalXp);
+    S.total_xp = Math.max(0, S.total_xp - finalXp);
+    S[q.pid + '_xp'] = Math.max(0, (S[q.pid + '_xp'] || 0) - finalXp);
     const cId = getClassForPillar(q.pid);
     classXP[cId] = Math.max(0, (classXP[cId] || 0) - finalXp);
     weeklyClassXP[cId] = Math.max(0, (weeklyClassXP[cId] || 0) - finalXp);
-    LOG=LOG.filter(l=>!(l.quest_id===id&&l.created_at&&l.created_at.slice(0,10)===today));
-    sbDelete('sys_log',UID,id,today).catch(()=>{});
+    LOG = LOG.filter(l => !(l.quest_id === id && l.created_at && l.created_at.slice(0, 10) === today));
+    sbDelete('sys_log', UID, id, today).catch(() => {});
     toast("↩️ Quête décochée — XP retirés");
   } else {
-    checkedToday[id]=true;
-    S.total_xp+=finalXp;
+    checkedToday[id] = true;
+    S.total_xp += finalXp;
     S[q.pid + '_xp'] = Math.min(MAX_PILLIER_XP, (S[q.pid + '_xp'] || 0) + finalXp);
     const cId = getClassForPillar(q.pid);
     classXP[cId] = (classXP[cId] || 0) + finalXp;
     weeklyClassXP[cId] = (weeklyClassXP[cId] || 0) + finalXp;
-    const entry={user_id:UID,quest_id:id,quest_name:q.name,xp:finalXp,pillar_id:q.pid,created_at:new Date().toISOString()};
+
+    const entry = { user_id: UID, quest_id: id, quest_name: q.name, xp: finalXp, pillar_id: q.pid, created_at: new Date().toISOString() };
     LOG.unshift(entry);
-    if(LOG.length>60)LOG.pop();
-    sbInsert('sys_log',entry).catch(()=>{});
+    if (LOG.length > 60) LOG.pop();
+    sbInsert('sys_log', entry).catch(() => {});
     toast("✅ +" + finalXp + " XP pour '" + q.name + "'");
   }
   scheduleSave();
@@ -1023,8 +1192,11 @@ async function toggleQuete(id){
 // ============================================================
 // SIDEQUEST
 // ============================================================
-function initSidequest(){
-  // Déjà chargé via loadFromSupabase, on met juste à jour l'UI
+function initSidequest() {
+  updateSidequestUI();
+}
+
+function updateSidequestUI() {
   if (!currentSidequest) {
     const local = localStorage.getItem('sys12_sidequest');
     if (local) {
@@ -1033,7 +1205,7 @@ function initSidequest(){
         if (parsed.date === todayKey()) {
           currentSidequest = parsed;
         }
-      } catch(e) {}
+      } catch (e) {}
     }
     if (!currentSidequest) {
       const rand = BANQUE_SIDEQUESTS[Math.floor(Math.random() * BANQUE_SIDEQUESTS.length)];
@@ -1048,35 +1220,35 @@ function initSidequest(){
       saveSidequestToDB(currentSidequest);
     }
   }
-  updateSidequestUI();
-}
-function updateSidequestUI(){
-  if(!currentSidequest) return;
-  const item=document.getElementById('sidequest-item');
-  const chk=document.getElementById('sq-check');
-  document.getElementById('sidequest-text').textContent=currentSidequest.text;
-  let baseXp=30;
+
+  const item = document.getElementById('sidequest-item');
+  const chk = document.getElementById('sq-check');
+  document.getElementById('sidequest-text').textContent = currentSidequest.text;
+
+  let baseXp = 30;
   baseXp = Math.round(baseXp * 1.2);
   const classId = getClassForPillar(currentSidequest.pid);
   if (boostClass && classId === boostClass) {
     baseXp = Math.round(baseXp * 1.1);
   }
   const finalXp = baseXp;
-  document.getElementById('sq-xp-display').textContent=`+${finalXp} XP`;
-  if(currentSidequest.done){
+  document.getElementById('sq-xp-display').textContent = '+' + finalXp + ' XP';
+
+  if (currentSidequest.done) {
     item.classList.add('done');
-    chk.textContent='✓';
-  }else{
+    chk.textContent = '✓';
+  } else {
     item.classList.remove('done');
-    chk.textContent='';
+    chk.textContent = '';
   }
 }
-async function toggleSidequest(){
-  if(isDayLocked){
+
+async function toggleSidequest() {
+  if (isDayLocked) {
     toast("⚠️ Journée verrouillée. Utilise 'Modifier la journée' pour ajuster.");
     return;
   }
-  if(!currentSidequest) {
+  if (!currentSidequest) {
     toast("⚠️ Sidequest non chargée.");
     return;
   }
@@ -1086,29 +1258,31 @@ async function toggleSidequest(){
     updateSidequestUI();
     return;
   }
-  let baseXp=30;
+
+  let baseXp = 30;
   baseXp = Math.round(baseXp * 1.2);
   const classId = getClassForPillar(currentSidequest.pid);
   if (boostClass && classId === boostClass) {
     baseXp = Math.round(baseXp * 1.1);
   }
   const finalXp = baseXp;
-  if(currentSidequest.done){
+
+  if (currentSidequest.done) {
     currentSidequest.done = false;
     S.total_xp = Math.max(0, S.total_xp - finalXp);
-    if(currentSidequest.pid) {
+    if (currentSidequest.pid) {
       S[currentSidequest.pid + '_xp'] = Math.max(0, (S[currentSidequest.pid + '_xp'] || 0) - finalXp);
     }
     const cId = getClassForPillar(currentSidequest.pid);
     classXP[cId] = Math.max(0, (classXP[cId] || 0) - finalXp);
     weeklyClassXP[cId] = Math.max(0, (weeklyClassXP[cId] || 0) - finalXp);
-    LOG = LOG.filter(l => !(l.quest_id === 'sidequest' && l.created_at && l.created_at.slice(0,10) === today));
-    sbDelete('sys_log', UID, 'sidequest', today).catch(()=>{});
+    LOG = LOG.filter(l => !(l.quest_id === 'sidequest' && l.created_at && l.created_at.slice(0, 10) === today));
+    sbDelete('sys_log', UID, 'sidequest', today).catch(() => {});
     toast("↩️ Sidequest décochée — XP retirés");
   } else {
     currentSidequest.done = true;
     S.total_xp += finalXp;
-    if(currentSidequest.pid) {
+    if (currentSidequest.pid) {
       S[currentSidequest.pid + '_xp'] = Math.min(MAX_PILLIER_XP, (S[currentSidequest.pid + '_xp'] || 0) + finalXp);
     }
     const cId = getClassForPillar(currentSidequest.pid);
@@ -1117,31 +1291,35 @@ async function toggleSidequest(){
     const entry = {
       user_id: UID,
       quest_id: 'sidequest',
-      quest_name: `[Sidequest] ${currentSidequest.text.slice(0,40)}...`,
+      quest_name: '[Sidequest] ' + currentSidequest.text.slice(0, 40) + '...',
       xp: finalXp,
       pillar_id: currentSidequest.pid || 'p1',
       created_at: new Date().toISOString()
     };
     LOG.unshift(entry);
-    sbInsert('sys_log', entry).catch(()=>{});
+    sbInsert('sys_log', entry).catch(() => {});
     toast("✅ +" + finalXp + " XP pour la sidequest !");
   }
+
   localStorage.setItem('sys12_sidequest', JSON.stringify(currentSidequest));
   await saveSidequestToDB(currentSidequest);
   updateSidequestUI();
   scheduleSave();
   updateHeader();
 }
-async function rerollSidequestIA(){
-  if(isDayLocked){
+
+async function rerollSidequestIA() {
+  if (isDayLocked) {
     toast("⚠️ Journée verrouillée.");
     return;
   }
   const btn = document.getElementById('btn-reroll');
   btn.textContent = "Création en cours par l'IA...";
   btn.disabled = true;
+
   const prompt = buildCtx() + "\n\nGénère une 'sidequest' (quête secondaire) utile, concrète et rapide (max 15 min) pour Eliseo aujourd'hui. Thème recommandé : sors-le de sa zone de confort, fais-le pratiquer un brise-glace de sociabilité, de l'observation humaine ou un exercice d'assurance tactique. Donne uniquement l'énoncé direct en 2 lignes max. Sans markdown.";
   const res = await callGemini(prompt);
+
   const today = todayKey();
   currentSidequest = {
     date: today,
@@ -1153,234 +1331,304 @@ async function rerollSidequestIA(){
   localStorage.setItem('sys12_sidequest', JSON.stringify(currentSidequest));
   await saveSidequestToDB(currentSidequest);
   updateSidequestUI();
+
   btn.textContent = "🎲 Relancer via le Coach (IA)";
   btn.disabled = false;
   toast("🔄 Nouvelle sidequest générée par l'IA !");
 }
 
 // ============================================================
-// QUÊTES FORGÉES avec MODIFICATION et SUPPRESSION
+// QUÊTES FORGÉES (AVENTURIER) - AVEC STOP PROPAGATION ET VERROU
 // ============================================================
-function loadCustomQuests(){
-  // déjà fait dans loadFromSupabase
+function loadCustomQuests() {
+  customQuests = JSON.parse(localStorage.getItem('sys12_custom_quests') || '[]');
   renderCustomQuests();
 }
-function saveCustomQuests(){
+
+function saveCustomQuests() {
   localStorage.setItem('sys12_custom_quests', JSON.stringify(customQuests));
   saveCustomQuestsToDB();
   renderCustomQuests();
 }
-function renderCqSelectors(){ /* plus nécessaire */ }
 
-function ajouterQuetePerso(){
-  const nameEl=document.getElementById('cq-name');
-  const name=nameEl.value.trim();
-  if(!name) {
+function renderCqSelectors() {
+  // Plus de sélecteur de pilier
+}
+
+function ajouterQuetePerso() {
+  const nameEl = document.getElementById('cq-name');
+  const name = nameEl.value.trim();
+  if (!name) {
     toast("⚠️ Donne un nom à ta quête.");
     return;
   }
-  const diff=document.getElementById('cq-diff').value;
-  const type=document.getElementById('cq-type').value;
-  let xp=10;
-  if(diff==='medium') xp=25;
-  if(diff==='hard') xp=50;
-  const nq={id:'cq_'+Date.now(), name:name, xp:xp, type:type, done:false, total_xp:0};
+  const diff = document.getElementById('cq-diff').value;
+  const type = document.getElementById('cq-type').value;
+
+  let xp = 10;
+  if (diff === 'medium') xp = 25;
+  if (diff === 'hard') xp = 50;
+
+  const nq = { id: 'cq_' + Date.now(), name: name, xp: xp, type: type, done: false, total_xp: 0 };
   customQuests.push(nq);
-  nameEl.value='';
+  nameEl.value = '';
   saveCustomQuests();
   toast("⚔️ Quête forgée : '" + name + "' (🎒 Aventurier)");
 }
 
-function modifierQuetePerso(id){
-  const q = customQuests.find(x => x.id === id);
-  if(!q) return;
-  // Ouvrir une boîte de dialogue simple
-  const newName = prompt("Nouveau nom :", q.name);
-  if(newName === null) return;
-  if(newName.trim() === '') { toast("Le nom ne peut pas être vide."); return; }
-  const newXp = prompt("XP (10, 25, 50) :", q.xp);
-  if(newXp === null) return;
-  const xpNum = parseInt(newXp);
-  if(![10,25,50].includes(xpNum)) { toast("Choisis 10, 25 ou 50."); return; }
-  const newType = prompt("Type (oneshot ou recurrent) :", q.type);
-  if(newType === null) return;
-  if(!['oneshot','recurrent'].includes(newType)) { toast("Choisis 'oneshot' ou 'recurrent'."); return; }
-  q.name = newName.trim();
-  q.xp = xpNum;
-  q.type = newType;
-  saveCustomQuests();
-  toast("✅ Quête modifiée !");
-}
-
-function supprimerQuetePerso(id){
-  const q = customQuests.find(x => x.id === id);
-  if(!q) return;
-  if(!confirm(`Supprimer la quête "${q.name}" ?`)) return;
-  // Si la quête est déjà cochée aujourd'hui, on doit retirer les XP
-  const today = todayKey();
-  const doneToday = LOG.some(l => l.quest_id === id && l.created_at && l.created_at.slice(0,10) === today);
-  if(doneToday) {
-    // On retire les XP de la session du jour (similaire à décoché)
-    const finalXp = q.xp; // on ne recalcule pas avec boost pour simplifier
-    S.total_xp = Math.max(0, S.total_xp - finalXp);
-    // On retire aussi des classes (Aventurier)
-    classXP.aventurier = Math.max(0, (classXP.aventurier || 0) - finalXp);
-    weeklyClassXP.aventurier = Math.max(0, (weeklyClassXP.aventurier || 0) - finalXp);
-    // Supprimer du log
-    LOG = LOG.filter(l => !(l.quest_id === id && l.created_at && l.created_at.slice(0,10) === today));
-    sbDelete('sys_log', UID, id, today).catch(()=>{});
-    toast("↩️ XP retirés pour la quête supprimée.");
-  }
-  customQuests = customQuests.filter(x => x.id !== id);
-  saveCustomQuests();
-  toast("🗑️ Quête supprimée.");
-}
-
-function renderCustomQuests(){
-  const listEl=document.getElementById('custom-quests-list');
-  if(!customQuests.length){
-    listEl.innerHTML='<div class="empty-state">Aucune quête forgée pour le moment.</div>';
+function renderCustomQuests() {
+  const listEl = document.getElementById('custom-quests-list');
+  if (!customQuests.length) {
+    listEl.innerHTML = '<div class="empty-state">Aucune quête forgée pour le moment.</div>';
     return;
   }
-  listEl.innerHTML=customQuests.map(q => {
+
+  listEl.innerHTML = customQuests.map(q => {
     let xp = q.xp;
     if (boostClass && 'aventurier' === boostClass) {
       xp = Math.round(xp * 1.1);
     }
     const finalXp = xp;
-    const typeTag=`<span class="tag tag-ph">${q.type==='oneshot'?'One-shot':'Récurrente'}</span>`;
-    const aventurierTag=`<span class="tag tag-aventurier">🎒 Aventurier</span>`;
-    const doneClass = q.done ? ' done' : '';
-    return `<div class="quest${doneClass}" onclick="toggleCustomQuest('${q.id}')">
-      <div class="check">${q.done?'✓':''}</div>
-      <div class="q-info">
+    const typeTag = `<span class="tag tag-ph">${q.type === 'oneshot' ? 'One-shot' : 'Récurrente'}</span>`;
+    const aventurierTag = `<span class="tag tag-aventurier">🎒 Aventurier</span>`;
+
+    // 🔒 stopPropagation sur les éléments cliquables pour éviter le double déclenchement
+    return `<div class="quest${q.done ? ' done' : ''}" style="position:relative;">
+      <div class="check" onclick="event.stopPropagation();toggleCustomQuest('${q.id}')">${q.done ? '✓' : ''}</div>
+      <div class="q-info" onclick="event.stopPropagation();toggleCustomQuest('${q.id}')">
         <div class="q-name">${q.name}</div>
         <div class="q-tags">${typeTag}${aventurierTag}</div>
       </div>
-      <div class="q-xp">+${finalXp} XP</div>
-      <div class="quest-actions">
-        <button onclick="event.stopPropagation();modifierQuetePerso('${q.id}')" title="Modifier">✏️</button>
-        <button onclick="event.stopPropagation();supprimerQuetePerso('${q.id}')" title="Supprimer">🗑️</button>
+      <div class="q-xp" onclick="event.stopPropagation();toggleCustomQuest('${q.id}')">+${finalXp} XP</div>
+      <div class="q-actions">
+        <button class="edit" onclick="event.stopPropagation();openEditModal('${q.id}')">✏️</button>
+        <button class="del" onclick="event.stopPropagation();deleteCustomQuest('${q.id}')">🗑️</button>
       </div>
     </div>`;
   }).join('');
 }
 
-function toggleCustomQuest(id){
-  if(isDayLocked){
-    toast("⚠️ Journée verrouillée.");
+function openEditModal(id) {
+  const q = customQuests.find(x => x.id === id);
+  if (!q) return;
+  editQuestId = id;
+  document.getElementById('edit-cq-id').value = id;
+  document.getElementById('edit-cq-name').value = q.name;
+  document.getElementById('edit-cq-diff').value = q.xp === 10 ? 'easy' : q.xp === 25 ? 'medium' : 'hard';
+  document.getElementById('edit-cq-type').value = q.type;
+  document.getElementById('edit-modal').classList.add('show');
+}
+
+function closeEditModal() {
+  document.getElementById('edit-modal').classList.remove('show');
+  editQuestId = null;
+}
+
+function saveEditQuest() {
+  const id = document.getElementById('edit-cq-id').value;
+  const q = customQuests.find(x => x.id === id);
+  if (!q) return;
+
+  const name = document.getElementById('edit-cq-name').value.trim();
+  if (!name) {
+    toast("⚠️ Le nom ne peut pas être vide.");
     return;
   }
-  const q=customQuests.find(x=>x.id===id);
-  if(!q) return;
-  const today=todayKey();
-  let xp = q.xp;
-  if (boostClass && 'aventurier' === boostClass) {
-    xp = Math.round(xp * 1.1);
-  }
-  const finalXp = xp;
 
-  if(q.done){
-    q.done=false;
-    S.total_xp=Math.max(0,S.total_xp-finalXp);
+  const diff = document.getElementById('edit-cq-diff').value;
+  let xp = 10;
+  if (diff === 'medium') xp = 25;
+  if (diff === 'hard') xp = 50;
+
+  q.name = name;
+  q.xp = xp;
+  q.type = document.getElementById('edit-cq-type').value;
+
+  saveCustomQuests();
+  closeEditModal();
+  toast("✅ Quête modifiée !");
+}
+
+function deleteCustomQuest(id) {
+  if (!confirm("Supprimer cette quête définitivement ?")) return;
+  const q = customQuests.find(x => x.id === id);
+  if (!q) return;
+
+  // Si la quête était cochée, retirer les XP
+  if (q.done) {
+    const today = todayKey();
+    let xp = q.xp;
+    if (boostClass && 'aventurier' === boostClass) {
+      xp = Math.round(xp * 1.1);
+    }
+    const finalXp = xp;
+    S.total_xp = Math.max(0, S.total_xp - finalXp);
     classXP.aventurier = Math.max(0, (classXP.aventurier || 0) - finalXp);
     weeklyClassXP.aventurier = Math.max(0, (weeklyClassXP.aventurier || 0) - finalXp);
-    q.total_xp = Math.max(0, (q.total_xp || 0) - finalXp);
-    LOG=LOG.filter(l=>!(l.quest_id===id&&l.created_at&&l.created_at.slice(0,10)===today));
-    sbDelete('sys_log',UID,id,today).catch(()=>{});
-    toast("↩️ Quête forgée décochée — XP retirés");
-  }else{
-    q.done=true;
-    S.total_xp+=finalXp;
-    classXP.aventurier = (classXP.aventurier || 0) + finalXp;
-    weeklyClassXP.aventurier = (weeklyClassXP.aventurier || 0) + finalXp;
-    q.total_xp = (q.total_xp || 0) + finalXp;
-    const entry={user_id:UID,quest_id:id,quest_name:`[Perso] ${q.name}`,xp:finalXp,pillar_id:'custom',created_at:new Date().toISOString()};
-    LOG.unshift(entry);
-    sbInsert('sys_log',entry).catch(()=>{});
-    toast("✅ +" + finalXp + " XP pour '" + q.name + "' (🎒 Aventurier)");
+    LOG = LOG.filter(l => !(l.quest_id === id && l.created_at && l.created_at.slice(0, 10) === today));
+    sbDelete('sys_log', UID, id, today).catch(() => {});
   }
+
+  customQuests = customQuests.filter(x => x.id !== id);
   saveCustomQuests();
-  scheduleSave();
+  toast("🗑️ Quête supprimée.");
   updateHeader();
+}
+
+// 🔒 VERSION SÉCURISÉE DE toggleCustomQuest AVEC VERROU
+async function toggleCustomQuest(id) {
+  // Éviter les appels simultanés (double-clic, propagation)
+  if (isProcessing) {
+    console.warn('toggleCustomQuest déjà en cours, ignore');
+    return;
+  }
+  isProcessing = true;
+
+  try {
+    if (isDayLocked) {
+      toast("⚠️ Journée verrouillée.");
+      return;
+    }
+    const q = customQuests.find(x => x.id === id);
+    if (!q) return;
+    const today = todayKey();
+
+    let xp = q.xp;
+    if (boostClass && 'aventurier' === boostClass) {
+      xp = Math.round(xp * 1.1);
+    }
+    const finalXp = xp;
+
+    if (q.done) {
+      // Décocher
+      q.done = false;
+      S.total_xp = Math.max(0, S.total_xp - finalXp);
+      classXP.aventurier = Math.max(0, (classXP.aventurier || 0) - finalXp);
+      weeklyClassXP.aventurier = Math.max(0, (weeklyClassXP.aventurier || 0) - finalXp);
+      q.total_xp = Math.max(0, (q.total_xp || 0) - finalXp);
+      LOG = LOG.filter(l => !(l.quest_id === id && l.created_at && l.created_at.slice(0, 10) === today));
+      sbDelete('sys_log', UID, id, today).catch(() => {});
+      toast("↩️ Quête forgée décochée — XP retirés");
+    } else {
+      // Cocher
+      q.done = true;
+      S.total_xp += finalXp;
+      classXP.aventurier = (classXP.aventurier || 0) + finalXp;
+      weeklyClassXP.aventurier = (weeklyClassXP.aventurier || 0) + finalXp;
+      q.total_xp = (q.total_xp || 0) + finalXp;
+      const entry = {
+        user_id: UID,
+        quest_id: id,
+        quest_name: '[Perso] ' + q.name,
+        xp: finalXp,
+        pillar_id: 'custom',
+        created_at: new Date().toISOString()
+      };
+      LOG.unshift(entry);
+      sbInsert('sys_log', entry).catch(() => {});
+      toast("✅ +" + finalXp + " XP pour '" + q.name + "' (🎒 Aventurier)");
+    }
+    saveCustomQuests();
+    scheduleSave();
+    updateHeader();
+  } catch (e) {
+    console.error('toggleCustomQuest error:', e);
+    toast("⚠️ Erreur lors de l'action");
+  } finally {
+    isProcessing = false;
+  }
 }
 
 // ============================================================
 // VALIDATION DE JOURNÉE
 // ============================================================
-async function validerJour(){
-  const today=todayKey();
-  if(isDayLocked){
+async function validerJour() {
+  const today = todayKey();
+  if (isDayLocked) {
     toast("⚠️ Journée déjà verrouillée.");
     return;
   }
-  if(S.last_day!==today){
-    if(S.last_day){
-      const diff=(new Date(today)-new Date(S.last_day))/86400000;
-      S.streak=diff<=1?S.streak+1:1;
-    }else{S.streak=1;}
-    S.last_day=today;
+
+  if (S.last_day !== today) {
+    if (S.last_day) {
+      const diff = (new Date(today) - new Date(S.last_day)) / 86400000;
+      S.streak = diff <= 1 ? S.streak + 1 : 1;
+    } else { S.streak = 1; }
+    S.last_day = today;
     S.days_total++;
-    const histEntry={user_id:UID,xp:S.total_xp,created_at:new Date().toISOString()};
+    const histEntry = { user_id: UID, xp: S.total_xp, created_at: new Date().toISOString() };
     XP_HISTORY.unshift(histEntry);
-    if(XP_HISTORY.length>60)XP_HISTORY.pop();
-    sbInsert('sys_xp_history',histEntry).catch(()=>{});
+    if (XP_HISTORY.length > 60) XP_HISTORY.pop();
+    sbInsert('sys_xp_history', histEntry).catch(() => {});
   }
-  customQuests=customQuests.filter(q=>!(q.type==='oneshot' && q.done===true));
-  customQuests.forEach(q=>{if(q.type==='recurrent') q.done=false;});
+
+  customQuests = customQuests.filter(q => !(q.type === 'oneshot' && q.done === true));
+  customQuests.forEach(q => { if (q.type === 'recurrent') q.done = false; });
   localStorage.setItem('sys12_custom_quests', JSON.stringify(customQuests));
   await saveCustomQuestsToDB();
   renderCustomQuests();
 
-  isDayLocked=true;
+  isDayLocked = true;
   updateValidationButton();
   scheduleSave();
   updateHeader();
   toast("🔒 Journée validée !");
-  goTab('stats',document.querySelectorAll('.tab-btn')[3]);
+  goTab('stats', document.querySelectorAll('.tab-btn')[3]);
 }
-function modifierJour(){
-  if(!isDayLocked){
+
+function modifierJour() {
+  if (!isDayLocked) {
     toast("⚠️ La journée n'est pas verrouillée.");
     return;
   }
-  isDayLocked=false;
+  isDayLocked = false;
   updateValidationButton();
   toast("✏️ Journée déverrouillée — tu peux ajuster tes quêtes.");
 }
-function updateValidationButton(){
-  const btn=document.getElementById('btn-valider');
-  if(!btn)return;
-  if(isDayLocked){
-    btn.textContent="✏️ Modifier la journée";
-    btn.setAttribute('onclick','modifierJour()');
-    btn.style.background="linear-gradient(135deg, #4b5563, #374151)";
-  }else{
-    btn.textContent="✓ Valider la journée";
-    btn.setAttribute('onclick','validerJour()');
-    btn.style.background="linear-gradient(135deg,var(--accent2),var(--accent))";
+
+function updateValidationButton() {
+  const btn = document.getElementById('btn-valider');
+  if (!btn) return;
+  if (isDayLocked) {
+    btn.textContent = "✏️ Modifier la journée";
+    btn.setAttribute('onclick', 'modifierJour()');
+    btn.style.background = "linear-gradient(135deg, #4b5563, #374151)";
+  } else {
+    btn.textContent = "✓ Valider la journée";
+    btn.setAttribute('onclick', 'validerJour()');
+    btn.style.background = "linear-gradient(135deg,var(--accent2),var(--accent))";
   }
 }
 
 // ============================================================
-// PILIERS
+// AFFICHAGE DES PILIERS
 // ============================================================
-function renderPiliers(){
-  document.getElementById('piliers-list').innerHTML=PILLARS.map(p=>{
+function renderPiliers() {
+  document.getElementById('piliers-list').innerHTML = PILLARS.map(p => {
     const xp = S[p.id + '_xp'] || 0;
     const pct = Math.min(100, Math.round((xp / MAX_PILLIER_XP) * 100));
     const rank = getPillarRank(xp);
     const nextRank = getNextPillarRank(xp);
     const level = getPillarLevel(xp);
+
     return `<div class="pillar">
       <div class="pillar-top">
         <div class="pillar-icon" style="background:${p.color}22">${p.icon}</div>
         <div class="pillar-name">${p.name}</div>
-        <div class="pillar-lv">Niv. ${level} <span class="pillar-title">${rank.title}</span></div>
+        <div class="pillar-lv">
+          Niv. ${level} 
+          <span class="pillar-title">${rank.title}</span>
+        </div>
       </div>
       <div class="bar-wrap"><div class="bar-fill" style="width:${pct}%;background:${p.color}"></div></div>
-      <div class="bar-label"><span>${xp} / ${MAX_PILLIER_XP} XP</span><span>${pct}%</span></div>
-      <div class="pillar-sats">Prochain palier : ${nextRank.title} (${nextRank.xp} XP)<br>${p.satellites}</div>
+      <div class="bar-label">
+        <span>${xp} / ${MAX_PILLIER_XP} XP</span>
+        <span>${pct}%</span>
+      </div>
+      <div class="pillar-sats">
+        Prochain palier : ${nextRank.title} (${nextRank.xp} XP)
+        <br>${p.satellites}
+      </div>
     </div>`;
   }).join('');
 }
@@ -1388,111 +1636,168 @@ function renderPiliers(){
 // ============================================================
 // STATISTIQUES
 // ============================================================
-function renderStats(){
-  const today=todayKey();
-  const activeDays=[...new Set(LOG.map(l=>l.created_at&&l.created_at.slice(0,10)).filter(Boolean))];
-  let hm='';
-  for(let i=59;i>=0;i--){
-    const d=new Date();d.setDate(d.getDate()-i);
-    const key=d.toISOString().slice(0,10);
-    const isToday=key===today;
-    const on=activeDays.includes(key);
-    hm+=`<div class="hm-sq${on&&!isToday?' on':''}${isToday?' today':''}"></div>`;
+function renderStats() {
+  const today = todayKey();
+  const activeDays = [...new Set(LOG.map(l => l.created_at && l.created_at.slice(0, 10)).filter(Boolean))];
+  let hm = '';
+  for (let i = 59; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    const isToday = key === today;
+    const on = activeDays.includes(key);
+    hm += `<div class="hm-sq${on && !isToday ? ' on' : ''}${isToday ? ' today' : ''}"></div>`;
   }
-  document.getElementById('heatmap').innerHTML=hm;
-  document.getElementById('cap-grid').innerHTML=CAPS.map(c=>{
-    const xp=S[c.p + '_xp']||0;
-    const pct=Math.min(100, Math.round((xp / MAX_PILLIER_XP) * 100));
+  document.getElementById('heatmap').innerHTML = hm;
+
+  document.getElementById('cap-grid').innerHTML = CAPS.map(c => {
+    const xp = S[c.p + '_xp'] || 0;
+    const pct = Math.min(100, Math.round((xp / MAX_PILLIER_XP) * 100));
     return `<div class="cap-item">
       <div class="cap-name">${c.n}</div>
       <div class="cap-pct" style="color:${PCOLS[c.p]}">${pct}%</div>
       <div class="cap-bar"><div class="cap-fill" style="width:${pct}%;background:${PCOLS[c.p]}"></div></div>
     </div>`;
   }).join('');
-  document.getElementById('milestones').innerHTML=MILESTONES.map(m=>{
-    const ok=m.check(S);
-    return `<div class="ms-item${ok?' reached':''}"><div class="ms-icon">${m.icon}</div><div class="ms-label">${m.lbl}</div><div class="ms-status">${ok?'✓ Atteint':'En cours'}</div></div>`;
+
+  document.getElementById('milestones').innerHTML = MILESTONES.map(m => {
+    const ok = m.check(S);
+    return `<div class="ms-item${ok ? ' reached' : ''}">
+      <div class="ms-icon">${m.icon}</div>
+      <div class="ms-label">${m.lbl}</div>
+      <div class="ms-status">${ok ? '✓ Atteint' : 'En cours'}</div>
+    </div>`;
   }).join('');
-  const logEl=document.getElementById('log-list');
-  if(!LOG.length){logEl.innerHTML='<div class="empty-state">Aucune action enregistrée</div>';}
-  else{logEl.innerHTML=LOG.slice(0,15).map(l=>`
+
+  const logEl = document.getElementById('log-list');
+  if (!LOG.length) { logEl.innerHTML = '<div class="empty-state">Aucune action enregistrée</div>'; } else {
+    logEl.innerHTML = LOG.slice(0, 15).map(l => `
     <div class="log-entry">
-      <div class="log-dot" style="background:${PCOLS[l.pillar_id]||'#888'}"></div>
+      <div class="log-dot" style="background:${PCOLS[l.pillar_id] || '#888'}"></div>
       <div class="log-text">${l.quest_name}</div>
       <span class="log-xp">+${l.xp}</span>
-      <span class="log-time">${l.created_at?l.created_at.slice(11,16):''}</span>
-    </div>`).join('');}
-  const xpCtx=document.getElementById('chart-xp').getContext('2d');
-  const sorted=[...XP_HISTORY].sort((a,b)=>new Date(a.created_at)-new Date(b.created_at)).slice(-20);
-  const xpLabels=sorted.map(h=>h.created_at?h.created_at.slice(5,10):'');
-  const xpData=sorted.map(h=>h.xp);
-  if(chartXp)chartXp.destroy();
-  chartXp=new Chart(xpCtx,{type:'line',data:{labels:xpLabels.length?xpLabels:['—'],datasets:[{data:xpData.length?xpData:[0],borderColor:'#a78bfa',backgroundColor:'rgba(124,58,237,0.15)',borderWidth:2,pointRadius:3,pointBackgroundColor:'#a78bfa',fill:true,tension:.4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#555',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'}},y:{ticks:{color:'#555',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'},beginAtZero:true}}}});
-  const rCtx=document.getElementById('chart-radar').getContext('2d');
-  const rLabels=PILLARS.map(p=>p.icon+' '+p.name.split(' ')[0]);
-  const rData=PILLARS.map(p=>Math.min(100, Math.round(((S[p.id + '_xp']||0) / MAX_PILLIER_XP) * 100)));
-  if(chartRadar)chartRadar.destroy();
-  chartRadar=new Chart(rCtx,{type:'radar',data:{labels:rLabels,datasets:[{data:rData,borderColor:'#a78bfa',backgroundColor:'rgba(124,58,237,0.18)',borderWidth:2,pointBackgroundColor:'#a78bfa',pointRadius:4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{r:{min:0,max:100,ticks:{display:false},grid:{color:'rgba(255,255,255,0.07)'},pointLabels:{color:'#999',font:{size:11}},angleLines:{color:'rgba(255,255,255,0.06)'}}}}});
+      <span class="log-time">${l.created_at ? l.created_at.slice(11, 16) : ''}</span>
+    </div>`).join('');
+  }
+
+  const xpCtx = document.getElementById('chart-xp').getContext('2d');
+  const sorted = [...XP_HISTORY].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).slice(-20);
+  const xpLabels = sorted.map(h => h.created_at ? h.created_at.slice(5, 10) : '');
+  const xpData = sorted.map(h => h.xp);
+  if (chartXp) chartXp.destroy();
+  chartXp = new Chart(xpCtx, {
+    type: 'line',
+    data: {
+      labels: xpLabels.length ? xpLabels : ['—'],
+      datasets: [{ data: xpData.length ? xpData : [0], borderColor: '#a78bfa', backgroundColor: 'rgba(124,58,237,0.15)', borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#a78bfa', fill: true, tension: .4 }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#555', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
+        y: { ticks: { color: '#555', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' }, beginAtZero: true }
+      }
+    }
+  });
+
+  const rCtx = document.getElementById('chart-radar').getContext('2d');
+  const rLabels = PILLARS.map(p => p.icon + ' ' + p.name.split(' ')[0]);
+  const rData = PILLARS.map(p => Math.min(100, Math.round(((S[p.id + '_xp'] || 0) / MAX_PILLIER_XP) * 100)));
+  if (chartRadar) chartRadar.destroy();
+  chartRadar = new Chart(rCtx, {
+    type: 'radar',
+    data: {
+      labels: rLabels,
+      datasets: [{ data: rData, borderColor: '#a78bfa', backgroundColor: 'rgba(124,58,237,0.18)', borderWidth: 2, pointBackgroundColor: '#a78bfa', pointRadius: 4 }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        r: {
+          min: 0, max: 100, ticks: { display: false },
+          grid: { color: 'rgba(255,255,255,0.07)' },
+          pointLabels: { color: '#999', font: { size: 11 } },
+          angleLines: { color: 'rgba(255,255,255,0.06)' }
+        }
+      }
+    }
+  });
 }
 
 // ============================================================
 // REVUE
 // ============================================================
-function setStar(v){ starVal=v; document.querySelectorAll('.star').forEach((s,i)=>s.classList.toggle('on',i<v)); }
-async function sauvegarderRevue(){
-  const rev={user_id:UID,stars:starVal,went_well:document.getElementById('rv-bien').value,resisted:document.getElementById('rv-resist').value,next_change:document.getElementById('rv-change').value,created_at:new Date().toISOString()};
-  S.total_xp+=100;
-  const entry={user_id:UID,quest_id:'review',quest_name:'Revue hebdomadaire',xp:100,pillar_id:'p1',created_at:new Date().toISOString()};
+function setStar(v) {
+  starVal = v;
+  document.querySelectorAll('.star').forEach((s, i) => s.classList.toggle('on', i < v));
+}
+
+async function sauvegarderRevue() {
+  const rev = {
+    user_id: UID,
+    stars: starVal,
+    went_well: document.getElementById('rv-bien').value,
+    resisted: document.getElementById('rv-resist').value,
+    next_change: document.getElementById('rv-change').value,
+    created_at: new Date().toISOString()
+  };
+  S.total_xp += 100;
+  const entry = { user_id: UID, quest_id: 'review', quest_name: 'Revue hebdomadaire', xp: 100, pillar_id: 'p1', created_at: new Date().toISOString() };
   LOG.unshift(entry);
-  sbInsert('sys_log',entry).catch(()=>{});
-  sbInsert('sys_reviews',rev).catch(()=>{});
+  sbInsert('sys_log', entry).catch(() => {});
+  sbInsert('sys_reviews', rev).catch(() => {});
   scheduleSave();
   updateHeader();
-  const _bien=document.getElementById('rv-bien').value;
-  const _resist=document.getElementById('rv-resist').value;
-  const _change=document.getElementById('rv-change').value;
-  const _stars=starVal;
-  ['rv-bien','rv-resist','rv-change'].forEach(id=>document.getElementById(id).value='');
-  starVal=0;
-  document.querySelectorAll('.star').forEach(s=>s.classList.remove('on'));
-  genererBilanRevue(_bien,_resist,_change,_stars);
+  const _bien = document.getElementById('rv-bien').value;
+  const _resist = document.getElementById('rv-resist').value;
+  const _change = document.getElementById('rv-change').value;
+  const _stars = starVal;
+  ['rv-bien', 'rv-resist', 'rv-change'].forEach(id => document.getElementById(id).value = '');
+  starVal = 0;
+  document.querySelectorAll('.star').forEach(s => s.classList.remove('on'));
+  genererBilanRevue(_bien, _resist, _change, _stars);
   toast("📝 Revue sauvegardée ! +100 XP");
 }
 
 // ============================================================
 // NAVIGATION
 // ============================================================
-function goTab(id,btn){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById('screen-'+id).classList.add('active');
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  if(id==='stats') renderStats();
-  if(id==='piliers') renderPiliers();
-  if(id==='book') {
-    // Recharger les quêtes depuis Supabase pour synchronisation
+function goTab(id, btn) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  if (id === 'stats') renderStats();
+  if (id === 'piliers') renderPiliers();
+  if (id === 'book') {
+    // Recharger les quêtes depuis la base pour être synchronisé
     loadCustomQuestsFromDB().then(dbQuests => {
       if (dbQuests && Array.isArray(dbQuests)) {
         customQuests = dbQuests;
         localStorage.setItem('sys12_custom_quests', JSON.stringify(customQuests));
-        renderCustomQuests();
       }
+      updateSidequestUI();
+      renderCustomQuests();
+    }).catch(() => {
+      updateSidequestUI();
+      renderCustomQuests();
     });
-    updateSidequestUI();
-    renderCustomQuests();
   }
-  if(id==='today') renderQuetes();
-  if(id==='avatar') { renderAvatar(); renderBilanHistory(); }
+  if (id === 'today') renderQuetes();
+  if (id === 'avatar') { renderAvatar(); renderBilanHistory(); }
 }
 
 // ============================================================
 // AVATAR / CLASSES
 // ============================================================
-function renderAvatar(){
+function renderAvatar() {
   const banner = document.getElementById('aura-banner');
   const icon = document.getElementById('aura-icon');
   const name = document.getElementById('aura-name');
   const desc = document.getElementById('aura-desc');
+
   if (currentAura) {
     icon.textContent = currentAura.icon || '⚔️';
     name.textContent = currentAura.name || 'Aventurier';
@@ -1505,7 +1810,7 @@ function renderAvatar(){
     } else {
       const cls = getClassFromId(currentAura.id);
       desc.textContent = `Classe dominante de la semaine${boostClass ? ` — Bénédiction: +10% ${CLASSES[boostClass]?.name || ''}` : ''}`;
-      banner.className = `aura-banner ${currentAura.id}`;
+      banner.className = 'aura-banner ' + currentAura.id;
     }
   } else {
     icon.textContent = '⚔️';
@@ -1513,13 +1818,15 @@ function renderAvatar(){
     desc.textContent = 'Effectue ton premier bilan hebdomadaire';
     banner.className = 'aura-banner';
   }
+
   for (const [id, cls] of Object.entries(CLASSES)) {
     const xp = classXP[id] || 0;
     const level = getClassLevel(xp);
     const progress = getClassProgress(xp);
-    const el = document.getElementById(`class-${id}`);
-    const bar = document.getElementById(`${id}-bar`);
-    const levelEl = document.getElementById(`${id}-level`);
+    const el = document.getElementById('class-' + id);
+    const bar = document.getElementById(id + '-bar');
+    const levelEl = document.getElementById(id + '-level');
+
     el.className = 'class-item';
     if (currentAura && currentAura.id === id && !isSouverain && !isStagnant) {
       el.classList.add('highlight');
@@ -1527,13 +1834,15 @@ function renderAvatar(){
     if (boostClass === id && boostClass !== null) {
       el.classList.add('weak');
     }
+
     bar.style.width = progress + '%';
-    levelEl.textContent = `Niv. ${level}`;
+    levelEl.textContent = 'Niv. ' + level;
   }
+
   const benedictionEl = document.getElementById('benediction-desc');
   if (boostClass && boostClass !== null) {
     const cls = getClassFromId(boostClass);
-    benedictionEl.textContent = `+10% XP pour le ${cls ? cls.name : boostClass} jusqu'au prochain bilan.`;
+    benedictionEl.textContent = '+10% XP pour le ' + (cls ? cls.name : boostClass) + ' jusqu\'au prochain bilan.';
   } else if (isSouverain) {
     benedictionEl.textContent = 'Équilibre parfait — choisis ta bénédiction ci-dessous.';
   } else if (isStagnant) {
@@ -1541,15 +1850,17 @@ function renderAvatar(){
   } else {
     benedictionEl.textContent = 'Aucune bénédiction active.';
   }
+
   updateXPbars();
 }
+
 function renderBilanHistory() {
   const container = document.getElementById('bilan-history');
   if (!bilanHistory.length) {
     container.innerHTML = '<div class="empty-state">Aucun bilan enregistré</div>';
     return;
   }
-  container.innerHTML = bilanHistory.slice(0,5).map(b => `
+  container.innerHTML = bilanHistory.slice(0, 5).map(b => `
     <div class="log-entry">
       <div class="log-dot" style="background:${b.aura_id === 'souverain' ? '#fff' : b.aura_id === 'stagnant' ? '#666' : CLASSES[b.aura_id]?.color || '#888'}"></div>
       <div class="log-text">${b.aura_name || 'Bilan'} — ${b.week_end}</div>
@@ -1557,13 +1868,14 @@ function renderBilanHistory() {
     </div>
   `).join('');
 }
+
 function renderBoostOptions() {
   const container = document.getElementById('choose-boost');
   container.innerHTML = '';
   for (const [id, cls] of Object.entries(CLASSES)) {
     const btn = document.createElement('button');
     btn.className = 'boost-btn';
-    btn.textContent = `${cls.icon} ${cls.name}`;
+    btn.textContent = cls.icon + ' ' + cls.name;
     btn.dataset.class = id;
     btn.onclick = function() {
       document.querySelectorAll('.boost-btn').forEach(b => b.classList.remove('selected'));
@@ -1573,10 +1885,14 @@ function renderBoostOptions() {
     container.appendChild(btn);
   }
 }
+
 function confirmerBoost() {
   const container = document.getElementById('choose-boost');
   const selected = container.dataset.selected;
-  if (!selected) { toast("⚠️ Choisis une classe d'abord."); return; }
+  if (!selected) {
+    toast("⚠️ Choisis une classe d'abord.");
+    return;
+  }
   boostClass = selected;
   boostSelectionPending = false;
   document.getElementById('choose-boost-container').style.display = 'none';
@@ -1584,15 +1900,19 @@ function confirmerBoost() {
   scheduleSave();
   toast("✅ Bénédiction appliquée au " + CLASSES[selected].name);
 }
+
 function lancerBilanHebdo() {
   const btn = document.getElementById('btn-bilan-hebdo');
   btn.disabled = true;
   btn.textContent = 'Calcul en cours...';
+
   const weeklyXP = { ...weeklyClassXP };
-  const totalXP = Object.values(weeklyXP).reduce((a,b) => a+b, 0);
+  const totalXP = Object.values(weeklyXP).reduce((a, b) => a + b, 0);
+
   let aura = null;
   let isSouv = false;
   let isStag = false;
+
   if (totalXP === 0) {
     isStag = true;
     aura = { id: 'stagnant', name: 'Le Stagnant', icon: '💤' };
@@ -1606,9 +1926,10 @@ function lancerBilanHebdo() {
       aura = { id: dominant, name: cls ? cls.name : 'Inconnu', icon: cls ? cls.icon : '❓' };
     }
   }
+
   const bilan = {
-    week_start: new Date(Date.now() - 7*86400000).toISOString().slice(0,10),
-    week_end: new Date().toISOString().slice(0,10),
+    week_start: new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10),
+    week_end: new Date().toISOString().slice(0, 10),
     aura_id: aura ? aura.id : null,
     aura_name: aura ? aura.name : null,
     guerrier_xp: weeklyXP.guerrier || 0,
@@ -1620,10 +1941,12 @@ function lancerBilanHebdo() {
   };
   saveBilan(bilan);
   bilanHistory.unshift(bilan);
+
   currentAura = aura;
   isSouverain = isSouv;
   isStagnant = isStag;
-  lastBilanDate = new Date().toISOString().slice(0,10);
+  lastBilanDate = new Date().toISOString().slice(0, 10);
+
   if (isSouv) {
     boostSelectionPending = true;
     document.getElementById('choose-boost-container').style.display = 'block';
@@ -1646,7 +1969,9 @@ function lancerBilanHebdo() {
     const cls = getClassFromId(weakest);
     toast("📊 Bilan terminé ! " + (cls ? cls.name : '') + " reçoit +10% la semaine prochaine.");
   }
+
   weeklyClassXP = { guerrier: 0, mage: 0, ombre: 0, aventurier: 0 };
+
   renderAvatar();
   renderBilanHistory();
   updateHeader();
@@ -1654,11 +1979,11 @@ function lancerBilanHebdo() {
 }
 
 // ============================================================
-// INIT
+// INITIALISATION
 // ============================================================
-async function init(){
+async function init() {
   await loadFromSupabase();
-  isDayLocked=(S.last_day===todayKey());
+  isDayLocked = (S.last_day === todayKey());
   updateValidationButton();
   updateHeader();
   renderQuetes();
@@ -1670,36 +1995,38 @@ async function init(){
   renderBilanHistory();
 }
 
-if(!UID){
-  document.getElementById('setup-overlay').style.display='flex';
-}else{
+if (!UID) {
+  document.getElementById('setup-overlay').style.display = 'flex';
+} else {
   init();
 }
 
 // ============================================================
 // IA / COACH
 // ============================================================
-const WORKER_URL='https://evolution-ai.eliseobuti.workers.dev';
-function callGemini(prompt){
-  return new Promise(function(resolve){
-    try{
-      const xhr=new XMLHttpRequest();
+const WORKER_URL = 'https://evolution-ai.eliseobuti.workers.dev';
+
+function callGemini(prompt) {
+  return new Promise(function(resolve) {
+    try {
+      const xhr = new XMLHttpRequest();
       xhr.open('POST', WORKER_URL, true);
-      xhr.setRequestHeader('Content-Type','application/json');
-      xhr.timeout=15000;
-      xhr.onload=function(){
-        try{
-          const d=JSON.parse(xhr.responseText);
-          resolve(d.text||'Réponse invalide.');
-        }catch(e){resolve('Erreur parsing: '+xhr.responseText.slice(0,80));}
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.timeout = 15000;
+      xhr.onload = function() {
+        try {
+          const d = JSON.parse(xhr.responseText);
+          resolve(d.text || 'Réponse invalide.');
+        } catch (e) { resolve('Erreur parsing: ' + xhr.responseText.slice(0, 80)); }
       };
-      xhr.onerror=function(){resolve('Erreur réseau XHR.');};
-      xhr.ontimeout=function(){resolve('Timeout — réessaie.');};
-      xhr.send(JSON.stringify({prompt:prompt}));
-    }catch(e){resolve('Erreur: '+e.message);}
+      xhr.onerror = function() { resolve('Erreur réseau XHR.'); };
+      xhr.ontimeout = function() { resolve('Timeout — réessaie.'); };
+      xhr.send(JSON.stringify({ prompt: prompt }));
+    } catch (e) { resolve('Erreur: ' + e.message); }
   });
 }
-const SYSTEM_CONTEXT=`Tu es le coach personnel d'Eliseo, 19 ans, etudiant suisse en annee sabbatique apres sa maturite gymnasiale (moyenne 5.0). Il envisage des etudes de medecine. Il a 4 mois d'armee en fevrier. Il voyage parfois.
+
+const SYSTEM_CONTEXT = `Tu es le coach personnel d'Eliseo, 19 ans, etudiant suisse en annee sabbatique apres sa maturite gymnasiale (moyenne 5.0). Il envisage des etudes de medecine. Il a 4 mois d'armee en fevrier. Il voyage parfois.
 
 PROFIL PHYSIQUE: Nageur regulier (2x/semaine, 1h15, ~3km/session). Bonne base physique (pompes, tractions faciles). Cardio ameliorable.
 
@@ -1720,67 +2047,81 @@ PHILOSOPHIE: Pratique deliberee > repetition passive. Stress + recuperation = cr
 PASSIONS: Piano, dessin (decompress), cinema (Wes Anderson, Jim Jarmusch, Jake Gyllenhaal), mode streetwear/vintage/gorpcore, vie sociale.
 
 Reponds toujours en francais, de facon directe, concrete et adaptee au niveau actuel d'Eliseo. Pas de markdown.`;
-function buildCtx(){
-  const ph=getCurrentPhase();
-  const ps=PILLARS.map(function(p){return p.name.split(' ')[0]+': '+(S[p.id+'_xp']||0)+'XP';}).join(', ');
-  const dynamicCtx='Progression actuelle — Phase '+ph.id+' ('+ph.name+'), mois '+S.current_month+'/12. XP total: '+S.total_xp+'. Streak: '+S.streak+' jours consecutifs. Piliers: '+ps+'.';
-  return SYSTEM_CONTEXT+'\n\n'+dynamicCtx;
+
+function buildCtx() {
+  const ph = getCurrentPhase();
+  const ps = PILLARS.map(function(p) { return p.name.split(' ')[0] + ': ' + (S[p.id + '_xp'] || 0) + 'XP'; }).join(', ');
+  const dynamicCtx = 'Progression actuelle — Phase ' + ph.id + ' (' + ph.name + '), mois ' + S.current_month + '/12. XP total: ' + S.total_xp + '. Streak: ' + S.streak + ' jours consecutifs. Piliers: ' + ps + '.';
+  return SYSTEM_CONTEXT + '\n\n' + dynamicCtx;
 }
-function loadWelcomeMessage(){
-  if(!UID)return;
-  const el=document.getElementById('ai-welcome');
-  const txt=document.getElementById('ai-welcome-text');
-  el.style.display='block';
-  txt.textContent="Bonjour Eliseo ! Ton protocole d'observation factuelle et tes paquets d'étymologie sur Anki sont configurés pour optimiser ta préparation clinique et militaire. Prêt à passer à l'action ?";
+
+function loadWelcomeMessage() {
+  if (!UID) return;
+  const el = document.getElementById('ai-welcome');
+  const txt = document.getElementById('ai-welcome-text');
+  el.style.display = 'block';
+  txt.textContent = "Bonjour Eliseo ! Ton protocole d'observation factuelle et tes paquets d'étymologie sur Anki sont configurés pour optimiser ta préparation clinique et militaire. Prêt à passer à l'action ?";
 }
-async function envoyerMessageCoach(){
-  const input=document.getElementById('coach-free-input');
-  const chatBox=document.getElementById('coach-chat-messages');
-  const msg=input.value.trim();
-  if(!msg)return;
-  chatBox.style.display='flex';
-  const userEl=document.createElement('div');
-  userEl.className='chat-msg user';
-  userEl.textContent='👉 Toi : '+msg;
+
+async function envoyerMessageCoach() {
+  const input = document.getElementById('coach-free-input');
+  const chatBox = document.getElementById('coach-chat-messages');
+  const msg = input.value.trim();
+  if (!msg) return;
+
+  chatBox.style.display = 'flex';
+  const userEl = document.createElement('div');
+  userEl.className = 'chat-msg user';
+  userEl.textContent = '👉 Toi : ' + msg;
   chatBox.appendChild(userEl);
-  const coachEl=document.createElement('div');
-  coachEl.className='chat-msg coach';
-  coachEl.textContent='🤖 Coach : Réflexion...';
+
+  const coachEl = document.createElement('div');
+  coachEl.className = 'chat-msg coach';
+  coachEl.textContent = '🤖 Coach : Réflexion...';
   chatBox.appendChild(coachEl);
-  chatBox.scrollTop=chatBox.scrollHeight;
-  input.value='';
-  const prompt=buildCtx()+'\n\nVoici le message d\'Eliseo: "'+msg+'". Réponds de manière directe, analytique et motivante. Sans markdown.';
-  const responseText=await callGemini(prompt);
-  coachEl.textContent='🤖 Coach : '+responseText;
-  chatBox.scrollTop=chatBox.scrollHeight;
+
+  chatBox.scrollTop = chatBox.scrollHeight;
+  input.value = '';
+
+  const prompt = buildCtx() + '\n\nVoici le message d\'Eliseo: "' + msg + '". Réponds de manière directe, analytique et motivante. Sans markdown.';
+  const responseText = await callGemini(prompt);
+
+  coachEl.textContent = '🤖 Coach : ' + responseText;
+  chatBox.scrollTop = chatBox.scrollHeight;
 }
-async function coachQuete(btn){
-  const qId=btn.getAttribute('data-qid');
-  const qName=btn.getAttribute('data-qname');
-  const qDesc=btn.getAttribute('data-qdesc');
-  const existingId='coach-'+qId;
-  const existing=document.getElementById(existingId);
-  if(existing){existing.remove();return;}
-  const card=document.createElement('div');
-  card.className='ai-card';
-  card.id=existingId;
-  card.style.marginTop='6px';
-  card.innerHTML='<div class="ai-header"><span style="font-size:16px">💡</span><span class="ai-label">Conseils</span></div><div class="ai-body" id="txt-'+qId+'">Chargement...</div>';
+
+async function coachQuete(btn) {
+  const qId = btn.getAttribute('data-qid');
+  const qName = btn.getAttribute('data-qname');
+  const qDesc = btn.getAttribute('data-qdesc');
+  const existingId = 'coach-' + qId;
+  const existing = document.getElementById(existingId);
+  if (existing) { existing.remove(); return; }
+  const card = document.createElement('div');
+  card.className = 'ai-card';
+  card.id = existingId;
+  card.style.marginTop = '6px';
+  card.innerHTML = '<div class="ai-header"><span style="font-size:16px">💡</span><span class="ai-label">Conseils</span></div><div class="ai-body" id="txt-' + qId + '">Chargement...</div>';
   btn.closest('.quest').after(card);
+
   let consigneSpecifique = "";
-  if(qId === 'q3') {
+  if (qId === 'q3') {
     consigneSpecifique = " Interdiction absolue de parler de détection de mensonges, de psychologie, d'intentions ou de micro-expressions. Donne uniquement des exercices de repérage de faits anatomiques/mécaniques (asymétries, démarche, posture) et de tactique spatiale (calcul de distances à l'oeil nu, angles morts, repérage des sorties) utiles pour l'armée et la clinique.";
   }
-  const prompt=buildCtx()+' Quete: "'+qName+'" ('+qDesc+').'+consigneSpecifique+' Donne 3 conseils pratiques et concrets pour bien realiser cette quete aujourd hui. 4 lignes max. Pas de markdown ni tirets.';
-  const bodyEl=document.getElementById('txt-'+qId);
-  if(bodyEl) bodyEl.textContent=await callGemini(prompt);
+
+  const prompt = buildCtx() + ' Quete: "' + qName + '" (' + qDesc + ').' + consigneSpecifique + ' Donne 3 conseils pratiques et concrets pour bien realiser cette quete aujourd hui. 4 lignes max. Pas de markdown ni tirets.';
+  const bodyEl = document.getElementById('txt-' + qId);
+  if (bodyEl) bodyEl.textContent = await callGemini(prompt);
 }
+
 async function genererEntrainement(btn) {
   const existingId = 'workout-generated';
   const existing = document.getElementById(existingId);
-  if(existing){existing.remove(); return;}
+  if (existing) { existing.remove(); return; }
+
   const selectEl = document.getElementById('workout-type');
   const selectedDomain = selectEl ? selectEl.value : 'auto';
+
   const card = document.createElement('div');
   card.className = 'ai-card';
   card.id = existingId;
@@ -1789,36 +2130,44 @@ async function genererEntrainement(btn) {
   card.style.background = 'linear-gradient(135deg,rgba(96,165,250,.12),rgba(14,14,16,.08))';
   card.innerHTML = '<div class="ai-header"><span style="font-size:16px">🏋️</span><span class="ai-label" style="color:var(--blue)">Séance sur-mesure</span></div><div class="ai-body" id="txt-workout">Analyse du domaine choisi et calcul du protocole adaptatif...</div>';
   btn.closest('.quest').after(card);
+
   const historiquesRecents = LOG.slice(0, 10).map(l => l.quest_name).join(', ');
+
   let domaineInstructions = "";
-  if(selectedDomain === "bodyweight") {
+  if (selectedDomain === "bodyweight") {
     domaineInstructions = "L'entraînement DOIT obligatoirement être axé sur le POIDS DU CORPS / CALISTHÉNIE (en utilisant sa bonne base en pompes, tractions, ou des variantes complexes comme du tempo ou de la pliométrie).";
-  } else if(selectedDomain === "swim") {
+  } else if (selectedDomain === "swim") {
     domaineInstructions = "L'entraînement DOIT obligatoirement être un protocole de NATATION en piscine (séries en mètres, nages, allures, ou exercices techniques, adapté à sa capacité de faire 3km par session).";
-  } else if(selectedDomain === "run") {
+  } else if (selectedDomain === "run") {
     domaineInstructions = "L'entraînement DOIT obligatoirement être de la COURSE À PIED / CARDIO EXTÉRIEUR (axé soit sur son point faible à améliorer : le foncier en zone 2, soit du fractionné/HIIT haute intensité).";
   } else {
     domaineInstructions = "Laisse libre cours à ton expertise de coach pour choisir le domaine (natation, course ou poids du corps) le plus pertinent selon son historique récent.";
   }
+
   const prompt = buildCtx() + `
   En tant que coach sportif, génère un entraînement physique précis de 30 à 45 minutes pour Eliseo.
   CONTRAINTE DE SÉLECTION : ${domaineInstructions}
+  
   Prends également en compte son profil général et son historique récent d'actions: [${historiquesRecents}].
+  
   Format de réponse obligatoire (sois hyper concis, direct et condensé) :
   1. Domaine et Objectif ciblé (ex: Natation - Vitesse explosive ou Calisthénie - Volume de force)
   2. Échauffement rapide
   3. Corps de séance : Exercices/Séries exactes, répétitions ou distances, temps de récupération très précis.
+  
   Maximum 7 lignes. Pas de markdown, pas de listes à puces ou tirets (sauts de ligne simples).`;
+
   const bodyEl = document.getElementById('txt-workout');
-  if(bodyEl) bodyEl.textContent = await callGemini(prompt);
+  if (bodyEl) bodyEl.textContent = await callGemini(prompt);
 }
-async function genererBilanRevue(bien,resist,change,stars){
-  const el=document.getElementById('ai-bilan');
-  const txt=document.getElementById('ai-bilan-text');
-  el.style.display='block';
-  txt.textContent='Analyse de ta semaine...';
-  const prompt=buildCtx()+' Revue ('+stars+'/5). Ce qui a marche: "'+bien+'". Ce qui a resiste: "'+resist+'". Changement prevu: "'+change+'". Bilan: 1 point fort a consolider, 1 conseil sur le point de friction, 1 suggestion concrete pour la semaine prochaine. 5-6 lignes. Direct. Pas de markdown.';
-  txt.textContent=await callGemini(prompt);
+
+async function genererBilanRevue(bien, resist, change, stars) {
+  const el = document.getElementById('ai-bilan');
+  const txt = document.getElementById('ai-bilan-text');
+  el.style.display = 'block';
+  txt.textContent = 'Analyse de ta semaine...';
+  const prompt = buildCtx() + ' Revue (' + stars + '/5). Ce qui a marche: "' + bien + '". Ce qui a resiste: "' + resist + '". Changement prevu: "' + change + '". Bilan: 1 point fort a consolider, 1 conseil sur le point de friction, 1 suggestion concrete pour la semaine prochaine. 5-6 lignes. Direct. Pas de markdown.';
+  txt.textContent = await callGemini(prompt);
 }
 </script>
 </body>
