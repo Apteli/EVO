@@ -356,20 +356,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
         <option value="recurrent">Récurrente (Quotidienne)</option>
       </select>
     </div>
-    <div class="form-group">
-      <select id="cq-capacity" class="form-select">
-        <option value="Mémoire">🧠 Mémoire</option>
-        <option value="Calcul mental">🧮 Calcul mental</option>
-        <option value="Contrôle émotionnel">😌 Contrôle émotionnel</option>
-        <option value="Récupération">🛌 Récupération</option>
-        <option value="Sémiologie physique">🔬 Sémiologie physique</option>
-        <option value="Conscience spatiale">🗺️ Conscience spatiale</option>
-        <option value="Force musculaire">💪 Force musculaire</option>
-        <option value="Endurance cardio">🏃 Endurance cardio</option>
-        <option value="Rhétorique">🎤 Rhétorique</option>
-        <option value="Langues">🌍 Langues</option>
-      </select>
-    </div>
+    <!-- Plus de sélecteur de capacité -->
     <button class="btn-sm btn-accent" onclick="ajouterQuetePerso()" style="width:100%;">+ Forger la Quête</button>
   </div>
   <div class="section-title">Tes Quêtes Personnelles Actives</div>
@@ -658,32 +645,6 @@ function getClassProgress(xp) {
 }
 
 // ============================================================
-// MAPPING CAPACITÉS PAR QUÊTE
-// ============================================================
-const CAPACITY_MAP = {
-  // Quêtes minimum
-  'q1': 'Contrôle émotionnel',
-  'q2': 'Mémoire',
-  'q3': 'Sémiologie physique',
-  // Quêtes optimales
-  'q4': 'Calcul mental',
-  'q5': 'Force musculaire',
-  'q6': 'Récupération',
-  'q7': 'Rhétorique',
-  'q8': 'Mémoire',
-  'q9': 'Mémoire',
-  'q10': 'Calcul mental',
-  'q11': 'Conscience spatiale',
-  'q12': 'Calcul mental',
-  // Sidequest (dynamique selon le texte, on la mettra par défaut sur "Observation")
-};
-
-// Pour la sidequest, on définit une capacité par défaut
-const DEFAULT_SIDEQUEST_CAPACITY = 'Observation';
-
-// Pour les quêtes forgées, l'utilisateur choisit la capacité via le sélecteur.
-
-// ============================================================
 // FONCTIONS SUPABASE
 // ============================================================
 async function sbGet(table, uid) {
@@ -746,6 +707,7 @@ const PILLARS = [
   { id: 'p4', name: 'Condition physique', icon: '⚡', color: '#fb923c', satellites: 'Force · Endurance · Proprio · Réflexes' },
   { id: 'p5', name: 'Influence & communication', icon: '🎯', color: '#fbbf24', satellites: 'Rhétorique · Langues · Négociation · Stratégie' },
 ];
+// Les capacités sont conservées pour l'affichage, mais les compteurs ne sont plus utilisés
 const CAPS = [
   'Mémoire', 'Calcul mental', 'Contrôle émotionnel', 'Récupération',
   'Sémiologie physique', 'Conscience spatiale', 'Force musculaire',
@@ -818,9 +780,6 @@ let bilanHistory = [];
 let currentSidequest = null;
 let editQuestId = null;
 let isProcessing = false;
-
-// --- NOUVEAU : compteurs de quêtes par capacité ---
-let capacityCounts = {};
 
 // ============================================================
 // FONCTIONS UTILITAIRES
@@ -902,51 +861,9 @@ function distributeClassXP(xp, pid, isCustom = false) {
   return boostedXP;
 }
 
-// ---- Gestion des compteurs de capacité ----
-function incrementCapacity(cap) {
-  if (!cap) return;
-  capacityCounts[cap] = (capacityCounts[cap] || 0) + 1;
-}
-
-function decrementCapacity(cap) {
-  if (!cap) return;
-  capacityCounts[cap] = Math.max(0, (capacityCounts[cap] || 0) - 1);
-}
-
-function getCapacityForQuest(questId, customCapacity = null) {
-  if (questId === 'sidequest') {
-    return DEFAULT_SIDEQUEST_CAPACITY;
-  }
-  if (questId && questId.startsWith('cq_')) {
-    return customCapacity || 'Créativité';
-  }
-  return CAPACITY_MAP[questId] || null;
-}
-
 // ============================================================
 // FONCTIONS SUPABASE SPÉCIFIQUES
 // ============================================================
-async function saveCapacityCounts() {
-  if (!UID) return;
-  try {
-    await sbUpsert('sys_capacity_counts', {
-      user_id: UID,
-      counts: JSON.stringify(capacityCounts),
-      updated_at: new Date().toISOString()
-    });
-  } catch (e) { console.warn('saveCapacityCounts:', e); }
-}
-
-async function loadCapacityCounts() {
-  if (!UID) return;
-  try {
-    const data = await sbGet('sys_capacity_counts', UID);
-    if (data && data.counts) {
-      capacityCounts = JSON.parse(data.counts);
-    }
-  } catch (e) { console.warn('loadCapacityCounts:', e); }
-}
-
 async function saveClassData() {
   try {
     await sbUpsert('sys_classes', {
@@ -1087,9 +1004,16 @@ async function loadFromSupabase() {
       }
     });
 
+    // --- NOUVEAU : Déverrouillage automatique si la date a changé ---
+    if (S.last_day && S.last_day !== today) {
+      isDayLocked = false;
+    } else {
+      // On garde l'état précédent (si déjà verrouillé)
+      // On ne change rien, car isDayLocked sera défini par la validation.
+    }
+
     await loadClassData();
     await loadBilanHistory();
-    await loadCapacityCounts();
 
     const savedWeekly = localStorage.getItem('sys12_weekly_xp');
     if (savedWeekly) {
@@ -1147,7 +1071,6 @@ async function saveProgress() {
     await sbUpsert('sys_progress', { ...S, user_id: UID, updated_at: new Date().toISOString() });
     await saveClassData();
     await saveCustomQuestsToDB();
-    await saveCapacityCounts();
     if (currentSidequest) {
       await saveSidequestToDB(currentSidequest);
     }
@@ -1294,7 +1217,6 @@ async function toggleQuete(id) {
   const q = all.find(x => x.id === id);
   if (!q) return;
   const today = todayKey();
-  const cap = getCapacityForQuest(id);
 
   let xp = q.xp;
   xp = Math.round(xp * 1.2);
@@ -1311,7 +1233,6 @@ async function toggleQuete(id) {
     const cId = getClassForPillar(q.pid);
     classXP[cId] = Math.max(0, (classXP[cId] || 0) - finalXp);
     weeklyClassXP[cId] = Math.max(0, (weeklyClassXP[cId] || 0) - finalXp);
-    if (cap) decrementCapacity(cap);
     LOG = LOG.filter(l => !(l.quest_id === id && l.created_at && l.created_at.slice(0, 10) === today));
     sbDelete('sys_log', UID, id, today).catch(() => {});
     toast("↩️ Quête décochée — XP retirés");
@@ -1322,7 +1243,6 @@ async function toggleQuete(id) {
     const cId = getClassForPillar(q.pid);
     classXP[cId] = (classXP[cId] || 0) + finalXp;
     weeklyClassXP[cId] = (weeklyClassXP[cId] || 0) + finalXp;
-    if (cap) incrementCapacity(cap);
 
     const entry = { user_id: UID, quest_id: id, quest_name: q.name, xp: finalXp, pillar_id: q.pid, created_at: new Date().toISOString() };
     LOG.unshift(entry);
@@ -1405,7 +1325,6 @@ async function toggleSidequest() {
     updateSidequestUI();
     return;
   }
-  const cap = DEFAULT_SIDEQUEST_CAPACITY;
 
   let baseXp = 30;
   baseXp = Math.round(baseXp * 1.2);
@@ -1424,7 +1343,6 @@ async function toggleSidequest() {
     const cId = getClassForPillar(currentSidequest.pid);
     classXP[cId] = Math.max(0, (classXP[cId] || 0) - finalXp);
     weeklyClassXP[cId] = Math.max(0, (weeklyClassXP[cId] || 0) - finalXp);
-    decrementCapacity(cap);
     LOG = LOG.filter(l => !(l.quest_id === 'sidequest' && l.created_at && l.created_at.slice(0, 10) === today));
     sbDelete('sys_log', UID, 'sidequest', today).catch(() => {});
     toast("↩️ Sidequest décochée — XP retirés");
@@ -1437,7 +1355,6 @@ async function toggleSidequest() {
     const cId = getClassForPillar(currentSidequest.pid);
     classXP[cId] = (classXP[cId] || 0) + finalXp;
     weeklyClassXP[cId] = (weeklyClassXP[cId] || 0) + finalXp;
-    incrementCapacity(cap);
     const entry = {
       user_id: UID,
       quest_id: 'sidequest',
@@ -1488,7 +1405,7 @@ async function rerollSidequestIA() {
 }
 
 // ============================================================
-// QUÊTES FORGÉES
+// QUÊTES FORGÉES (AVENTURIER)
 // ============================================================
 function loadCustomQuests() {
   customQuests = JSON.parse(localStorage.getItem('sys12_custom_quests') || '[]');
@@ -1502,7 +1419,7 @@ function saveCustomQuests() {
 }
 
 function renderCqSelectors() {
-  // plus de sélecteur de pilier
+  // plus de sélecteur de pilier ni de capacité
 }
 
 function ajouterQuetePerso() {
@@ -1514,21 +1431,12 @@ function ajouterQuetePerso() {
   }
   const diff = document.getElementById('cq-diff').value;
   const type = document.getElementById('cq-type').value;
-  const capacity = document.getElementById('cq-capacity').value;
 
   let xp = 10;
   if (diff === 'medium') xp = 25;
   if (diff === 'hard') xp = 50;
 
-  const nq = {
-    id: 'cq_' + Date.now(),
-    name: name,
-    xp: xp,
-    type: type,
-    done: false,
-    total_xp: 0,
-    capacity: capacity
-  };
+  const nq = { id: 'cq_' + Date.now(), name: name, xp: xp, type: type, done: false, total_xp: 0 };
   customQuests.push(nq);
   nameEl.value = '';
   saveCustomQuests();
@@ -1550,13 +1458,12 @@ function renderCustomQuests() {
     const finalXp = xp;
     const typeTag = `<span class="tag tag-ph">${q.type === 'oneshot' ? 'One-shot' : 'Récurrente'}</span>`;
     const aventurierTag = `<span class="tag tag-aventurier">🎒 Aventurier</span>`;
-    const capTag = `<span class="tag" style="background:rgba(167,139,250,0.1);color:var(--accent);">${q.capacity || 'Créativité'}</span>`;
 
     return `<div class="quest${q.done ? ' done' : ''}" style="position:relative;" data-quest-id="${q.id}">
       <div class="check" onclick="event.stopPropagation();event.preventDefault();toggleCustomQuest('${q.id}')">${q.done ? '✓' : ''}</div>
       <div class="q-info" onclick="event.stopPropagation();event.preventDefault();toggleCustomQuest('${q.id}')">
         <div class="q-name">${q.name}</div>
-        <div class="q-tags">${typeTag}${aventurierTag}${capTag}</div>
+        <div class="q-tags">${typeTag}${aventurierTag}</div>
       </div>
       <div class="q-xp" onclick="event.stopPropagation();event.preventDefault();toggleCustomQuest('${q.id}')">+${finalXp} XP</div>
       <div class="q-actions">
@@ -1575,7 +1482,6 @@ function openEditModal(id) {
   document.getElementById('edit-cq-name').value = q.name;
   document.getElementById('edit-cq-diff').value = q.xp === 10 ? 'easy' : q.xp === 25 ? 'medium' : 'hard';
   document.getElementById('edit-cq-type').value = q.type;
-  // On ajoute la capacité à l'édition (on l'affiche mais on ne la modifie pas ici pour simplifier)
   document.getElementById('edit-modal').classList.add('show');
 }
 
@@ -1624,7 +1530,6 @@ function deleteCustomQuest(id) {
     S.total_xp = Math.max(0, S.total_xp - finalXp);
     classXP.aventurier = Math.max(0, (classXP.aventurier || 0) - finalXp);
     weeklyClassXP.aventurier = Math.max(0, (weeklyClassXP.aventurier || 0) - finalXp);
-    if (q.capacity) decrementCapacity(q.capacity);
     LOG = LOG.filter(l => !(l.quest_id === id && l.created_at && l.created_at.slice(0, 10) === today));
     sbDelete('sys_log', UID, id, today).catch(() => {});
   }
@@ -1656,7 +1561,6 @@ async function toggleCustomQuest(id) {
       xp = Math.round(xp * 1.1);
     }
     const finalXp = xp;
-    const cap = q.capacity || 'Créativité';
 
     if (q.done) {
       q.done = false;
@@ -1664,7 +1568,6 @@ async function toggleCustomQuest(id) {
       classXP.aventurier = Math.max(0, (classXP.aventurier || 0) - finalXp);
       weeklyClassXP.aventurier = Math.max(0, (weeklyClassXP.aventurier || 0) - finalXp);
       q.total_xp = Math.max(0, (q.total_xp || 0) - finalXp);
-      decrementCapacity(cap);
       LOG = LOG.filter(l => !(l.quest_id === id && l.created_at && l.created_at.slice(0, 10) === today));
       sbDelete('sys_log', UID, id, today).catch(() => {});
       toast("↩️ Quête forgée décochée — XP retirés");
@@ -1674,7 +1577,6 @@ async function toggleCustomQuest(id) {
       classXP.aventurier = (classXP.aventurier || 0) + finalXp;
       weeklyClassXP.aventurier = (weeklyClassXP.aventurier || 0) + finalXp;
       q.total_xp = (q.total_xp || 0) + finalXp;
-      incrementCapacity(cap);
       const entry = {
         user_id: UID,
         quest_id: id,
@@ -1888,15 +1790,27 @@ function renderStats() {
   }
   document.getElementById('heatmap').innerHTML = hm;
 
-  // Capacités développées (avec compteurs)
+  // Capacités développées (sans compteurs, on affiche juste la liste)
   document.getElementById('cap-grid').innerHTML = CAPS.map(cap => {
-    const count = capacityCounts[cap] || 0;
-    // On détermine un pourcentage fictif basé sur le nombre de quêtes (max 20 quêtes = 100%)
-    const pct = Math.min(100, Math.round((count / 20) * 100));
-    const color = '#a78bfa'; // on peut varier selon la capacité si on veut
+    // On récupère le nombre de quêtes depuis LOG pour chaque capacité (approximatif)
+    // Mais on va simplement afficher un pourcentage basé sur l'XP du pilier associé ? Non, on affiche juste le nom.
+    // Pour garder un affichage simple, on peut afficher un indicateur de niveau (par exemple basé sur l'XP du pilier)
+    // Mais on a choisi de ne plus utiliser les compteurs, donc on va afficher un message.
+    // On va simplement afficher le nom avec une barre générique.
+    const color = '#a78bfa';
+    // On détermine un pourcentage aléatoire pour l'exemple ? Non, on va utiliser l'XP du pilier correspondant.
+    // Trouvons le pilier associé à la capacité (approximatif)
+    let pId = 'p1'; // par défaut
+    if (cap === 'Mémoire' || cap === 'Calcul mental' || cap === 'Biais' || cap === 'Feynman') pId = 'p1';
+    else if (cap === 'Contrôle émotionnel' || cap === 'Récupération') pId = 'p2';
+    else if (cap === 'Sémiologie physique' || cap === 'Conscience spatiale') pId = 'p3';
+    else if (cap === 'Force musculaire' || cap === 'Endurance cardio') pId = 'p4';
+    else if (cap === 'Rhétorique' || cap === 'Langues') pId = 'p5';
+    const xp = S[pId + '_xp'] || 0;
+    const pct = Math.min(100, Math.round((xp / MAX_PILLIER_XP) * 100));
     return `<div class="cap-item">
       <div class="cap-name">${cap}</div>
-      <div class="cap-count">${count} quête${count > 1 ? 's' : ''}</div>
+      <div class="cap-count">${xp} XP</div>
       <div class="cap-bar"><div class="cap-fill" style="width:${pct}%;background:${color}"></div></div>
     </div>`;
   }).join('');
@@ -2170,7 +2084,12 @@ function lancerBilanHebdo() {
 // ============================================================
 async function init() {
   await loadFromSupabase();
-  isDayLocked = (S.last_day === todayKey());
+  // Mise à jour de isDayLocked après le chargement
+  // Si la date a changé, isDayLocked a déjà été mis à false dans loadFromSupabase
+  // Mais on doit aussi vérifier si last_day est null (premier jour)
+  if (S.last_day === null) {
+    isDayLocked = false;
+  }
   updateValidationButton();
   updateHeader();
   renderQuetes();
