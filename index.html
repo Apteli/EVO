@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="favicon.jpg?v=3">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-/* ===== STYLES (inchangés) ===== */
+/* ===== STYLES ===== */
 :root{--bg:#0e0e10;--card:#18181c;--card2:#222228;--border:rgba(255,255,255,0.07);--text:#f0f0f0;--muted:#777;--accent:#a78bfa;--accent2:#7c3aed;--green:#34d399;--amber:#fbbf24;--coral:#f87171;--blue:#60a5fa;--orange:#fb923c;--r:14px;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;font-size:15px;min-height:100dvh;padding-bottom:calc(76px + env(safe-area-inset-bottom));}
@@ -356,7 +356,6 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
         <option value="recurrent">Récurrente (Quotidienne)</option>
       </select>
     </div>
-    <!-- Plus de sélecteur de capacité -->
     <button class="btn-sm btn-accent" onclick="ajouterQuetePerso()" style="width:100%;">+ Forger la Quête</button>
   </div>
   <div class="section-title">Tes Quêtes Personnelles Actives</div>
@@ -375,7 +374,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
     <canvas id="chart-xp" height="130"></canvas>
   </div>
   <div class="chart-card">
-    <div class="chart-title">Niveaux des piliers</div>
+    <div class="chart-title">Équilibre des piliers</div>
     <canvas id="chart-radar" height="200"></canvas>
   </div>
   <div class="section-title">Activité — 60 jours</div>
@@ -707,12 +706,6 @@ const PILLARS = [
   { id: 'p4', name: 'Condition physique', icon: '⚡', color: '#fb923c', satellites: 'Force · Endurance · Proprio · Réflexes' },
   { id: 'p5', name: 'Influence & communication', icon: '🎯', color: '#fbbf24', satellites: 'Rhétorique · Langues · Négociation · Stratégie' },
 ];
-// Les capacités sont conservées pour l'affichage, mais les compteurs ne sont plus utilisés
-const CAPS = [
-  'Mémoire', 'Calcul mental', 'Contrôle émotionnel', 'Récupération',
-  'Sémiologie physique', 'Conscience spatiale', 'Force musculaire',
-  'Endurance cardio', 'Rhétorique', 'Langues'
-];
 const MILESTONES = [
   { lbl: 'Premier jour', icon: '🌱', check: s => s.days_total >= 1 },
   { lbl: '7 jours streak', icon: '🔥', check: s => s.streak >= 7 },
@@ -848,6 +841,7 @@ function getBoostedXP(xp, classId, isPillar = false) {
   return boosted;
 }
 
+// === FONCTION CORRIGÉE : Distribution de l'XP aux classes ===
 function distributeClassXP(xp, pid, isCustom = false) {
   let classId;
   if (isCustom) {
@@ -855,6 +849,7 @@ function distributeClassXP(xp, pid, isCustom = false) {
   } else {
     classId = getClassForPillar(pid);
   }
+  // Appliquer les bonus (1.2x pour piliers, 1.1x si classe boostée)
   const boostedXP = getBoostedXP(xp, classId, !isCustom);
   classXP[classId] = (classXP[classId] || 0) + boostedXP;
   weeklyClassXP[classId] = (weeklyClassXP[classId] || 0) + boostedXP;
@@ -1004,14 +999,6 @@ async function loadFromSupabase() {
       }
     });
 
-    // --- NOUVEAU : Déverrouillage automatique si la date a changé ---
-    if (S.last_day && S.last_day !== today) {
-      isDayLocked = false;
-    } else {
-      // On garde l'état précédent (si déjà verrouillé)
-      // On ne change rien, car isDayLocked sera défini par la validation.
-    }
-
     await loadClassData();
     await loadBilanHistory();
 
@@ -1031,6 +1018,7 @@ async function loadFromSupabase() {
       } catch (e) {}
     }
 
+    // Récupérer les quêtes personnelles
     const dbQuests = await loadCustomQuestsFromDB();
     if (dbQuests && Array.isArray(dbQuests)) {
       customQuests = dbQuests;
@@ -1039,6 +1027,7 @@ async function loadFromSupabase() {
       customQuests = JSON.parse(localStorage.getItem('sys12_custom_quests') || '[]');
     }
 
+    // Récupérer la sidequest
     const dbSq = await loadSidequestFromDB();
     const todayStr = todayKey();
 
@@ -1056,6 +1045,17 @@ async function loadFromSupabase() {
       };
       localStorage.setItem('sys12_sidequest', JSON.stringify(currentSidequest));
       await saveSidequestToDB(currentSidequest);
+    }
+
+    // === NOUVEAU : DÉVERROUILLAGE AUTOMATIQUE À MINUIT ===
+    // Si la dernière date validée est différente d'aujourd'hui, on déverrouille
+    if (S.last_day && S.last_day !== todayStr) {
+      isDayLocked = false;
+      updateValidationButton();
+      toast("🔓 Nouveau jour ! La journée est déverrouillée.");
+    } else {
+      // Sinon, on garde l'état existant
+      isDayLocked = (S.last_day === todayStr && isDayLocked);
     }
 
     setSyncState('ok');
@@ -1208,6 +1208,7 @@ function renderQuetes() {
   document.getElementById('quetes-opt').innerHTML = QUETES.opt.map(q => qHTML(q, false)).join('');
 }
 
+// === FONCTION CORRIGÉE : toggleQuete avec distribution aux classes ===
 async function toggleQuete(id) {
   if (isDayLocked) {
     toast("⚠️ Journée verrouillée. Utilise 'Modifier la journée' pour ajuster.");
@@ -1218,8 +1219,11 @@ async function toggleQuete(id) {
   if (!q) return;
   const today = todayKey();
 
+  // Calcul de l'XP de base
   let xp = q.xp;
+  // Bonus pilier (×1.2)
   xp = Math.round(xp * 1.2);
+  // Bonus de classe (×1.1 si boostée)
   const classId = getClassForPillar(q.pid);
   if (boostClass && classId === boostClass) {
     xp = Math.round(xp * 1.1);
@@ -1227,9 +1231,11 @@ async function toggleQuete(id) {
   const finalXp = xp;
 
   if (checkedToday[id]) {
+    // Décocher
     delete checkedToday[id];
     S.total_xp = Math.max(0, S.total_xp - finalXp);
     S[q.pid + '_xp'] = Math.max(0, (S[q.pid + '_xp'] || 0) - finalXp);
+    // Retirer l'XP de la classe correspondante
     const cId = getClassForPillar(q.pid);
     classXP[cId] = Math.max(0, (classXP[cId] || 0) - finalXp);
     weeklyClassXP[cId] = Math.max(0, (weeklyClassXP[cId] || 0) - finalXp);
@@ -1237,9 +1243,11 @@ async function toggleQuete(id) {
     sbDelete('sys_log', UID, id, today).catch(() => {});
     toast("↩️ Quête décochée — XP retirés");
   } else {
+    // Cocher
     checkedToday[id] = true;
     S.total_xp += finalXp;
     S[q.pid + '_xp'] = Math.min(MAX_PILLIER_XP, (S[q.pid + '_xp'] || 0) + finalXp);
+    // Ajouter l'XP à la classe correspondante
     const cId = getClassForPillar(q.pid);
     classXP[cId] = (classXP[cId] || 0) + finalXp;
     weeklyClassXP[cId] = (weeklyClassXP[cId] || 0) + finalXp;
@@ -1310,6 +1318,7 @@ function updateSidequestUI() {
   }
 }
 
+// === FONCTION CORRIGÉE : toggleSidequest avec distribution aux classes ===
 async function toggleSidequest() {
   if (isDayLocked) {
     toast("⚠️ Journée verrouillée. Utilise 'Modifier la journée' pour ajuster.");
@@ -1419,7 +1428,7 @@ function saveCustomQuests() {
 }
 
 function renderCqSelectors() {
-  // plus de sélecteur de pilier ni de capacité
+  // Plus rien ici, on a supprimé le sélecteur de capacité
 }
 
 function ajouterQuetePerso() {
@@ -1436,6 +1445,7 @@ function ajouterQuetePerso() {
   if (diff === 'medium') xp = 25;
   if (diff === 'hard') xp = 50;
 
+  // Plus de capacité, la quête forgée va uniquement dans Aventurier
   const nq = { id: 'cq_' + Date.now(), name: name, xp: xp, type: type, done: false, total_xp: 0 };
   customQuests.push(nq);
   nameEl.value = '';
@@ -1540,6 +1550,7 @@ function deleteCustomQuest(id) {
   updateHeader();
 }
 
+// === FONCTION CORRIGÉE : toggleCustomQuest (Aventurier uniquement) ===
 async function toggleCustomQuest(id) {
   if (isProcessing) {
     console.warn('toggleCustomQuest déjà en cours, ignore');
@@ -1775,7 +1786,7 @@ function renderAvatar() {
 }
 
 // ============================================================
-// STATISTIQUES
+// STATISTIQUES - AVEC NOUVEAU RADAR (ÉCART RELATIF)
 // ============================================================
 function renderStats() {
   const today = todayKey();
@@ -1790,28 +1801,108 @@ function renderStats() {
   }
   document.getElementById('heatmap').innerHTML = hm;
 
-  // Capacités développées (sans compteurs, on affiche juste la liste)
-  document.getElementById('cap-grid').innerHTML = CAPS.map(cap => {
-    // On récupère le nombre de quêtes depuis LOG pour chaque capacité (approximatif)
-    // Mais on va simplement afficher un pourcentage basé sur l'XP du pilier associé ? Non, on affiche juste le nom.
-    // Pour garder un affichage simple, on peut afficher un indicateur de niveau (par exemple basé sur l'XP du pilier)
-    // Mais on a choisi de ne plus utiliser les compteurs, donc on va afficher un message.
-    // On va simplement afficher le nom avec une barre générique.
-    const color = '#a78bfa';
-    // On détermine un pourcentage aléatoire pour l'exemple ? Non, on va utiliser l'XP du pilier correspondant.
-    // Trouvons le pilier associé à la capacité (approximatif)
-    let pId = 'p1'; // par défaut
-    if (cap === 'Mémoire' || cap === 'Calcul mental' || cap === 'Biais' || cap === 'Feynman') pId = 'p1';
-    else if (cap === 'Contrôle émotionnel' || cap === 'Récupération') pId = 'p2';
-    else if (cap === 'Sémiologie physique' || cap === 'Conscience spatiale') pId = 'p3';
-    else if (cap === 'Force musculaire' || cap === 'Endurance cardio') pId = 'p4';
-    else if (cap === 'Rhétorique' || cap === 'Langues') pId = 'p5';
-    const xp = S[pId + '_xp'] || 0;
-    const pct = Math.min(100, Math.round((xp / MAX_PILLIER_XP) * 100));
+  // === NOUVEAU RADAR : ÉCART RELATIF ENTRE PILIERS ===
+  // On trouve le pilier avec le plus d'XP
+  const maxXP = Math.max(
+    S.p1_xp || 0,
+    S.p2_xp || 0,
+    S.p3_xp || 0,
+    S.p4_xp || 0,
+    S.p5_xp || 0
+  );
+
+  // On calcule les valeurs en pourcentage (max = 100%)
+  const rData = PILLARS.map(p => {
+    const xp = S[p.id + '_xp'] || 0;
+    return maxXP > 0 ? Math.round((xp / maxXP) * 100) : 0;
+  });
+
+  // Radar
+  const rCtx = document.getElementById('chart-radar').getContext('2d');
+  const rLabels = PILLARS.map(p => p.icon + ' ' + p.name.split(' ')[0]);
+  if (chartRadar) chartRadar.destroy();
+  chartRadar = new Chart(rCtx, {
+    type: 'radar',
+    data: {
+      labels: rLabels,
+      datasets: [{
+        data: rData,
+        borderColor: '#a78bfa',
+        backgroundColor: 'rgba(124,58,237,0.18)',
+        borderWidth: 2,
+        pointBackgroundColor: '#a78bfa',
+        pointRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const value = context.raw;
+              const pilier = PILLARS[context.dataIndex];
+              const xp = S[pilier.id + '_xp'] || 0;
+              return pilier.name + ' : ' + value + '% (' + xp + ' XP)';
+            }
+          }
+        }
+      },
+      scales: {
+        r: {
+          min: 0,
+          max: 100,
+          ticks: { display: false },
+          grid: { color: 'rgba(255,255,255,0.07)' },
+          pointLabels: { color: '#999', font: { size: 11 } },
+          angleLines: { color: 'rgba(255,255,255,0.06)' }
+        }
+      }
+    }
+  });
+
+  // --- Graphique XP (inchangé) ---
+  const xpCtx = document.getElementById('chart-xp').getContext('2d');
+  const sorted = [...XP_HISTORY].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).slice(-20);
+  const xpLabels = sorted.map(h => h.created_at ? h.created_at.slice(5, 10) : '');
+  const xpData = sorted.map(h => h.xp);
+  if (chartXp) chartXp.destroy();
+  chartXp = new Chart(xpCtx, {
+    type: 'line',
+    data: {
+      labels: xpLabels.length ? xpLabels : ['—'],
+      datasets: [{ data: xpData.length ? xpData : [0], borderColor: '#a78bfa', backgroundColor: 'rgba(124,58,237,0.15)', borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#a78bfa', fill: true, tension: .4 }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#555', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
+        y: { ticks: { color: '#555', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' }, beginAtZero: true }
+      }
+    }
+  });
+
+  // === CAPACITÉS : on affiche juste un compteur simple (sans sélecteur) ===
+  // On compte les quêtes par pilier (pour information)
+  const capCounts = {};
+  LOG.forEach(l => {
+    if (l.pillar_id && l.pillar_id !== 'custom' && l.pillar_id !== 'review') {
+      const p = PILLARS.find(p => p.id === l.pillar_id);
+      if (p) {
+        capCounts[p.name] = (capCounts[p.name] || 0) + 1;
+      }
+    }
+  });
+
+  document.getElementById('cap-grid').innerHTML = PILLARS.map(p => {
+    const count = capCounts[p.name] || 0;
+    const pct = Math.min(100, Math.round((count / 20) * 100));
     return `<div class="cap-item">
-      <div class="cap-name">${cap}</div>
-      <div class="cap-count">${xp} XP</div>
-      <div class="cap-bar"><div class="cap-fill" style="width:${pct}%;background:${color}"></div></div>
+      <div class="cap-name">${p.icon} ${p.name}</div>
+      <div class="cap-count">${count} quête${count > 1 ? 's' : ''}</div>
+      <div class="cap-bar"><div class="cap-fill" style="width:${pct}%;background:${p.color}"></div></div>
     </div>`;
   }).join('');
 
@@ -1834,56 +1925,6 @@ function renderStats() {
       <span class="log-time">${l.created_at ? l.created_at.slice(11, 16) : ''}</span>
     </div>`).join('');
   }
-
-  // Graphique XP (inchangé)
-  const xpCtx = document.getElementById('chart-xp').getContext('2d');
-  const sorted = [...XP_HISTORY].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).slice(-20);
-  const xpLabels = sorted.map(h => h.created_at ? h.created_at.slice(5, 10) : '');
-  const xpData = sorted.map(h => h.xp);
-  if (chartXp) chartXp.destroy();
-  chartXp = new Chart(xpCtx, {
-    type: 'line',
-    data: {
-      labels: xpLabels.length ? xpLabels : ['—'],
-      datasets: [{ data: xpData.length ? xpData : [0], borderColor: '#a78bfa', backgroundColor: 'rgba(124,58,237,0.15)', borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#a78bfa', fill: true, tension: .4 }]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { ticks: { color: '#555', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
-        y: { ticks: { color: '#555', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' }, beginAtZero: true }
-      }
-    }
-  });
-
-  // Radar (basé sur les niveaux des piliers)
-  const rCtx = document.getElementById('chart-radar').getContext('2d');
-  const rLabels = PILLARS.map(p => p.icon + ' ' + p.name.split(' ')[0]);
-  const rData = PILLARS.map(p => {
-    const level = getPillarLevel(S[p.id + '_xp'] || 0);
-    return Math.min(100, Math.round((level / 25) * 100));
-  });
-  if (chartRadar) chartRadar.destroy();
-  chartRadar = new Chart(rCtx, {
-    type: 'radar',
-    data: {
-      labels: rLabels,
-      datasets: [{ data: rData, borderColor: '#a78bfa', backgroundColor: 'rgba(124,58,237,0.18)', borderWidth: 2, pointBackgroundColor: '#a78bfa', pointRadius: 4 }]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: false } },
-      scales: {
-        r: {
-          min: 0, max: 100, ticks: { display: false },
-          grid: { color: 'rgba(255,255,255,0.07)' },
-          pointLabels: { color: '#999', font: { size: 11 } },
-          angleLines: { color: 'rgba(255,255,255,0.06)' }
-        }
-      }
-    }
-  });
 }
 
 // ============================================================
@@ -1953,7 +1994,7 @@ function goTab(id, btn) {
 }
 
 // ============================================================
-// AUTRES FONCTIONS (bilan, boost, etc.)
+// AUTRES FONCTIONS
 // ============================================================
 function renderBilanHistory() {
   const container = document.getElementById('bilan-history');
@@ -2084,12 +2125,7 @@ function lancerBilanHebdo() {
 // ============================================================
 async function init() {
   await loadFromSupabase();
-  // Mise à jour de isDayLocked après le chargement
-  // Si la date a changé, isDayLocked a déjà été mis à false dans loadFromSupabase
-  // Mais on doit aussi vérifier si last_day est null (premier jour)
-  if (S.last_day === null) {
-    isDayLocked = false;
-  }
+  isDayLocked = (S.last_day === todayKey() && isDayLocked); // Garder l'état après chargement
   updateValidationButton();
   updateHeader();
   renderQuetes();
@@ -2099,6 +2135,7 @@ async function init() {
   loadWelcomeMessage();
   renderAvatar();
   renderBilanHistory();
+  renderStats(); // Pour le radar
 }
 
 if (!UID) {
@@ -2108,7 +2145,7 @@ if (!UID) {
 }
 
 // ============================================================
-// IA / COACH
+// IA / COACH (inchangé)
 // ============================================================
 const WORKER_URL = 'https://evolution-ai.eliseobuti.workers.dev';
 
@@ -2132,7 +2169,27 @@ function callGemini(prompt) {
   });
 }
 
-const SYSTEM_CONTEXT = `... (inchangé) ...`;
+const SYSTEM_CONTEXT = `Tu es le coach personnel d'Eliseo, 19 ans, etudiant suisse en annee sabbatique apres sa maturite gymnasiale (moyenne 5.0). Il envisage des etudes de medecine. Il a 4 mois d'armee en fevrier. Il voyage parfois.
+
+PROFIL PHYSIQUE: Nageur regulier (2x/semaine, 1h15, ~3km/session). Bonne base physique (pompes, tractions faciles). Cardio ameliorable.
+
+SYSTEME 12 MOIS — 5 PILIERS:
+1. Metacognition & apprentissage (memoire, calcul mental, bais cognitifs, methode Feynman, transfert inter-domaines)
+2. Regulation psychophysiologique (respiration, Wim Hof, sommeil, stress, controle emotionnel)
+3. Presence & observation (semiologie clinique factuelle, conscience spatiale, detection elements tactiques et environnementaux, sans psychologisation)
+4. Condition physique (force, endurance zone 2, proprioception, reflexes, coordination)
+5. Influence & communication (rhetorique, langues, negociation, echecs/strategie)
+
+3 PHASES:
+- Phase 1 (mois 1-3): Fondations — installer les routines a friction minimale
+- Phase 2 (mois 4-8): Intensification — integration des satellites, armee comme laboratoire social
+- Phase 3 (mois 9-12): Consolidation — mesure, ajustement, extension
+
+PHILOSOPHIE: Pratique deliberee > repetition passive. Stress + recuperation = croissance. Identite stable bat motivation fluctuante. Seuil minimum (20 min/jour) non-negociable meme les mauvais jours.
+
+PASSIONS: Piano, dessin (decompress), cinema (Wes Anderson, Jim Jarmusch, Jake Gyllenhaal), mode streetwear/vintage/gorpcore, vie sociale.
+
+Reponds toujours en francais, de facon directe, concrete et adaptee au niveau actuel d'Eliseo. Pas de markdown.`;
 
 function buildCtx() {
   const ph = getCurrentPhase();
