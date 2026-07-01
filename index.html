@@ -37,7 +37,6 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .ph2 .phase-prog{color:var(--blue);}
 .ph3 .phase-prog{color:var(--accent);}
 
-/* Nouveaux styles pour les barres XP */
 .xp-bars-container {
     display: flex;
     flex-direction: column;
@@ -111,6 +110,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .tag-min{background:rgba(167,139,250,.15);color:var(--accent);}
 .tag-ph{background:rgba(255,255,255,.07);color:var(--muted);}
 .tag-bounty{background:rgba(251,191,36,.15);color:var(--amber);}
+.tag-aventurier{background:rgba(34,197,94,.15);color:#22c55e;}
 .q-xp{font-size:13px;font-weight:700;color:var(--accent);flex-shrink:0;}
 .btn-main{width:100%;background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;border:none;border-radius:14px;padding:16px;font-size:16px;font-weight:700;cursor:pointer;margin-top:14px;transition:opacity .15s;font-family:inherit;}
 .btn-main:active{opacity:.8;}
@@ -202,7 +202,6 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 .sidequest-title{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--amber);letter-spacing:0.05em;}
 .sidequest-xp{font-size:12px;font-weight:700;color:var(--amber);}
 
-/* Styles pour l'onglet Statuts / Avatar */
 .avatar-card {
     background: var(--card);
     border: 0.5px solid var(--border);
@@ -264,7 +263,6 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
     border-color: var(--coral);
     background: rgba(248,113,113,0.08);
 }
-
 .class-item .class-bar-fill.guerrier { background: #ef4444; }
 .class-item .class-bar-fill.mage { background: #3b82f6; }
 .class-item .class-bar-fill.ombre { background: #8b5cf6; }
@@ -330,6 +328,29 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
     background: rgba(167,139,250,0.15);
     color: var(--accent);
 }
+
+.toast {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--card2);
+    border: 0.5px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 20px;
+    font-size: 13px;
+    color: var(--text);
+    z-index: 200;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    max-width: 90%;
+    text-align: center;
+}
+.toast.show {
+    opacity: 1;
+    pointer-events: auto;
+}
 </style>
 </head>
 <body>
@@ -357,7 +378,6 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 <div id="screen-today" class="screen active">
   <div id="alert" class="alert">⚠️ 3 jours sans activité — protocole minimum : 20 min.</div>
   
-  <!-- Boussole Banner -->
   <div id="bounty-banner" class="phase-banner" style="background:rgba(251,191,36,.08);border:0.5px solid rgba(251,191,36,.25);margin-bottom:12px;display:none;">
     <div class="phase-icon">🚨</div>
     <div class="phase-info">
@@ -366,7 +386,6 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
     </div>
   </div>
 
-  <!-- Bloc Coach IA -->
   <div id="ai-welcome" class="ai-card" style="display:none">
     <div class="ai-header"><span style="font-size:16px">🤖</span><span class="ai-label">Coach IA</span></div>
     <div class="ai-body" id="ai-welcome-text"></div>
@@ -386,7 +405,6 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
     <div class="phase-prog" id="phase-prog">Mois 1</div>
   </div>
 
-  <!-- Nouvelles barres XP -->
   <div class="xp-bars-container">
     <div class="xp-bar-row">
       <span class="xp-bar-label">👤</span>
@@ -428,7 +446,6 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
   <button class="btn-main" id="btn-valider" onclick="validerJour()">✓ Valider la journée</button>
 </div>
 
-<!-- Onglet Livre des Quêtes -->
 <div id="screen-book" class="screen">
   <div class="sidequest-box" id="sidequest-card">
     <div class="sidequest-header">
@@ -447,6 +464,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 
   <div class="rev-card">
     <div class="chart-title" style="margin-bottom:10px;">Forges de Quêtes Personnelles</div>
+    <div class="avatar-subtitle" style="margin-bottom:10px;color:var(--muted);font-size:11px;">⚠️ Les quêtes forgées alimentent automatiquement la classe <span style="color:#22c55e;">Aventurier</span> (🎒) — elles n'affectent pas les piliers.</div>
     <div class="form-group">
       <input type="text" id="cq-name" class="form-input" placeholder="Nom de ta tâche ou objectif..." autocomplete="off">
     </div>
@@ -527,7 +545,6 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
   <div id="ai-bilan" class="ai-card" style="display:none;margin-top:12px;"><div class="ai-header"><span style="font-size:16px">🧠</span><span class="ai-label">Bilan IA</span></div><div class="ai-body" id="ai-bilan-text"></div></div>
 </div>
 
-<!-- Nouvel onglet Statuts / Avatar -->
 <div id="screen-avatar" class="screen">
   <div id="aura-banner" class="aura-banner">
     <div class="aura-icon" id="aura-icon">⚔️</div>
@@ -596,6 +613,9 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
   <button class="tab-btn" onclick="goTab('avatar',this)"><span class="tab-icon">👤</span>Statuts</button>
   <button class="tab-btn" onclick="goTab('revue',this)"><span class="tab-icon">📋</span>Revue</button>
 </div>
+
+<!-- Toast pour les notifications -->
+<div class="toast" id="toast"></div>
 
 <script>
 const SB_URL='https://nlicstxewcrzjliyslkm.supabase.co';
@@ -672,7 +692,6 @@ const MILESTONES=[
 ];
 const PCOLS={p1:'#a78bfa',p2:'#34d399',p3:'#60a5fa',p4:'#fb923c',p5:'#fbbf24'};
 
-// Mapping Piliers -> Classes
 const PILIER_TO_CLASSE = {
   'p4': 'guerrier',
   'p1': 'mage',
@@ -681,7 +700,6 @@ const PILIER_TO_CLASSE = {
   'p5': 'ombre'
 };
 
-// Classes RPG
 const CLASSES = {
   guerrier: { id: 'guerrier', name: 'Guerrier', icon: '⚔️', color: '#ef4444', barClass: 'guerrier' },
   mage: { id: 'mage', name: 'Mage', icon: '🔮', color: '#3b82f6', barClass: 'mage' },
@@ -689,7 +707,6 @@ const CLASSES = {
   aventurier: { id: 'aventurier', name: 'Aventurier', icon: '🎒', color: '#22c55e', barClass: 'aventurier' }
 };
 
-// Banque locale de Sidequests
 const BANQUE_SIDEQUESTS = [
   {text: "L'Œil Clinique Social : Fais un compliment sincère et ultra-spécifique à un inconnu sur son style ou un accessoire.", pid: "p5"},
   {text: "Le Brise-Glace Tactique : Demande une direction ou une recommandation à quelqu'un dans la rue sans sortir ton téléphone.", pid: "p5"},
@@ -724,19 +741,26 @@ let chartXp=null,chartRadar=null;
 let syncTimer=null;
 let isDayLocked=false;
 
-// --- Données des classes ---
 let classXP = { guerrier: 0, mage: 0, ombre: 0, aventurier: 0 };
-let classXPHistory = { guerrier: 0, mage: 0, ombre: 0, aventurier: 0 };
 let weeklyClassXP = { guerrier: 0, mage: 0, ombre: 0, aventurier: 0 };
-let currentAura = null; // { id, name, icon }
-let boostClass = null; // classe bénéficiant du +10%
+let currentAura = null;
+let boostClass = null;
 let isSouverain = false;
 let isStagnant = false;
 let lastBilanDate = null;
 let boostSelectionPending = false;
 let bilanHistory = [];
 
-// --- Fonctions de gestion des classes ---
+let currentSidequest = null;
+let sidequestSynced = false;
+
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg;
+  el.classList.add('show');
+  clearTimeout(el._timeout);
+  el._timeout=setTimeout(()=>el.classList.remove('show'),3000);
+}
 
 function getClassForPillar(pid) {
   return PILIER_TO_CLASSE[pid] || 'aventurier';
@@ -776,7 +800,6 @@ function getDominantClass(xpMap) {
     }
   }
   if (total === 0) return null;
-  // Vérifier si écart < 5%
   const avg = total / 4;
   const maxDiff = max * 0.05;
   let isBalanced = true;
@@ -804,11 +827,9 @@ function getWeakestClass(xpMap) {
 
 function getBoostedXP(xp, classId, isPillar = false) {
   let boosted = xp;
-  // Multiplicateur 1.2x pour les piliers
   if (isPillar) {
     boosted = Math.round(boosted * 1.2);
   }
-  // Bonus de rattrapage +10% si classe faible
   if (boostClass && classId === boostClass) {
     boosted = Math.round(boosted * 1.1);
   }
@@ -828,7 +849,6 @@ function distributeClassXP(xp, pid, isCustom = false) {
   return boostedXP;
 }
 
-// --- Sauvegarde des classes ---
 async function saveClassData() {
   try {
     await sbUpsert('sys_classes', {
@@ -854,7 +874,6 @@ async function loadClassData() {
   } catch(e) {}
 }
 
-// --- Bilan hebdomadaire ---
 async function loadBilanHistory() {
   try {
     const data = await sbGetMany('sys_bilans', UID, 10);
@@ -870,215 +889,61 @@ async function saveBilan(bilan) {
   } catch(e) {}
 }
 
-function lancerBilanHebdo() {
-  const btn = document.getElementById('btn-bilan-hebdo');
-  btn.disabled = true;
-  btn.textContent = 'Calcul en cours...';
+async function saveSidequestToDB(sq) {
+  if (!UID) return;
+  try {
+    await sbUpsert('sys_sidequests', {
+      user_id: UID,
+      date: sq.date,
+      text: sq.text,
+      pid: sq.pid || 'p5',
+      done: sq.done || false,
+      is_ia: sq.isIA || false,
+      updated_at: new Date().toISOString()
+    });
+  } catch(e) {}
+}
 
-  // Copier les XP de la semaine
-  const weeklyXP = { ...weeklyClassXP };
-  const totalXP = Object.values(weeklyXP).reduce((a, b) => a + b, 0);
-
-  let aura = null;
-  let isSouv = false;
-  let isStag = false;
-
-  if (totalXP === 0) {
-    isStag = true;
-    aura = { id: 'stagnant', name: 'Le Stagnant', icon: '💤' };
-  } else {
-    const dominant = getDominantClass(weeklyXP);
-    if (dominant === 'souverain') {
-      isSouv = true;
-      aura = { id: 'souverain', name: 'Aventurier Suprême', icon: '👑' };
-    } else {
-      const cls = getClassFromId(dominant);
-      aura = { id: dominant, name: cls ? cls.name : 'Inconnu', icon: cls ? cls.icon : '❓' };
+async function loadSidequestFromDB() {
+  if (!UID) return null;
+  try {
+    const data = await sbGet('sys_sidequests', UID);
+    if (data) {
+      return {
+        date: data.date,
+        text: data.text,
+        pid: data.pid || 'p5',
+        done: data.done || false,
+        isIA: data.is_ia || false
+      };
     }
-  }
-
-  // Sauvegarder le bilan
-  const bilan = {
-    week_start: new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10),
-    week_end: new Date().toISOString().slice(0, 10),
-    aura_id: aura ? aura.id : null,
-    aura_name: aura ? aura.name : null,
-    guerrier_xp: weeklyXP.guerrier || 0,
-    mage_xp: weeklyXP.mage || 0,
-    ombre_xp: weeklyXP.ombre || 0,
-    aventurier_xp: weeklyXP.aventurier || 0,
-    is_souverain: isSouv,
-    is_stagnant: isStag
-  };
-  saveBilan(bilan);
-  bilanHistory.unshift(bilan);
-
-  // Appliquer l'aura
-  currentAura = aura;
-  isSouverain = isSouv;
-  isStagnant = isStag;
-  lastBilanDate = new Date().toISOString().slice(0, 10);
-
-  // Gérer le boost
-  if (isSouv) {
-    // Équilibre parfait : l'utilisateur choisit
-    boostSelectionPending = true;
-    document.getElementById('choose-boost-container').style.display = 'block';
-    renderBoostOptions();
-    btn.textContent = '📊 Bilan effectué';
-    btn.disabled = true;
-  } else if (isStag) {
-    boostClass = null;
-    document.getElementById('choose-boost-container').style.display = 'none';
-    btn.textContent = '📊 Bilan effectué';
-    btn.disabled = true;
-  } else {
-    // Cas général : classe la plus faible reçoit le boost
-    const weakest = getWeakestClass(weeklyXP);
-    boostClass = weakest;
-    document.getElementById('choose-boost-container').style.display = 'none';
-    btn.textContent = '📊 Bilan effectué';
-    btn.disabled = true;
-  }
-
-  // Réinitialiser les XP de la semaine
-  weeklyClassXP = { guerrier: 0, mage: 0, ombre: 0, aventurier: 0 };
-
-  renderAvatar();
-  renderBilanHistory();
-  updateHeader();
-  scheduleSave();
+  } catch(e) {}
+  return null;
 }
 
-function renderBoostOptions() {
-  const container = document.getElementById('choose-boost');
-  container.innerHTML = '';
-  for (const [id, cls] of Object.entries(CLASSES)) {
-    const btn = document.createElement('button');
-    btn.className = 'boost-btn';
-    btn.textContent = `${cls.icon} ${cls.name}`;
-    btn.dataset.class = id;
-    btn.onclick = function() {
-      document.querySelectorAll('.boost-btn').forEach(b => b.classList.remove('selected'));
-      this.classList.add('selected');
-      document.querySelector('.bilan-btn').dataset.selected = id;
-    };
-    container.appendChild(btn);
-  }
+async function saveCustomQuestsToDB() {
+  if (!UID) return;
+  try {
+    await sbUpsert('sys_custom_quests', {
+      user_id: UID,
+      quests: JSON.stringify(customQuests),
+      updated_at: new Date().toISOString()
+    });
+  } catch(e) {}
 }
 
-function confirmerBoost() {
-  const selected = document.querySelector('.bilan-btn[data-selected]');
-  if (!selected) {
-    alert('Veuillez choisir une classe.');
-    return;
-  }
-  boostClass = selected.dataset.selected;
-  boostSelectionPending = false;
-  document.getElementById('choose-boost-container').style.display = 'none';
-  renderAvatar();
-  scheduleSave();
-}
-
-// --- UI des classes ---
-function renderAvatar() {
-  // Aura
-  const banner = document.getElementById('aura-banner');
-  const icon = document.getElementById('aura-icon');
-  const name = document.getElementById('aura-name');
-  const desc = document.getElementById('aura-desc');
-
-  if (currentAura) {
-    icon.textContent = currentAura.icon || '⚔️';
-    name.textContent = currentAura.name || 'Aventurier';
-    if (isSouverain) {
-      desc.textContent = 'Équilibre parfait atteint ! Tu choisis ton boost.';
-      banner.className = 'aura-banner souverain';
-    } else if (isStagnant) {
-      desc.textContent = 'Aucune activité cette semaine. Retour au front !';
-      banner.className = 'aura-banner stagnant';
-    } else {
-      const cls = getClassFromId(currentAura.id);
-      desc.textContent = `Classe dominante de la semaine${boostClass ? ` — Bénédiction: +10% ${CLASSES[boostClass]?.name || ''}` : ''}`;
-      banner.className = `aura-banner ${currentAura.id}`;
+async function loadCustomQuestsFromDB() {
+  if (!UID) return null;
+  try {
+    const data = await sbGet('sys_custom_quests', UID);
+    if (data && data.quests) {
+      return JSON.parse(data.quests);
     }
-  } else {
-    icon.textContent = '⚔️';
-    name.textContent = 'En attente';
-    desc.textContent = 'Effectue ton premier bilan hebdomadaire';
-    banner.className = 'aura-banner';
-  }
-
-  // Classes
-  for (const [id, cls] of Object.entries(CLASSES)) {
-    const xp = classXP[id] || 0;
-    const level = getClassLevel(xp);
-    const progress = getClassProgress(xp);
-    const el = document.getElementById(`class-${id}`);
-    const bar = document.getElementById(`${id}-bar`);
-    const levelEl = document.getElementById(`${id}-level`);
-
-    el.className = 'class-item';
-    if (currentAura && currentAura.id === id && !isSouverain && !isStagnant) {
-      el.classList.add('highlight');
-    }
-    if (boostClass === id && boostClass !== null) {
-      el.classList.add('weak');
-    }
-
-    bar.style.width = progress + '%';
-    levelEl.textContent = `Niv. ${level}`;
-  }
-
-  // Bénédiction
-  const benedictionEl = document.getElementById('benediction-desc');
-  if (boostClass && boostClass !== null) {
-    const cls = getClassFromId(boostClass);
-    benedictionEl.textContent = `+10% XP pour le ${cls ? cls.name : boostClass} jusqu'au prochain bilan.`;
-  } else if (isSouverain) {
-    benedictionEl.textContent = 'Équilibre parfait — choisis ta bénédiction ci-dessous.';
-  } else if (isStagnant) {
-    benedictionEl.textContent = '⚠️ Aucune bénédiction active. Reprends l\'entraînement.';
-  } else {
-    benedictionEl.textContent = 'Aucune bénédiction active.';
-  }
-
-  // Mise à jour des barres XP globales
-  updateXPbars();
+  } catch(e) {}
+  return null;
 }
 
-function renderBilanHistory() {
-  const container = document.getElementById('bilan-history');
-  if (!bilanHistory.length) {
-    container.innerHTML = '<div class="empty-state">Aucun bilan enregistré</div>';
-    return;
-  }
-  container.innerHTML = bilanHistory.slice(0, 5).map(b => `
-    <div class="log-entry">
-      <div class="log-dot" style="background:${b.aura_id === 'souverain' ? '#fff' : b.aura_id === 'stagnant' ? '#666' : CLASSES[b.aura_id]?.color || '#888'}"></div>
-      <div class="log-text">${b.aura_name || 'Bilan'} — ${b.week_end}</div>
-      <span class="log-xp">${(b.guerrier_xp + b.mage_xp + b.ombre_xp + b.aventurier_xp) || 0} XP</span>
-    </div>
-  `).join('');
-}
-
-// --- Mise à jour des barres XP ---
-function updateXPbars() {
-  const maxXP = 5000;
-  const pilliersXP = (S.p1_xp || 0) + (S.p2_xp || 0) + (S.p3_xp || 0) + (S.p4_xp || 0) + (S.p5_xp || 0);
-  const forgesXP = customQuests.reduce((sum, q) => sum + (q.total_xp || 0), 0) + (LOG.filter(l => l.quest_id && l.quest_id.startsWith('cq_')).reduce((sum, l) => sum + l.xp, 0));
-
-  document.getElementById('bar-global').style.width = Math.min(100, (S.total_xp / maxXP) * 100) + '%';
-  document.getElementById('bar-global-val').textContent = S.total_xp + ' XP';
-
-  document.getElementById('bar-pilliers').style.width = Math.min(100, (pilliersXP / maxXP) * 100) + '%';
-  document.getElementById('bar-pilliers-val').textContent = pilliersXP + ' XP';
-
-  document.getElementById('bar-forges').style.width = Math.min(100, (forgesXP / maxXP) * 100) + '%';
-  document.getElementById('bar-forges-val').textContent = forgesXP + ' XP';
-}
-
-// --- Fonctions existantes modifiées ---
+// --- Toast notification ---
 
 function setupUser(){
   const name=document.getElementById('setup-name').value.trim().toLowerCase().replace(/[^a-z0-9_]/g,'');
@@ -1122,14 +987,13 @@ async function loadFromSupabase(){
     });
     await loadClassData();
     await loadBilanHistory();
-    // Restaurer weeklyClassXP depuis le localStorage
+    
     const savedWeekly = localStorage.getItem('sys12_weekly_xp');
     if (savedWeekly) {
       try {
         weeklyClassXP = JSON.parse(savedWeekly);
       } catch(e) {}
     }
-    // Restaurer l'aura
     const savedAura = localStorage.getItem('sys12_aura');
     if (savedAura) {
       try {
@@ -1141,6 +1005,40 @@ async function loadFromSupabase(){
         lastBilanDate = auraData.lastBilanDate || null;
       } catch(e) {}
     }
+    
+    // Charger les quêtes personnelles depuis Supabase
+    const dbQuests = await loadCustomQuestsFromDB();
+    if (dbQuests && Array.isArray(dbQuests)) {
+      customQuests = dbQuests;
+      localStorage.setItem('sys12_custom_quests', JSON.stringify(customQuests));
+    } else {
+      customQuests = JSON.parse(localStorage.getItem('sys12_custom_quests')||'[]');
+    }
+    
+    // Charger la sidequest depuis Supabase
+    const dbSq = await loadSidequestFromDB();
+    const todayStr = todayKey();
+    if (dbSq && dbSq.date === todayStr) {
+      currentSidequest = dbSq;
+      localStorage.setItem('sys12_sidequest', JSON.stringify(currentSidequest));
+    } else {
+      const localSq = localStorage.getItem('sys12_sidequest');
+      if (localSq) {
+        const parsed = JSON.parse(localSq);
+        if (parsed.date === todayStr) {
+          currentSidequest = parsed;
+        }
+      }
+      if (!currentSidequest) {
+        const rand = BANQUE_SIDEQUESTS[Math.floor(Math.random()*BANQUE_SIDEQUESTS.length)];
+        currentSidequest = {date: todayStr, text: rand.text, pid: rand.pid, done: false, isIA: false};
+        localStorage.setItem('sys12_sidequest', JSON.stringify(currentSidequest));
+        await saveSidequestToDB(currentSidequest);
+      } else {
+        await saveSidequestToDB(currentSidequest);
+      }
+    }
+    
     setSyncState('ok');
   }catch(e){setSyncState('error');}
 }
@@ -1150,6 +1048,10 @@ async function saveProgress(){
   try{
     await sbUpsert('sys_progress',{...S,user_id:UID,updated_at:new Date().toISOString()});
     await saveClassData();
+    await saveCustomQuestsToDB();
+    if (currentSidequest) {
+      await saveSidequestToDB(currentSidequest);
+    }
     localStorage.setItem('sys12_weekly_xp', JSON.stringify(weeklyClassXP));
     localStorage.setItem('sys12_aura', JSON.stringify({
       aura: currentAura,
@@ -1158,6 +1060,10 @@ async function saveProgress(){
       boostClass,
       lastBilanDate
     }));
+    localStorage.setItem('sys12_custom_quests', JSON.stringify(customQuests));
+    if (currentSidequest) {
+      localStorage.setItem('sys12_sidequest', JSON.stringify(currentSidequest));
+    }
     setSyncState('ok');
   }catch(e){setSyncState('error');}
 }
@@ -1225,6 +1131,21 @@ function updateHeader(){
   renderAvatar();
 }
 
+function updateXPbars() {
+  const maxXP = 5000;
+  const pilliersXP = (S.p1_xp || 0) + (S.p2_xp || 0) + (S.p3_xp || 0) + (S.p4_xp || 0) + (S.p5_xp || 0);
+  const forgesXP = customQuests.reduce((sum, q) => sum + (q.total_xp || 0), 0) + (LOG.filter(l => l.quest_id && l.quest_id.startsWith('cq_')).reduce((sum, l) => sum + l.xp, 0));
+
+  document.getElementById('bar-global').style.width = Math.min(100, (S.total_xp / maxXP) * 100) + '%';
+  document.getElementById('bar-global-val').textContent = S.total_xp + ' XP';
+
+  document.getElementById('bar-pilliers').style.width = Math.min(100, (pilliersXP / maxXP) * 100) + '%';
+  document.getElementById('bar-pilliers-val').textContent = pilliersXP + ' XP';
+
+  document.getElementById('bar-forges').style.width = Math.min(100, (forgesXP / maxXP) * 100) + '%';
+  document.getElementById('bar-forges-val').textContent = forgesXP + ' XP';
+}
+
 function renderQuetes(){
   const phase=getCurrentPhase();
   const bp=getBountyPillar();
@@ -1234,9 +1155,7 @@ function renderQuetes(){
     const inPhase=q.phases.includes(phase.id);
     const isBounty=(q.pid===bp);
     let xp = q.xp;
-    // Appliquer le multiplicateur 1.2x pour les piliers
     xp = Math.round(xp * 1.2);
-    // Appliquer le bonus de classe si applicable
     const classId = getClassForPillar(q.pid);
     if (boostClass && classId === boostClass) {
       xp = Math.round(xp * 1.1);
@@ -1280,7 +1199,7 @@ function renderQuetes(){
 
 async function toggleQuete(id){
   if(isDayLocked){
-    alert("La journée est verrouillée. Clique sur 'Modifier la journée' pour faire des modifications.");
+    toast("⚠️ Journée verrouillée. Utilise 'Modifier la journée' pour ajuster.");
     return;
   }
   const all=[...QUETES.min,...QUETES.opt];
@@ -1289,34 +1208,29 @@ async function toggleQuete(id){
   const today=todayKey();
   const bp=getBountyPillar();
   
-  // Appliquer les bonus
   let xp = q.xp;
   const isPillar = true;
-  // Multiplicateur 1.2x
   xp = Math.round(xp * 1.2);
-  // Bonus de classe
   const classId = getClassForPillar(q.pid);
   if (boostClass && classId === boostClass) {
     xp = Math.round(xp * 1.1);
   }
-  // Bonus boussole
   const finalXp = (q.pid===bp) ? Math.round(xp * 1.25) : xp;
 
   if(checkedToday[id]){
     delete checkedToday[id];
     S.total_xp=Math.max(0,S.total_xp-finalXp);
     S[q.pid+'_xp']=Math.max(0,(S[q.pid+'_xp']||0)-finalXp);
-    // Retirer des classes
     const cId = getClassForPillar(q.pid);
     classXP[cId] = Math.max(0, (classXP[cId] || 0) - finalXp);
     weeklyClassXP[cId] = Math.max(0, (weeklyClassXP[cId] || 0) - finalXp);
     LOG=LOG.filter(l=>!(l.quest_id===id&&l.created_at&&l.created_at.slice(0,10)===today));
     sbDelete('sys_log',UID,id,today).catch(()=>{});
+    toast("↩️ Quête décochée — XP retirés");
   } else {
     checkedToday[id]=true;
     S.total_xp+=finalXp;
     S[q.pid+'_xp']=Math.min(3000,(S[q.pid+'_xp']||0)+finalXp);
-    // Distribuer aux classes
     const cId = getClassForPillar(q.pid);
     classXP[cId] = (classXP[cId] || 0) + finalXp;
     weeklyClassXP[cId] = (weeklyClassXP[cId] || 0) + finalXp;
@@ -1325,6 +1239,7 @@ async function toggleQuete(id){
     LOG.unshift(entry);
     if(LOG.length>60)LOG.pop();
     sbInsert('sys_log',entry).catch(()=>{});
+    toast("✅ +" + finalXp + " XP pour '" + q.name + "'");
   }
   scheduleSave();
   renderQuetes();
@@ -1334,40 +1249,32 @@ async function toggleQuete(id){
 
 function initSidequest(){
   const today=todayKey();
-  const saved=localStorage.getItem('sys12_sidequest');
-  let sq=null;
-  if(saved){
-    sq=JSON.parse(saved);
-    if(sq.date!==today) sq=null;
-  }
-  if(!sq){
+  if (!currentSidequest || currentSidequest.date !== today) {
     const rand=BANQUE_SIDEQUESTS[Math.floor(Math.random()*BANQUE_SIDEQUESTS.length)];
-    sq={date:today,text:rand.text,pid:rand.pid,done:false,isIA:false};
-    localStorage.setItem('sys12_sidequest',JSON.stringify(sq));
+    currentSidequest={date:today,text:rand.text,pid:rand.pid,done:false,isIA:false};
+    localStorage.setItem('sys12_sidequest', JSON.stringify(currentSidequest));
+    saveSidequestToDB(currentSidequest);
   }
   updateSidequestUI();
 }
 
 function updateSidequestUI(){
-  const sq=JSON.parse(localStorage.getItem('sys12_sidequest'));
-  if(!sq) return;
+  if(!currentSidequest) return;
   const item=document.getElementById('sidequest-item');
   const chk=document.getElementById('sq-check');
-  document.getElementById('sidequest-text').textContent=sq.text;
+  document.getElementById('sidequest-text').textContent=currentSidequest.text;
   
   const bp=getBountyPillar();
   let baseXp=30;
-  // Multiplicateur 1.2x pour les piliers
   baseXp = Math.round(baseXp * 1.2);
-  // Bonus de classe
-  const classId = getClassForPillar(sq.pid);
+  const classId = getClassForPillar(currentSidequest.pid);
   if (boostClass && classId === boostClass) {
     baseXp = Math.round(baseXp * 1.1);
   }
-  const finalXp=(sq.pid===bp)?Math.round(baseXp * 1.25):baseXp;
-  document.getElementById('sq-xp-display').textContent=`+${finalXp} XP` + ((sq.pid===bp)?' 🚨':'');
+  const finalXp=(currentSidequest.pid===bp)?Math.round(baseXp * 1.25):baseXp;
+  document.getElementById('sq-xp-display').textContent=`+${finalXp} XP` + ((currentSidequest.pid===bp)?' 🚨':'');
 
-  if(sq.done){
+  if(currentSidequest.done){
     item.classList.add('done');
     chk.textContent='✓';
   }else{
@@ -1377,49 +1284,56 @@ function updateSidequestUI(){
 }
 
 function toggleSidequest(){
-  if(isDayLocked) return;
-  const sq=JSON.parse(localStorage.getItem('sys12_sidequest'));
-  if(!sq) return;
+  if(isDayLocked){
+    toast("⚠️ Journée verrouillée. Utilise 'Modifier la journée' pour ajuster.");
+    return;
+  }
+  if(!currentSidequest) return;
   const today=todayKey();
   
   const bp=getBountyPillar();
   let baseXp=30;
-  // Multiplicateur 1.2x
   baseXp = Math.round(baseXp * 1.2);
-  const classId = getClassForPillar(sq.pid);
+  const classId = getClassForPillar(currentSidequest.pid);
   if (boostClass && classId === boostClass) {
     baseXp = Math.round(baseXp * 1.1);
   }
-  const finalXp=(sq.pid===bp)?Math.round(baseXp * 1.25):baseXp;
+  const finalXp=(currentSidequest.pid===bp)?Math.round(baseXp * 1.25):baseXp;
 
-  if(sq.done){
-    sq.done=false;
+  if(currentSidequest.done){
+    currentSidequest.done=false;
     S.total_xp=Math.max(0,S.total_xp-finalXp);
-    if(sq.pid) S[sq.pid+'_xp']=Math.max(0,(S[sq.pid+'_xp']||0)-finalXp);
-    const cId = getClassForPillar(sq.pid);
+    if(currentSidequest.pid) S[currentSidequest.pid+'_xp']=Math.max(0,(S[currentSidequest.pid+'_xp']||0)-finalXp);
+    const cId = getClassForPillar(currentSidequest.pid);
     classXP[cId] = Math.max(0, (classXP[cId] || 0) - finalXp);
     weeklyClassXP[cId] = Math.max(0, (weeklyClassXP[cId] || 0) - finalXp);
     LOG=LOG.filter(l=>!(l.quest_id==='sidequest'&&l.created_at&&l.created_at.slice(0,10)===today));
     sbDelete('sys_log',UID,'sidequest',today).catch(()=>{});
+    toast("↩️ Sidequest décochée — XP retirés");
   }else{
-    sq.done=true;
+    currentSidequest.done=true;
     S.total_xp+=finalXp;
-    if(sq.pid) S[sq.pid+'_xp']=Math.min(3000,(S[sq.pid+'_xp']||0)+finalXp);
-    const cId = getClassForPillar(sq.pid);
+    if(currentSidequest.pid) S[currentSidequest.pid+'_xp']=Math.min(3000,(S[currentSidequest.pid+'_xp']||0)+finalXp);
+    const cId = getClassForPillar(currentSidequest.pid);
     classXP[cId] = (classXP[cId] || 0) + finalXp;
     weeklyClassXP[cId] = (weeklyClassXP[cId] || 0) + finalXp;
-    const entry={user_id:UID,quest_id:'sidequest',quest_name:`[Sidequest] ${sq.text.slice(0,40)}...`,xp:finalXp,pillar_id:sq.pid||'p1',created_at:new Date().toISOString()};
+    const entry={user_id:UID,quest_id:'sidequest',quest_name:`[Sidequest] ${currentSidequest.text.slice(0,40)}...`,xp:finalXp,pillar_id:currentSidequest.pid||'p1',created_at:new Date().toISOString()};
     LOG.unshift(entry);
     sbInsert('sys_log',entry).catch(()=>{});
+    toast("✅ +" + finalXp + " XP pour la sidequest !");
   }
-  localStorage.setItem('sys12_sidequest',JSON.stringify(sq));
+  localStorage.setItem('sys12_sidequest', JSON.stringify(currentSidequest));
+  saveSidequestToDB(currentSidequest);
   updateSidequestUI();
   scheduleSave();
   updateHeader();
 }
 
 async function rerollSidequestIA(){
-  if(isDayLocked) return;
+  if(isDayLocked){
+    toast("⚠️ Journée verrouillée.");
+    return;
+  }
   const btn=document.getElementById('btn-reroll');
   btn.textContent="Création en cours par l'IA...";
   btn.disabled=true;
@@ -1427,12 +1341,15 @@ async function rerollSidequestIA(){
   const prompt=buildCtx()+"\n\nGénère une 'sidequest' (quête secondaire) utile, concrète et rapide (max 15 min) pour Eliseo aujourd'hui. Thème recommandé : sors-le de sa zone de confort, fais-le pratiquer un brise-glace de sociabilité, de l'observation humaine ou un exercice d'assurance tactique. Donne uniquement l'énoncé direct en 2 lignes max. Sans markdown.";
   const res=await callGemini(prompt);
   
-  const sq={date:todayKey(),text:res,pid:'p5',done:false,isIA:true};
-  localStorage.setItem('sys12_sidequest',JSON.stringify(sq));
+  const today=todayKey();
+  currentSidequest={date:today,text:res,pid:'p5',done:false,isIA:true};
+  localStorage.setItem('sys12_sidequest', JSON.stringify(currentSidequest));
+  saveSidequestToDB(currentSidequest);
   updateSidequestUI();
   
   btn.textContent="🎲 Relancer via le Coach (IA)";
   btn.disabled=false;
+  toast("🔄 Nouvelle sidequest générée par l'IA !");
 }
 
 function loadCustomQuests(){
@@ -1441,7 +1358,8 @@ function loadCustomQuests(){
 }
 
 function saveCustomQuests(){
-  localStorage.setItem('sys12_custom_quests',JSON.stringify(customQuests));
+  localStorage.setItem('sys12_custom_quests', JSON.stringify(customQuests));
+  saveCustomQuestsToDB();
   renderCustomQuests();
 }
 
@@ -1452,7 +1370,10 @@ function renderCqSelectors(){
 function ajouterQuetePerso(){
   const nameEl=document.getElementById('cq-name');
   const name=nameEl.value.trim();
-  if(!name) return;
+  if(!name) {
+    toast("⚠️ Donne un nom à ta quête.");
+    return;
+  }
   const pid=document.getElementById('cq-pillar').value;
   const diff=document.getElementById('cq-diff').value;
   const type=document.getElementById('cq-type').value;
@@ -1465,6 +1386,7 @@ function ajouterQuetePerso(){
   customQuests.push(nq);
   nameEl.value='';
   saveCustomQuests();
+  toast("⚔️ Quête forgée : '" + name + "'");
 }
 
 function renderCustomQuests(){
@@ -1478,20 +1400,19 @@ function renderCustomQuests(){
   listEl.innerHTML=customQuests.map(q=>{
     const isBounty=(q.pid===bp);
     let xp = q.xp;
-    // Pas de multiplicateur 1.2x pour les quêtes forgées
-    // Bonus de classe si aventurier
     if (boostClass && 'aventurier' === boostClass) {
       xp = Math.round(xp * 1.1);
     }
     const finalXp=isBounty?Math.round(xp * 1.25):xp;
     const bountyTag=isBounty?`<span class="tag tag-bounty">🚨 +25%</span>`:'';
     const typeTag=`<span class="tag tag-ph">${q.type==='oneshot'?'One-shot':'Récurrente'}</span>`;
+    const aventurierTag=`<span class="tag tag-aventurier">🎒 Aventurier</span>`;
     
     return `<div class="quest${q.done?' done':''}" onclick="toggleCustomQuest('${q.id}')">
       <div class="check">${q.done?'✓':''}</div>
       <div class="q-info">
         <div class="q-name">${q.name}</div>
-        <div class="q-tags">${typeTag}${bountyTag}</div>
+        <div class="q-tags">${typeTag}${aventurierTag}${bountyTag}</div>
       </div>
       <div class="q-xp">+${finalXp} XP</div>
     </div>`;
@@ -1499,14 +1420,16 @@ function renderCustomQuests(){
 }
 
 function toggleCustomQuest(id){
-  if(isDayLocked) return;
+  if(isDayLocked){
+    toast("⚠️ Journée verrouillée.");
+    return;
+  }
   const q=customQuests.find(x=>x.id===id);
   if(!q) return;
   const today=todayKey();
   const bp=getBountyPillar();
   
   let xp = q.xp;
-  // Pas de multiplicateur 1.2x
   if (boostClass && 'aventurier' === boostClass) {
     xp = Math.round(xp * 1.1);
   }
@@ -1516,12 +1439,12 @@ function toggleCustomQuest(id){
     q.done=false;
     S.total_xp=Math.max(0,S.total_xp-finalXp);
     S[q.pid+'_xp']=Math.max(0,(S[q.pid+'_xp']||0)-finalXp);
-    // Aventurier
     classXP.aventurier = Math.max(0, (classXP.aventurier || 0) - finalXp);
     weeklyClassXP.aventurier = Math.max(0, (weeklyClassXP.aventurier || 0) - finalXp);
     q.total_xp = Math.max(0, (q.total_xp || 0) - finalXp);
     LOG=LOG.filter(l=>!(l.quest_id===id&&l.created_at&&l.created_at.slice(0,10)===today));
     sbDelete('sys_log',UID,id,today).catch(()=>{});
+    toast("↩️ Quête forgée décochée — XP retirés");
   }else{
     q.done=true;
     S.total_xp+=finalXp;
@@ -1532,6 +1455,7 @@ function toggleCustomQuest(id){
     const entry={user_id:UID,quest_id:id,quest_name:`[Perso] ${q.name}`,xp:finalXp,pillar_id:q.pid,created_at:new Date().toISOString()};
     LOG.unshift(entry);
     sbInsert('sys_log',entry).catch(()=>{});
+    toast("✅ +" + finalXp + " XP pour '" + q.name + "'");
   }
   saveCustomQuests();
   scheduleSave();
@@ -1540,6 +1464,11 @@ function toggleCustomQuest(id){
 
 async function validerJour(){
   const today=todayKey();
+  if(isDayLocked){
+    toast("⚠️ Journée déjà verrouillée.");
+    return;
+  }
+  
   if(S.last_day!==today){
     if(S.last_day){
       const diff=(new Date(today)-new Date(S.last_day))/86400000;
@@ -1555,19 +1484,26 @@ async function validerJour(){
   
   customQuests=customQuests.filter(q=>!(q.type==='oneshot' && q.done===true));
   customQuests.forEach(q=>{if(q.type==='recurrent') q.done=false;});
-  localStorage.setItem('sys12_custom_quests',JSON.stringify(customQuests));
+  localStorage.setItem('sys12_custom_quests', JSON.stringify(customQuests));
+  await saveCustomQuestsToDB();
   renderCustomQuests();
 
   isDayLocked=true;
   updateValidationButton();
   scheduleSave();
   updateHeader();
+  toast("🔒 Journée validée !");
   goTab('stats',document.querySelectorAll('.tab-btn')[3]);
 }
 
 function modifierJour(){
+  if(!isDayLocked){
+    toast("⚠️ La journée n'est pas verrouillée.");
+    return;
+  }
   isDayLocked=false;
   updateValidationButton();
+  toast("✏️ Journée déverrouillée — tu peux ajuster tes quêtes.");
 }
 
 function updateValidationButton(){
@@ -1680,6 +1616,7 @@ async function sauvegarderRevue(){
   starVal=0;
   document.querySelectorAll('.star').forEach(s=>s.classList.remove('on'));
   genererBilanRevue(_bien,_resist,_change,_stars);
+  toast("📝 Revue sauvegardée ! +100 XP");
 }
 
 function goTab(id,btn){
@@ -1692,6 +1629,192 @@ function goTab(id,btn){
   if(id==='book') { updateSidequestUI(); renderCustomQuests(); }
   if(id==='today') renderQuetes();
   if(id==='avatar') { renderAvatar(); renderBilanHistory(); }
+}
+
+function renderAvatar(){
+  const banner = document.getElementById('aura-banner');
+  const icon = document.getElementById('aura-icon');
+  const name = document.getElementById('aura-name');
+  const desc = document.getElementById('aura-desc');
+
+  if (currentAura) {
+    icon.textContent = currentAura.icon || '⚔️';
+    name.textContent = currentAura.name || 'Aventurier';
+    if (isSouverain) {
+      desc.textContent = 'Équilibre parfait atteint ! Tu choisis ton boost.';
+      banner.className = 'aura-banner souverain';
+    } else if (isStagnant) {
+      desc.textContent = 'Aucune activité cette semaine. Retour au front !';
+      banner.className = 'aura-banner stagnant';
+    } else {
+      const cls = getClassFromId(currentAura.id);
+      desc.textContent = `Classe dominante de la semaine${boostClass ? ` — Bénédiction: +10% ${CLASSES[boostClass]?.name || ''}` : ''}`;
+      banner.className = `aura-banner ${currentAura.id}`;
+    }
+  } else {
+    icon.textContent = '⚔️';
+    name.textContent = 'En attente';
+    desc.textContent = 'Effectue ton premier bilan hebdomadaire';
+    banner.className = 'aura-banner';
+  }
+
+  for (const [id, cls] of Object.entries(CLASSES)) {
+    const xp = classXP[id] || 0;
+    const level = getClassLevel(xp);
+    const progress = getClassProgress(xp);
+    const el = document.getElementById(`class-${id}`);
+    const bar = document.getElementById(`${id}-bar`);
+    const levelEl = document.getElementById(`${id}-level`);
+
+    el.className = 'class-item';
+    if (currentAura && currentAura.id === id && !isSouverain && !isStagnant) {
+      el.classList.add('highlight');
+    }
+    if (boostClass === id && boostClass !== null) {
+      el.classList.add('weak');
+    }
+
+    bar.style.width = progress + '%';
+    levelEl.textContent = `Niv. ${level}`;
+  }
+
+  const benedictionEl = document.getElementById('benediction-desc');
+  if (boostClass && boostClass !== null) {
+    const cls = getClassFromId(boostClass);
+    benedictionEl.textContent = `+10% XP pour le ${cls ? cls.name : boostClass} jusqu'au prochain bilan.`;
+  } else if (isSouverain) {
+    benedictionEl.textContent = 'Équilibre parfait — choisis ta bénédiction ci-dessous.';
+  } else if (isStagnant) {
+    benedictionEl.textContent = '⚠️ Aucune bénédiction active. Reprends l\'entraînement.';
+  } else {
+    benedictionEl.textContent = 'Aucune bénédiction active.';
+  }
+
+  updateXPbars();
+}
+
+function renderBilanHistory() {
+  const container = document.getElementById('bilan-history');
+  if (!bilanHistory.length) {
+    container.innerHTML = '<div class="empty-state">Aucun bilan enregistré</div>';
+    return;
+  }
+  container.innerHTML = bilanHistory.slice(0, 5).map(b => `
+    <div class="log-entry">
+      <div class="log-dot" style="background:${b.aura_id === 'souverain' ? '#fff' : b.aura_id === 'stagnant' ? '#666' : CLASSES[b.aura_id]?.color || '#888'}"></div>
+      <div class="log-text">${b.aura_name || 'Bilan'} — ${b.week_end}</div>
+      <span class="log-xp">${(b.guerrier_xp + b.mage_xp + b.ombre_xp + b.aventurier_xp) || 0} XP</span>
+    </div>
+  `).join('');
+}
+
+function renderBoostOptions() {
+  const container = document.getElementById('choose-boost');
+  container.innerHTML = '';
+  for (const [id, cls] of Object.entries(CLASSES)) {
+    const btn = document.createElement('button');
+    btn.className = 'boost-btn';
+    btn.textContent = `${cls.icon} ${cls.name}`;
+    btn.dataset.class = id;
+    btn.onclick = function() {
+      document.querySelectorAll('.boost-btn').forEach(b => b.classList.remove('selected'));
+      this.classList.add('selected');
+      document.querySelector('#choose-boost').dataset.selected = id;
+    };
+    container.appendChild(btn);
+  }
+}
+
+function confirmerBoost() {
+  const container = document.getElementById('choose-boost');
+  const selected = container.dataset.selected;
+  if (!selected) {
+    toast("⚠️ Choisis une classe d'abord.");
+    return;
+  }
+  boostClass = selected;
+  boostSelectionPending = false;
+  document.getElementById('choose-boost-container').style.display = 'none';
+  renderAvatar();
+  scheduleSave();
+  toast("✅ Bénédiction appliquée au " + CLASSES[selected].name);
+}
+
+function lancerBilanHebdo() {
+  const btn = document.getElementById('btn-bilan-hebdo');
+  btn.disabled = true;
+  btn.textContent = 'Calcul en cours...';
+
+  const weeklyXP = { ...weeklyClassXP };
+  const totalXP = Object.values(weeklyXP).reduce((a, b) => a + b, 0);
+
+  let aura = null;
+  let isSouv = false;
+  let isStag = false;
+
+  if (totalXP === 0) {
+    isStag = true;
+    aura = { id: 'stagnant', name: 'Le Stagnant', icon: '💤' };
+  } else {
+    const dominant = getDominantClass(weeklyXP);
+    if (dominant === 'souverain') {
+      isSouv = true;
+      aura = { id: 'souverain', name: 'Aventurier Suprême', icon: '👑' };
+    } else {
+      const cls = getClassFromId(dominant);
+      aura = { id: dominant, name: cls ? cls.name : 'Inconnu', icon: cls ? cls.icon : '❓' };
+    }
+  }
+
+  const bilan = {
+    week_start: new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10),
+    week_end: new Date().toISOString().slice(0, 10),
+    aura_id: aura ? aura.id : null,
+    aura_name: aura ? aura.name : null,
+    guerrier_xp: weeklyXP.guerrier || 0,
+    mage_xp: weeklyXP.mage || 0,
+    ombre_xp: weeklyXP.ombre || 0,
+    aventurier_xp: weeklyXP.aventurier || 0,
+    is_souverain: isSouv,
+    is_stagnant: isStag
+  };
+  saveBilan(bilan);
+  bilanHistory.unshift(bilan);
+
+  currentAura = aura;
+  isSouverain = isSouv;
+  isStagnant = isStag;
+  lastBilanDate = new Date().toISOString().slice(0, 10);
+
+  if (isSouv) {
+    boostSelectionPending = true;
+    document.getElementById('choose-boost-container').style.display = 'block';
+    renderBoostOptions();
+    btn.textContent = '📊 Bilan effectué';
+    btn.disabled = true;
+    toast("👑 Équilibre parfait ! Choisis ta bénédiction.");
+  } else if (isStag) {
+    boostClass = null;
+    document.getElementById('choose-boost-container').style.display = 'none';
+    btn.textContent = '📊 Bilan effectué';
+    btn.disabled = true;
+    toast("💤 Bilan : Le Stagnant. Retour au front !");
+  } else {
+    const weakest = getWeakestClass(weeklyXP);
+    boostClass = weakest;
+    document.getElementById('choose-boost-container').style.display = 'none';
+    btn.textContent = '📊 Bilan effectué';
+    btn.disabled = true;
+    const cls = getClassFromId(weakest);
+    toast("📊 Bilan terminé ! " + (cls ? cls.name : '') + " reçoit +10% la semaine prochaine.");
+  }
+
+  weeklyClassXP = { guerrier: 0, mage: 0, ombre: 0, aventurier: 0 };
+
+  renderAvatar();
+  renderBilanHistory();
+  updateHeader();
+  scheduleSave();
 }
 
 async function init(){
