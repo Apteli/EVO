@@ -877,37 +877,37 @@ function setSyncState(st){
 async function loadFromSupabase(){
   setSyncState('syncing');
   try{
-    const [prog,logRaw,histRaw] = await Promise.all([
-      sbGet('sys_progress',UID),
-      sbGetMany('sys_log',UID,50),
-      sbGetMany('sys_xp_history',UID,60),
+    const [prog, logRaw, histRaw] = await Promise.all([
+      sbGet('sys_progress', UID),
+      sbGetMany('sys_log', UID, 50),
+      sbGetMany('sys_xp_history', UID, 60),
     ]);
     if(prog){
-      S={...S,...prog};
-      // --- Calcul du mois (corrigé) ---
+      S = { ...S, ...prog };
       const start = new Date(S.start_date);
       const now = new Date();
       const diffJours = Math.floor((now - start) / (1000 * 60 * 60 * 24));
       let moisEcoules = Math.floor(diffJours / 30.44);
       S.current_month = Math.max(1, Math.min(12, moisEcoules + 1));
     }
-    if(Array.isArray(logRaw))LOG=logRaw;
-    if(Array.isArray(histRaw))XP_HISTORY=histRaw;
-    const today=todayKey();
-    checkedToday={};
-    LOG.forEach(l=>{
-      if(l.quest_id&&l.quest_id!=='review'&&l.created_at&&l.created_at.slice(0,10)===today){
-        checkedToday[l.quest_id]=true;
+    if(Array.isArray(logRaw)) LOG = logRaw;
+    if(Array.isArray(histRaw)) XP_HISTORY = histRaw;
+
+    const today = todayKey();
+    checkedToday = {};
+    LOG.forEach(l => {
+      if(l.quest_id && l.quest_id !== 'review' && l.created_at && l.created_at.slice(0,10) === today){
+        checkedToday[l.quest_id] = true;
       }
     });
+
     await loadClassData();
     await loadBilanHistory();
-    
+
+    // Récupération des données locales
     const savedWeekly = localStorage.getItem('sys12_weekly_xp');
     if (savedWeekly) {
-      try {
-        weeklyClassXP = JSON.parse(savedWeekly);
-      } catch(e) {}
+      try { weeklyClassXP = JSON.parse(savedWeekly); } catch(e) {}
     }
     const savedAura = localStorage.getItem('sys12_aura');
     if (savedAura) {
@@ -920,40 +920,43 @@ async function loadFromSupabase(){
         lastBilanDate = auraData.lastBilanDate || null;
       } catch(e) {}
     }
-    
+
+    // --- CHARGEMENT DES QUÊTES PERSONNELLES ---
     const dbQuests = await loadCustomQuestsFromDB();
     if (dbQuests && Array.isArray(dbQuests)) {
       customQuests = dbQuests;
       localStorage.setItem('sys12_custom_quests', JSON.stringify(customQuests));
     } else {
-      customQuests = JSON.parse(localStorage.getItem('sys12_custom_quests')||'[]');
+      customQuests = JSON.parse(localStorage.getItem('sys12_custom_quests') || '[]');
     }
-    
+
+    // --- CHARGEMENT DE LA SIDEQUEST AVEC PRIORITÉ SUPABASE ---
     const dbSq = await loadSidequestFromDB();
     const todayStr = todayKey();
+
     if (dbSq && dbSq.date === todayStr) {
+      // ✅ La base a une sidequest pour aujourd'hui → on l'utilise
       currentSidequest = dbSq;
       localStorage.setItem('sys12_sidequest', JSON.stringify(currentSidequest));
     } else {
-      const localSq = localStorage.getItem('sys12_sidequest');
-      if (localSq) {
-        const parsed = JSON.parse(localSq);
-        if (parsed.date === todayStr) {
-          currentSidequest = parsed;
-        }
-      }
-      if (!currentSidequest) {
-        const rand = BANQUE_SIDEQUESTS[Math.floor(Math.random()*BANQUE_SIDEQUESTS.length)];
-        currentSidequest = {date: todayStr, text: rand.text, pid: rand.pid, done: false, isIA: false};
-        localStorage.setItem('sys12_sidequest', JSON.stringify(currentSidequest));
-        await saveSidequestToDB(currentSidequest);
-      } else {
-        await saveSidequestToDB(currentSidequest);
-      }
+      // ❌ Pas de sidequest en base pour aujourd'hui → on en crée une
+      const rand = BANQUE_SIDEQUESTS[Math.floor(Math.random() * BANQUE_SIDEQUESTS.length)];
+      currentSidequest = {
+        date: todayStr,
+        text: rand.text,
+        pid: rand.pid || 'p5',
+        done: false,
+        isIA: false
+      };
+      localStorage.setItem('sys12_sidequest', JSON.stringify(currentSidequest));
+      await saveSidequestToDB(currentSidequest);
     }
-    
+
     setSyncState('ok');
-  }catch(e){setSyncState('error');}
+  } catch(e) {
+    setSyncState('error');
+    console.error('Erreur loadFromSupabase:', e);
+  }
 }
 
 async function saveProgress(){
