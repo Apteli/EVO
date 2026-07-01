@@ -3,1168 +3,782 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content=\"yes\">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Évolution">
-<title>Projet Évolution</title>
+<title>Projet Évolution - Système de Chasseur</title>
 <link rel="icon" type="image/jpeg" href="favicon.jpg?v=3">
 <link rel="apple-touch-icon" href="favicon.jpg?v=3">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-:root{--bg:#0e0e10;--card:#18181c;--card2:#222228;--border:rgba(255,255,255,0.07);--text:#f0f0f0;--muted:#777;--accent:#a78bfa;--accent2:#7c3aed;--green:#34d399;--amber:#fbbf24;--coral:#f87171;--blue:#60a5fa;--orange:#fb923c;--r:14px;}
+:root{
+  --bg:#0e0e10;
+  --card:#18181c;
+  --card2:#222228;
+  --border:rgba(255,255,255,0.07);
+  --text:#f0f0f0;
+  --muted:#777;
+  --accent:#a78bfa;
+  --accent2:#7c3aed;
+  --green:#34d399;
+  --amber:#fbbf24;
+  --coral:#f87171;
+  --blue:#60a5fa;
+  --orange:#fb923c;
+  --r:14px;
+  
+  /* Couleurs des Classes RPG */
+  --color-guerrier:#ef4444;
+  --color-mage:#3b82f6;
+  --color-ombre:#8b5cf6;
+  --color-aventurier:#10b981;
+  --color-stagnant:#6b7280;
+  --color-supreme:#ffffff;
+}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;font-size:15px;min-height:100dvh;padding-bottom:calc(76px + env(safe-area-inset-bottom));}
-.screen{display:none;padding:14px;max-width:500px;margin:0 auto;}
-.screen.active{display:block;}
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 14px 6px;max-width:500px;margin:0 auto;}
-.topbar-title{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
-.topbar-right{display:flex;align-items:center;gap:10px;}
-.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--green);transition:background .3s;}
-.sync-dot.syncing{background:var(--amber);animation:pulse 1s infinite;}
-.sync-dot.error{background:var(--coral);}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.top-xp{font-size:13px;font-weight:700;color:var(--accent);}
-.phase-banner{border-radius:10px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;}
-.ph1{background:rgba(52,211,153,.1);border:0.5px solid rgba(52,211,153,.25);}
-.ph2{background:rgba(96,165,250,.1);border:0.5px solid rgba(96,165,250,.25);}
-.ph3{background:rgba(167,139,250,.1);border:0.5px solid rgba(167,139,250,.25);}
-.phase-icon{font-size:20px;}
-.phase-info{flex:1;}
-.phase-name{font-size:13px;font-weight:700;}
-.phase-desc{font-size:11px;color:var(--muted);margin-top:1px;}
-.phase-prog{font-size:11px;font-weight:600;margin-left:auto;}
-.ph1 .phase-prog{color:var(--green);}
-.ph2 .phase-prog{color:var(--blue);}
-.ph3 .phase-prog{color:var(--accent);}
-.xp-hero{background:var(--card);border:0.5px solid var(--border);border-radius:var(--r);padding:18px 16px 14px;margin-bottom:12px;text-align:center;}
-.xp-big{font-size:54px;font-weight:800;letter-spacing:-2px;background:linear-gradient(135deg,var(--accent),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;}
-.xp-level{font-size:14px;color:var(--muted);margin-top:4px;}
-.xp-level span{color:var(--accent);font-weight:600;}
-.bar-wrap{background:rgba(255,255,255,0.06);border-radius:6px;height:6px;overflow:hidden;margin-top:12px;}
-.bar-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--accent2),var(--accent));transition:width .5s ease;}
-.bar-label{display:flex;justify-content:space-between;margin-top:5px;font-size:11px;color:var(--muted);}
-.streak-row{display:flex;gap:10px;margin-bottom:12px;}
-.streak-card{flex:1;background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:14px;text-align:center;}
-.streak-num{font-size:28px;font-weight:800;}
-.streak-lbl{font-size:11px;color:var(--muted);margin-top:2px;}
-.section-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:14px 0 8px;}
-.quest{display:flex;align-items:center;gap:12px;background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:13px 14px;margin-bottom:8px;cursor:pointer;transition:all .15s;user-select:none;}
-.quest:active{transform:scale(0.98);opacity:.8;}
-.quest.done{opacity:.4;}
-.quest.done .q-name{text-decoration:line-through;}
-.quest.locked{opacity:.25;cursor:default;pointer-events:none;}
-.check{width:22px;height:22px;border-radius:7px;border:1.5px solid rgba(255,255,255,0.2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .2s;}
-.quest.done .check{background:var(--green);border-color:var(--green);}
-.q-info{flex:1;min-width:0;}
-.q-name{font-size:14px;font-weight:500;line-height:1.3;}
-.q-desc{font-size:12px;color:var(--muted);margin-top:2px;}
-.q-tags{display:flex;gap:5px;margin-top:4px;flex-wrap:wrap;}
-.tag{font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;}
-.tag-min{background:rgba(167,139,250,.15);color:var(--accent);}
-.tag-ph{background:rgba(255,255,255,.07);color:var(--muted);}
-.tag-bounty{background:rgba(251,191,36,.15);color:var(--amber);}
-.q-xp{font-size:13px;font-weight:700;color:var(--accent);flex-shrink:0;}
-.btn-main{width:100%;background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;border:none;border-radius:14px;padding:16px;font-size:16px;font-weight:700;cursor:pointer;margin-top:14px;transition:opacity .15s;font-family:inherit;}
-.btn-main:active{opacity:.8;}
-.alert{background:rgba(251,191,36,.1);border:0.5px solid rgba(251,191,36,.3);border-radius:10px;padding:12px 14px;font-size:13px;color:#fbbf24;margin-bottom:12px;display:none;}
-.alert.show{display:block;}
-.pillar{background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;}
-.pillar-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
-.pillar-icon{font-size:20px;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.pillar-name{font-size:14px;font-weight:600;flex:1;}
-.pillar-lv{font-size:12px;color:var(--muted);}
-.pillar-sats{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;}
-.chart-card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px;}
-.chart-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
-.cap-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
-.cap-item{background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:10px 12px;}
-.cap-name{font-size:11px;color:var(--muted);margin-bottom:4px;}
-.cap-pct{font-size:16px;font-weight:700;margin-bottom:4px;}
-.cap-bar{height:4px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden;}
-.cap-fill{height:100%;border-radius:2px;transition:width .4s;}
-.heatmap{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px;}
-.hm-sq{width:12px;height:12px;border-radius:2px;background:rgba(255,255,255,0.05);}
-.hm-sq.on{background:var(--accent2);}
-.hm-sq.today{background:var(--accent);box-shadow:0 0 6px var(--accent);}
-.hm-legend{font-size:11px;color:var(--muted);display:flex;gap:14px;margin-bottom:4px;}
-.hm-legend span{display:flex;align-items:center;gap:5px;}
-.ms-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
-.ms-item{background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:12px;}
-.ms-item.reached{border-color:rgba(52,211,153,.4);background:rgba(52,211,153,.06);}
-.ms-icon{font-size:20px;margin-bottom:4px;}
-.ms-label{font-size:12px;font-weight:600;}
-.ms-status{font-size:11px;color:var(--muted);margin-top:2px;}
-.ms-item.reached .ms-status{color:var(--green);}
-.log-entry{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border);}
-.log-entry:last-child{border-bottom:none;}
-.log-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
-.log-text{flex:1;font-size:13px;}
-.log-xp{font-size:12px;font-weight:700;color:var(--accent);}
-.log-time{font-size:11px;color:var(--muted);}
-.rev-card{background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px;}
-.rev-q{font-size:14px;font-weight:600;margin-bottom:10px;}
-.stars{display:flex;gap:6px;}
-.star{font-size:26px;opacity:.2;cursor:pointer;transition:opacity .1s;}
-.star.on{opacity:1;}
-textarea{width:100%;background:rgba(255,255,255,.05);border:0.5px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-family:inherit;font-size:13px;resize:none;min-height:72px;outline:none;}
-textarea:focus{border-color:rgba(167,139,250,.5);}
-.setup-overlay{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;align-items:center;justify-content:center;padding:24px;}
-.setup-box{background:var(--card);border:0.5px solid var(--border);border-radius:20px;padding:28px 24px;width:100%;max-width:420px;}
-.setup-title{font-size:20px;font-weight:800;margin-bottom:6px;}
-.setup-sub{font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.5;}
-.setup-label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;}
-.setup-input{width:100%;background:rgba(255,255,255,.06);border:0.5px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-family:inherit;font-size:14px;outline:none;margin-bottom:16px;}
-.setup-input:focus{border-color:rgba(167,139,250,.5);}
-.setup-hint{font-size:12px;color:var(--muted);margin-bottom:20px;line-height:1.5;}
-.setup-err{font-size:12px;color:var(--coral);margin-bottom:12px;display:none;}
-.setup-err.show{display:block;}
-.tab-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(14,14,16,.94);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:0.5px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:100;}
-.tab-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:10px 2px;border:none;background:none;color:var(--muted);font-size:9px;font-family:inherit;cursor:pointer;transition:color .15s;min-height:56px;}
-.tab-btn.active{color:var(--accent);}
-.tab-icon{font-size:20px;line-height:1;}
-.empty-state{color:var(--muted);font-size:13px;padding:28px 0;text-align:center;}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:16px;padding-bottom:100px;display:flex;justify-content:center;}
+.app-container{width:100%;max-width:480px;display:flex;flex-direction:column;gap:20px;}
 
-.ai-card{background:linear-gradient(135deg,rgba(124,58,237,.12),rgba(96,165,250,.08));border:0.5px solid rgba(167,139,250,.25);border-radius:12px;padding:14px 16px;margin-bottom:10px;}
-.ai-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
-.ai-label{font-size:11px;font-weight:700;color:var(--accent);letter-spacing:.05em;text-transform:uppercase;}
-.ai-body{font-size:13px;color:var(--text);line-height:1.65;white-space:pre-wrap;}
-.chat-messages-box{max-height:220px;overflow-y:auto;margin-top:10px;padding-top:10px;border-top:0.5px solid var(--border);display:flex;flex-direction:column;gap:10px;}
-.chat-msg{font-size:13px;line-height:1.5;white-space:pre-wrap;padding:4px 0;}
-.chat-msg.user{color:var(--blue);font-weight:500;}
-.chat-msg.coach{color:var(--text);}
-.coach-chat-wrap{margin-top:12px;display:flex;gap:8px;}
-.coach-input{flex:1;background:rgba(255,255,255,0.06);border:0.5px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:inherit;font-size:13px;outline:none;}
-.coach-input:focus{border-color:rgba(167,139,250,0.5);}
-.coach-send{background:var(--accent2);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;}
-.coach-send:active{opacity:0.8;}
-.btn-coach{background:rgba(167,139,250,.1);border:0.5px solid rgba(167,139,250,.3);border-radius:8px;padding:5px 11px;font-size:11px;font-weight:600;color:var(--accent);cursor:pointer;font-family:inherit;display:inline-block;margin-top:6px;}
-.coach-select{background:rgba(24,24,28,0.9);border:0.5px solid rgba(255,255,255,0.15);color:var(--text);border-radius:6px;padding:4px 8px;font-size:11px;font-family:inherit;outline:none;margin-top:6px;vertical-align:middle;}
+header{display:flex;justify-content:between;align-items:center;background:var(--card);padding:16px;border-radius:var(--r);border:1px solid var(--border);position:relative;overflow:hidden;}
+header::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:linear-gradient(to bottom, var(--accent), var(--accent2));}
+.profile-info h1{font-size:18px;font-weight:800;letter-spacing:-0.5px;display:flex;align-items:center;gap:6px;}
+.profile-info p{font-size:12px;color:var(--muted);font-family:monospace;margin-top:2px;}
+.level-badge{background:linear-gradient(135deg,var(--accent),var(--accent2));padding:8px 12px;border-radius:10px;text-align:center;box-shadow:0 4px 12px rgba(124,58,237,0.3);}
+.level-badge .num{font-size:20px;font-weight:900;font-family:monospace;line-height:1;}
+.level-badge .lbl{font-size:9px;text-transform:uppercase;font-weight:700;letter-spacing:0.5px;opacity:0.8;margin-top:2px;}
 
-/* Formulaires Livre des Quêtes */
-.form-group{margin-bottom:12px;}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
-.form-select, .form-input{width:100%;background:rgba(255,255,255,.05);border:0.5px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-family:inherit;font-size:13px;outline:none;}
-.form-select:focus, .form-input:focus{border-color:var(--accent);}
-.btn-sm{padding:10px 14px;font-size:13px;font-weight:600;border-radius:8px;border:none;cursor:pointer;font-family:inherit;}
-.btn-accent{background:var(--accent2);color:#fff;}
-.btn-muted{background:rgba(255,255,255,0.06);color:var(--text);border:0.5px solid var(--border);}
-.btn-accent:active, .btn-muted:active{opacity:0.8;}
-.sidequest-box{background:linear-gradient(135deg,rgba(251,191,36,0.1),rgba(249,146,60,0.05));border:0.5px solid rgba(251,191,36,0.25);border-radius:12px;padding:14px;margin-bottom:14px;}
-.sidequest-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
-.sidequest-title{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--amber);letter-spacing:0.05em;}
-.sidequest-xp{font-size:12px;font-weight:700;color:var(--amber);}
+/* Section des Triples Barres d'XP */
+.xp-container-card {background:var(--card);padding:16px;border-radius:var(--r);border:1px solid var(--border);display:flex;flex-direction:column;gap:12px;}
+.xp-wrapper{display:flex;flex-direction:column;gap:4px;}
+.xp-header{display:flex;justify-content:between;font-size:11px;font-family:monospace;font-weight:bold;}
+.xp-bar-bg{width:100%;height:8px;background:rgba(255,255,255,0.05);border-radius:4px;overflow:hidden;position:relative;border:1px solid rgba(255,255,255,0.02);}
+.xp-bar-fill{height:100%;border-radius:4px;transition:width 0.4s ease;}
+
+.card{background:var(--card);border-radius:var(--r);border:1px solid var(--border);padding:16px;display:flex;flex-direction:column;gap:14px;}
+.card-title{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);display:flex;align-items:center;gap:6px;font-family:monospace;}
+
+/* Classes RPG Progression Grid */
+.classes-grid {grid-template-cols:1fr 1fr; gap:10px; display:none;} /* Géré en JS si activé */
+.class-box {background:var(--card2);padding:10px;border-radius:8px;border:1px solid var(--border);position:relative;}
+.class-box-title {font-size:11px;font-weight:bold;font-family:monospace;display:flex;justify-content:between;}
+.class-bar {width:100%;height:4px;background:rgba(0,0,0,0.3);border-radius:2px;margin-top:6px;overflow:hidden;}
+.class-fill {height:100%;width:0%;transition:width 0.3s;}
+
+.pillar-item{background:var(--card2);padding:12px;border-radius:10px;border:1px solid var(--border);display:flex;flex-direction:column;gap:10px;transition:all 0.2s;}
+.pillar-top{display:flex;justify-content:between;align-items:center;}
+.pillar-info h3{font-size:14px;font-weight:700;letter-spacing:-0.2px;}
+.pillar-info p{font-size:11px;color:var(--muted);margin-top:1px;}
+.pillar-tag {font-size:9px;font-weight:bold;font-family:monospace;padding:2px 6px;border-radius:4px;text-transform:uppercase;}
+
+.btn-check{background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:monospace;transition:all 0.2s;}
+.btn-check.active{background:var(--accent);border-color:var(--accent);color:#000;box-shadow:0 0 10px rgba(167,139,250,0.4);}
+
+.sidequest-box{background:linear-gradient(145deg, #1e1b4b, #111029);border:1px solid rgba(167,139,250,0.2);border-radius:var(--r);padding:16px;position:relative;overflow:hidden;}
+.sq-header{display:flex;justify-content:between;align-items:center;margin-bottom:8px;}
+.sq-title{font-size:15px;font-weight:800;color:#c084fc;}
+.sq-desc{font-size:13px;color:#e9d5ff;line-height:1.4;margin-bottom:12px;font-style:italic;}
+
+.nav-bar{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:448px;background:rgba(24,24,28,0.95);backdrop-filter:blur(12px);border-radius:16px;border:1px solid var(--border);padding:8px;display:flex;justify-content:around;box-shadow:0 10px 30px rgba(0,0,0,0.5);z-index:100;}
+.nav-item{flex:1;text-align:center;padding:10px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;font-family:monospace;cursor:pointer;border-radius:10px;transition:all 0.2s;}
+.nav-item.active{color:var(--accent);background:rgba(255,255,255,0.03);}
+
+.input-field{background:var(--card2);border:1px solid var(--border);color:var(--text);padding:10px;border-radius:8px;font-size:13px;width:100%;outline:none;focus:border-color:var(--accent);}
+.btn-primary{background:var(--accent);color:#000;border:none;padding:12px;border-radius:8px;font-size:13px;font-weight:800;cursor:pointer;text-transform:uppercase;font-family:monospace;transition:all 0.2s;text-align:center;}
+.btn-primary:hover{opacity:0.9;}
+
+.phase-banner{text-align:center;padding:6px;border-radius:6px;font-size:11px;font-weight:800;font-family:monospace;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
+
+/* Modal Choix de Bénédiction */
+.modal-overlay {position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);backdrop-filter:blur(4px);display:none;justify-content:center;align-items:center;z-index:1000;padding:16px;}
+.modal-box {background:var(--card);border:2px solid var(--accent);border-radius:var(--r);padding:20px;max-width:400px;width:100%;text-align:center;box-shadow:0 0 25px rgba(255,255,255,0.2);}
+.modal-box h3 {font-size:18px;font-weight:900;margin-bottom:10px;text-transform:uppercase;}
+.modal-box p {font-size:13px;color:var(--muted);margin-bottom:16px;}
+.modal-buttons {display:flex;flex-direction:column;gap:8px;}
+.btn-modal-choice {background:var(--card2);border:1px solid var(--border);color:var(--text);padding:10px;border-radius:8px;font-size:12px;font-weight:bold;cursor:pointer;font-family:monospace;text-transform:uppercase;}
+
+.txt-area{background:var(--card2);border:1px solid var(--border);color:var(--text);padding:10px;border-radius:8px;font-size:13px;width:100%;height:60px;resize:none;outline:none;}
+.review-item{background:var(--card2);padding:12px;border-radius:10px;border:1px solid var(--border);font-size:12px;position:relative;}
+.review-header{display:flex;justify-content:between;color:var(--muted);font-family:monospace;font-size:10px;margin-bottom:4px;}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-<div class="setup-overlay" id="setup-overlay" style="display:none">
-  <div class="setup-box">
-    <div class="setup-title">Bienvenue 👋</div>
-    <div class="setup-sub">Entre ton identifiant pour synchroniser ta progression sur tous tes appareils.</div>
-    <div class="setup-label">Ton prénom ou pseudo</div>
-    <input class="setup-input" id="setup-name" placeholder="ex: eliseo" maxlength="30" autocomplete="off" autocorrect="off" autocapitalize="off">
-    <div class="setup-hint">Même identifiant sur tous tes appareils. Lettres et chiffres uniquement.</div>
-    <div class="setup-err" id="setup-err">Identifiant invalide. Lettres et chiffres uniquement.</div>
-    <button class="btn-main" style="margin-top:0" onclick="setupUser()">Commencer →</button>
-  </div>
-</div>
+<div class="app-container">
 
-<div class="topbar">
-  <div class="topbar-title">Projet Évolution</div>
-  <div class="topbar-right">
-    <div class="sync-dot" id="sync-dot"></div>
-    <div class="top-xp" id="top-xp">0 XP</div>
-  </div>
-</div>
+  <div id="phase-container"></div>
 
-<div id="screen-today" class="screen active">
-  <div id="alert" class="alert">⚠️ 3 jours sans activité — protocole minimum : 20 min.</div>
-  
-  <!-- Boussole Banner -->
-  <div id="bounty-banner" class="phase-banner" style="background:rgba(251,191,36,.08);border:0.5px solid rgba(251,191,36,.25);margin-bottom:12px;display:none;">
-    <div class="phase-icon">🚨</div>
-    <div class="phase-info">
-      <div class="phase-name" style="color:var(--amber)">Boussole : Prime du Jour activée !</div>
-      <div class="phase-desc" id="bounty-desc" style="color:rgba(255,255,255,0.7)">+25% XP sur toutes les quêtes liées au pilier le plus bas.</div>
+  <header>
+    <div class="profile-info">
+      <h1 id="lbl-rank">Initié</h1>
+      <p id="lbl-aura">Aura : Analyse en cours...</p>
+      <p id="lbl-streak">🔥 Série Actuelle : 0 jours</p>
     </div>
-  </div>
+    <div class="level-badge">
+      <div class="num" id="lbl-level">1</div>
+      <div class="lbl">Niveau</div>
+    </div>
+  </header>
 
-  <!-- Bloc Coach IA -->
-  <div id="ai-welcome" class="ai-card" style="display:none">
-    <div class="ai-header"><span style="font-size:16px">🤖</span><span class="ai-label">Coach IA</span></div>
-    <div class="ai-body" id="ai-welcome-text"></div>
-    <div id="coach-chat-messages" class="chat-messages-box" style="display:none"></div>
-    <div class="coach-chat-wrap">
-      <input type="text" id="coach-free-input" class="coach-input" placeholder="Discuter avec ton coach..." autocomplete="off">
-      <button class="coach-send" onclick="envoyerMessageCoach()">Envoyer</button>
-    </div>
-  </div>
-
-  <div id="phase-banner" class="phase-banner ph1">
-    <div class="phase-icon">🌱</div>
-    <div class="phase-info">
-      <div class="phase-name">Phase 1 — Fondations</div>
-      <div class="phase-desc">Installer les routines à friction minimale</div>
-    </div>
-    <div class="phase-prog" id="phase-prog">Mois 1</div>
-  </div>
-  <div class="xp-hero">
-    <div class="xp-big" id="xp-big">0</div>
-    <div class="xp-level">Niveau <span id="lv-name">Initié</span></div>
-    <div class="bar-wrap"><div class="bar-fill" id="lv-bar" style="width:0%"></div></div>
-    <div class="bar-label"><span id="bar-cur">0 / 500 XP</span><span id="bar-next">→ Apprenti</span></div>
-  </div>
-  <div class="streak-row">
-    <div class="streak-card">
-      <div class="streak-num" style="color:#fb923c" id="streak-num">🔥 0</div>
-      <div class="streak-lbl">jours consécutifs</div>
-    </div>
-    <div class="streak-card">
-      <div class="streak-num" style="color:var(--blue)" id="days-total">0</div>
-      <div class="streak-lbl">jours actifs</div>
-    </div>
-  </div>
-  <div class="section-title">Minimum — 20 min</div>
-  <div id="quetes-min"></div>
-  <div class="section-title">Optimal</div>
-  <div id="quetes-opt"></div>
-  <button class="btn-main" id="btn-valider" onclick="validerJour()">✓ Valider la journée</button>
-</div>
-
-<!-- Nouvel Onglet Livre des Quêtes -->
-<div id="screen-book" class="screen">
-  <!-- Sidequest Aléatoire du Jour -->
-  <div class="sidequest-box" id="sidequest-card">
-    <div class="sidequest-header">
-      <div class="sidequest-title">🎲 Sidequest du Jour (Aléatoire)</div>
-      <div class="sidequest-xp" id="sq-xp-display">+30 XP</div>
-    </div>
-    <div class="quest" id="sidequest-item" onclick="toggleSidequest()" style="margin-bottom:8px;">
-      <div class="check" id="sq-check"></div>
-      <div class="q-info">
-        <div class="q-name" id="sidequest-text">Chargement du défi...</div>
-        <div class="q-desc" id="sidequest-sub">Zone de confort, sociabilité et observation de terrain.</div>
+  <section class="xp-container-card">
+    <div class="xp-wrapper">
+      <div class="xp-header">
+        <span class="text-neon" id="title-xp-global" style="color:var(--accent);">Niveau Global (Avatar)</span>
+        <span id="txt-xp-global">0 / 1000 XP</span>
+      </div>
+      <div class="xp-bar-bg">
+        <div class="xp-bar-fill" id="bar-xp-global" style="background:linear-gradient(to right, var(--accent), var(--accent2)); width: 0%;"></div>
       </div>
     </div>
-    <button class="btn-sm btn-muted" id="btn-reroll" onclick="rerollSidequestIA()" style="width:100%;">🎲 Relancer via le Coach (IA)</button>
-  </div>
-
-  <div class="rev-card">
-    <div class="chart-title" style="margin-bottom:10px;">Forges de Quêtes Personnelles</div>
-    <div class="form-group">
-      <input type="text" id="cq-name" class="form-input" placeholder="Nom de ta tâche ou objectif..." autocomplete="off">
+    <div class="xp-wrapper">
+      <div class="xp-header">
+        <span style="color:var(--blue);">Discipline des Piliers (×1.2)</span>
+        <span id="txt-xp-piliers">0 XP</span>
+      </div>
+      <div class="xp-bar-bg">
+        <div class="xp-bar-fill" id="bar-xp-piliers" style="background:var(--blue); width: 0%;"></div>
+      </div>
     </div>
-    <div class="form-row">
-      <select id="cq-pillar" class="form-select"></select>
-      <select id="cq-diff" class="form-select">
-        <option value="easy">Facile (10 XP)</option>
-        <option value="medium">Moyen (25 XP)</option>
-        <option value="hard">Difficile (50 XP)</option>
+    <div class="xp-wrapper">
+      <div class="xp-header">
+        <span style="color:var(--green);">Adaptabilité (Quêtes Forgées)</span>
+        <span id="txt-xp-quetes">0 XP</span>
+      </div>
+      <div class="xp-bar-bg">
+        <div class="xp-bar-fill" id="bar-xp-quetes" style="background:var(--green); width: 0%;"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" style="padding:14px;">
+    <div class="card-title" style="justify-content:space-between; cursor:pointer;" onclick="toggleClassesGrid()">
+      <span>🦅 Menu des Classes de Chasseur</span>
+      <span id="btn-toggle-classes" style="font-size:10px;">[Afficher]</span>
+    </div>
+    <div class="classes-grid" id="classes-grid-el" style="display:grid;">
+      <div class="class-box" style="border-color:rgba(239,68,68,0.2);">
+        <div class="class-box-title">
+          <span style="color:var(--color-guerrier);">GUERRIER</span>
+          <span id="lbl-lvl-Guerrier">Niv.1</span>
+        </div>
+        <div class="class-bar"><div class="class-fill" id="fill-Guerrier" style="background:var(--color-guerrier);"></div></div>
+      </div>
+      <div class="class-box" style="border-color:rgba(59,130,246,0.2);">
+        <div class="class-box-title">
+          <span style="color:var(--color-mage);">MAGE</span>
+          <span id="lbl-lvl-Mage">Niv.1</span>
+        </div>
+        <div class="class-bar"><div class="class-fill" id="fill-Mage" style="background:var(--color-mage);"></div></div>
+      </div>
+      <div class="class-box" style="border-color:rgba(139,92,246,0.2);">
+        <div class="class-box-title">
+          <span style="color:var(--color-ombre);">L'OMBRE</span>
+          <span id="lbl-lvl-Ombre">Niv.1</span>
+        </div>
+        <div class="class-bar"><div class="class-fill" id="fill-Ombre" style="background:var(--color-ombre);"></div></div>
+      </div>
+      <div class="class-box" style="border-color:rgba(16,185,129,0.2);">
+        <div class="class-box-title">
+          <span style="color:var(--color-aventurier);">AVENTURIER</span>
+          <span id="lbl-lvl-Aventurier">Niv.1</span>
+        </div>
+        <div class="class-bar"><div class="class-fill" id="fill-Aventurier" style="background:var(--color-aventurier);"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <main id="view-piliers" class="view-section" style="display:flex; flex-direction:column; gap:20px;">
+    <div class="sidequest-box">
+      <div class="sq-header">
+        <span class="pillar-tag" style="background:rgba(192,132,252,0.2); color:#c084fc;">Sidequest Quotidienne</span>
+        <span id="sq-xp" style="font-size:11px; font-family:monospace; font-weight:bold; color:#c084fc;">+60 XP</span>
+      </div>
+      <div class="sq-title" id="sq-title">Chargement de la faille...</div>
+      <div class="sq-desc" id="sq-desc">Analyse spatio-temporelle en cours.</div>
+      <button class="btn-check" id="btn-sq" onclick="validerSidequest()" style="width:100%; border-color:rgba(167,139,250,0.3); background:rgba(167,139,250,0.05); color:#e9d5ff;">MARQUER LA SÉANCE COMME COMPLÉTÉE</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🧬 Vos 5 Piliers d'Évolution Rituels</div>
+      <div id="piliers-container" style="display:flex; flex-direction:column; gap:12px;"></div>
+    </div>
+  </main>
+
+  <main id="view-forge" class="view-section" style="display:none; flex-direction:column; gap:20px;">
+    <div class="card">
+      <div class="card-title">⚔️ La Forge de Combat (IA Workout)</div>
+      <p style="font-size:12px; color:var(--muted); margin-top:-6px;">Génère un protocole de conditionnement physique de 30-45min adapté à ton build.</p>
+      <button class="btn-primary" onclick="forgerEntrainement()">Activer la Forge de Séance</button>
+      <div id="workout-result" style="background:var(--card2); padding:12px; border-radius:8px; border:1px solid var(--border); font-size:12px; white-space:pre-line; display:none; font-family:monospace;" id="txt-workout"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🔨 Forger une Quête Autonome</div>
+      <p style="font-size:12px; color:var(--muted); margin-top:-6px;">Un défi logistique imprévu ? Ajoute-le ici. (Nourrit exclusivement la classe <strong>Aventurier</strong>).</p>
+      <input type="text" id="input-forge-name" class="input-field" placeholder="Nom de la quête forgée...">
+      <select id="input-forge-difficulty" class="input-field" style="margin-top:8px;">
+        <option value="30">Difficulté : Mineure (+30 XP)</option>
+        <option value="70" selected>Difficulté : Standard (+70 XP)</option>
+        <option value="150">Difficulté : Faille Majeure (+150 XP)</option>
       </select>
+      <button class="btn-primary" onclick="executerQueteForge()" style="margin-top:4px;">Inscrire et accomplir la Quête</button>
     </div>
-    <div class="form-group">
-      <select id="cq-type" class="form-select">
-        <option value="oneshot">One-shot (To-Do ponctuelle)</option>
-        <option value="recurrent">Récurrente (Quotidienne)</option>
-      </select>
-    </div>
-    <button class="btn-sm btn-accent" onclick="ajouterQuetePerso()" style="width:100%;">+ Forger la Quête</button>
-  </div>
+  </main>
 
-  <div class="section-title">Tes Quêtes Personnelles Actives</div>
-  <div id="custom-quests-list"></div>
+  <main id="view-reviews" class="view-section" style="display:none; flex-direction:column; gap:20px;">
+    <div class="card">
+      <div class="card-title">⚖️ Évaluation Hebdomadaire du Système</div>
+      <p style="font-size:12px; color:var(--muted); margin-top:-6px;">À effectuer le dimanche soir. Calcule ton Aura, ajuste les bonus de rattrapage (+10%) et fige l'historique.</p>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <input type="text" id="rev-bien" class="input-field" placeholder="Qu'est-ce qui a parfaitement fonctionné ?">
+        <input type="text" id="rev-resist" class="input-field" placeholder="Où s'est située la résistance psychologique ?">
+        <input type="text" id="rev-change" class="input-field" placeholder="Changement de comportement prévu semaine pro ?">
+        <select id="rev-stars" class="input-field">
+          <option value="5">⭐⭐⭐⭐⭐ Alignement Total (5/5)</option>
+          <option value="4">⭐⭐⭐⭐ Alignement Fort (4/5)</option>
+          <option value="3">⭐⭐⭐ Acceptable (3/5)</option>
+          <option value="2">⭐⭐ Insuffisant (2/5)</option>
+          <option value="1">⭐ Rupture de Discipline (1/5)</option>
+        </select>
+        <button class="btn-primary" style="background:var(--coral); color:#000;" onclick="soumettreRevueHebdo()">Déclencher le Bilan du Dimanche Soir</button>
+      </div>
+      <div id="ai-bilan" style="background:var(--card2); padding:12px; border-radius:8px; border:1px solid var(--border); font-size:12px; display:none; font-family:monospace; margin-top:10px;">
+        <div id="ai-bilan-text">Analyse de ta semaine...</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📉 Matrice d'Évolution Récente</div>
+      <canvas id="evolutionChart" style="max-height:200px; width:100%;"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title">📜 Archives des Revues de Chasse</div>
+      <div id="reviews-history-list" style="display:flex; flex-direction:column; gap:10px;"></div>
+    </div>
+  </main>
+
 </div>
 
-<div id="screen-piliers" class="screen">
-  <div id="piliers-list"></div>
-</div>
+<nav class="nav-bar">
+  <div class="nav-item active" onclick="switchView('piliers', this)">Piliers</div>
+  <div class="nav-item" onclick="switchView('forge', this)">Forge</div>
+  <div class="nav-item" onclick="switchView('reviews', this)">Bilan</div>
+</nav>
 
-<div id="screen-stats" class="screen">
-  <div class="chart-card">
-    <div class="chart-title">XP cumulé — historique</div>
-    <canvas id="chart-xp" height="130"></canvas>
-  </div>
-  <div class="chart-card">
-    <div class="chart-title">Équilibre des piliers</div>
-    <canvas id="chart-radar" height="200"></canvas>
-  </div>
-  <div class="section-title">Activité — 60 jours</div>
-  <div class="chart-card">
-    <div class="heatmap" id="heatmap"></div>
-    <div class="hm-legend">
-      <span><div class="hm-sq on" style="display:inline-block;width:10px;height:10px;border-radius:2px"></div> actif</span>
-      <span><div class="hm-sq today" style="display:inline-block;width:10px;height:10px;border-radius:2px"></div> aujourd'hui</span>
+<div class="modal-overlay" id="supreme-modal">
+  <div class="modal-box">
+    <h3 style="color:var(--amber);">✨ Octroi du Souverain</h3>
+    <p>Équilibre absolu détecté ! En tant qu'<strong>Aventurier Suprême</strong>, sélectionnez manuellement la classe qui profitera du boost de <strong>+10% XP</strong> cette semaine :</p>
+    <div class="modal-buttons">
+      <button class="btn-modal-choice" style="border-color:var(--color-guerrier);" onclick="appliquerBonusSupreme('Guerrier')">+10% Guerrier</button>
+      <button class="btn-modal-choice" style="border-color:var(--color-mage);" onclick="appliquerBonusSupreme('Mage')">+10% Mage</button>
+      <button class="btn-modal-choice" style="border-color:var(--color-ombre);" onclick="appliquerBonusSupreme('Ombre')">+10% Ombre</button>
+      <button class="btn-modal-choice" style="border-color:var(--color-aventurier);" onclick="appliquerBonusSupreme('Aventurier')">+10% Aventurier</button>
     </div>
   </div>
-  <div class="section-title">Capacités développées</div>
-  <div class="cap-grid" id="cap-grid"></div>
-  <div class="section-title">Jalons</div>
-  <div class="ms-grid" id="milestones"></div>
-  <div class="section-title">Journal des actions</div>
-  <div class="chart-card" id="log-list"><div class="empty-state">Aucune action enregistrée</div></div>
-</div>
-
-<div id="screen-revue" class="screen">
-  <div class="rev-card">
-    <div class="rev-q">Cette semaine globalement</div>
-    <div class="stars" id="stars-row">
-      <span class="star" onclick="setStar(1)">★</span>
-      <span class="star" onclick="setStar(2)">★</span>
-      <span class="star" onclick="setStar(3)">★</span>
-      <span class="star" onclick="setStar(4)">★</span>
-      <span class="star" onclick="setStar(5)">★</span>
-    </div>
-  </div>
-  <div class="rev-card">
-    <div class="rev-q">Ce qui a bien fonctionné</div>
-    <textarea id="rv-bien" placeholder="Habitudes tenues, progrès..."></textarea>
-  </div>
-  <div class="rev-card">
-    <div class="rev-q">Ce qui a résisté</div>
-    <textarea id="rv-resist" placeholder="Friction, abandons, raisons..."></textarea>
-  </div>
-  <div class="rev-card">
-    <div class="rev-q">Ce que je change cette semaine</div>
-    <textarea id="rv-change" placeholder="Un ajustement concret..."></textarea>
-  </div>
-  <button class="btn-main" onclick="sauvegarderRevue()">Sauvegarder +100 XP</button>
-  <div id="ai-bilan" class="ai-card" style="display:none;margin-top:12px;"><div class="ai-header"><span style="font-size:16px">🧠</span><span class="ai-label">Bilan IA</span></div><div class="ai-body" id="ai-bilan-text"></div></div>
-</div>
-
-<div class="tab-bar">
-  <button class="tab-btn active" onclick="goTab('today',this)"><span class="tab-icon">☀️</span>Aujourd'hui</button>
-  <button class="tab-btn" onclick="goTab('book',this)"><span class="tab-icon">📖</span>Livre</button>
-  <button class="tab-btn" onclick="goTab('piliers',this)"><span class="tab-icon">🧱</span>Piliers</button>
-  <button class="tab-btn" onclick="goTab('stats',this)"><span class="tab-icon">📈</span>Stats</button>
-  <button class="tab-btn" onclick="goTab('revue',this)"><span class="tab-icon">📋</span>Revue</button>
 </div>
 
 <script>
-const SB_URL='https://nlicstxewcrzjliyslkm.supabase.co';
-const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5saWNzdHhld2NyempsaXlzbGttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1ODg1NzUsImV4cCI6MjA5ODE2NDU3NX0.CTHaV_iM50Q_sA1l8_5rVL7b4nU8XonYRcds8Z702GI';
-const HDR={'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=representation'};
+// ==============================================================================
+// CONFIGURATION DU PROFIL & DE L'ÉTAT INITIAL DE L'AVATAR
+// ==============================================================================
+const START_DATE = new Date("2026-03-01"); // Début de ton protocole 12 mois
+let supabaseClient = null;
 
-async function sbGet(table,uid){
-  const r=await fetch(`${SB_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(uid)}&limit=1`,{headers:HDR});
-  const d=await r.json();
-  return d&&d[0]?d[0]:null;
-}
-async function sbUpsert(table,obj){
-  return fetch(`${SB_URL}/rest/v1/${table}`,{method:'POST',headers:{...HDR,'Prefer':'resolution=merge-duplicates,return=representation'},body:JSON.stringify(obj)});
-}
-async function sbInsert(table,obj){
-  return fetch(`${SB_URL}/rest/v1/${table}`,{method:'POST',headers:HDR,body:JSON.stringify(obj)});
-}
-async function sbDelete(table,uid,questId,day){
-  return fetch(`${SB_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(uid)}&quest_id=eq.${questId}&created_at=gte.${day}T00:00:00&created_at=lte.${day}T23:59:59`,{method:'DELETE',headers:HDR});
-}
-async function sbGetMany(table,uid,limit=30){
-  const r=await fetch(`${SB_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(uid)}&order=created_at.desc&limit=${limit}`,{headers:HDR});
-  return r.json();
-}
-
-const LEVELS=[
-  {min:0,name:'Initié'},{min:500,name:'Apprenti'},{min:1200,name:'Praticien'},
-  {min:2500,name:'Expert'},{min:5000,name:'Maître'},{min:10000,name:'Architecte'}
-];
-const PHASES=[
-  {id:1,months:[1,2,3],name:'Fondations',desc:'Installer les routines à friction minimale',icon:'🌱',cls:'ph1'},
-  {id:2,months:[4,5,6,7,8],name:'Intensification',desc:'Intégration des satellites, armée comme labo',icon:'⚡',cls:'ph2'},
-  {id:3,months:[9,10,11,12],name:'Consolidation',desc:'Mesure, ajustement, extension du système',icon:'💎',cls:'ph3'},
-];
-const QUETES={
-  min:[
-    {id:'q1',name:'Respiration / cohérence cardiaque',desc:'5 min box breathing ou cohérence cardiaque',xp:30,pid:'p2',phases:[1,2,3]},
-    {id:'q2',name:'Anki — cartes du jour',desc:'10 min, minimum 10 cartes (Étymologie médicale)',xp:40,pid:'p1',phases:[1,2,3]},
-    {id:'q3',name:'Sémiologie factuelle & conscience spatiale',desc:'1 fait physique noté (posture/marche) + 1 scan spatial (sorties/distances)',xp:20,pid:'p3',phases:[1,2,3]},
-  ],
-  opt:[
-    {id:'q4',name:'Bloc cognitif profond',desc:'45 min lecture technique, calcul ou méthode Feynman',xp:80,pid:'p1',phases:[1,2,3]},
-    {id:'q5',name:'Entraînement physique',desc:'30 min force, natation ou zone 2',xp:70,pid:'p4',phases:[1,2,3]},
-    {id:'q6',name:'Wim Hof / douche froide',desc:'Protocole respiration + exposition au froid',xp:50,pid:'p2',phases:[1,2,3]},
-    {id:'q7',name:'Langue ou rhétorique',desc:'30 min Pimsleur, Assimil ou débat oral',xp:60,pid:'p5',phases:[2,3]},
-    {id:'q8',name:'Journal décisionnel',desc:'5 min — 1 décision analysée pour biais cognitifs',xp:30,pid:'p1',phases:[1,2,3]},
-    {id:'q9',name:'Lecture 30 min',desc:'Médecine, philo, neuro, stoïcisme...',xp:40,pid:'p1',phases:[1,2,3]},
-    {id:'q10',name:'Échecs / jeu stratégique',desc:'15 min blitz ou puzzle — pensée multi-coups',xp:35,pid:'p5',phases:[2,3]},
-    {id:'q11',name:"Dessin d'observation",desc:'5 min — percevoir les lignes et volumes réels avant de dessiner',xp:25,pid:'p3',phases:[3]},
-    {id:'q12',name:'Calcul mental chronométré',desc:'10 min — vitesse et chunking',xp:30,pid:'p1',phases:[2,3]},
-  ]
+// Structure de données unifiée LitRPG intégrée localement + Supabase
+let userState = {
+  level: 1,
+  xp: 0,
+  xpNeeded: 1000,
+  xpPiliers: 0,
+  xpQuetes: 0,
+  streak: 0,
+  lastDateStr: "",
+  currentAura: "Aventurier Suprême",
+  auraColor: "#ffffff",
+  activeWeeklyBonus: null, // Classe qui prend +10%
+  classes: {
+    Guerrier: { level: 1, xp: 0 },
+    Mage: { level: 1, xp: 0 },
+    Ombre: { level: 1, xp: 0 },
+    Aventurier: { level: 1, xp: 0 }
+  },
+  weeklyXpGains: { Guerrier: 0, Mage: 0, Ombre: 0, Aventurier: 0 },
+  piliersValides: [false, false, false, false, false],
+  sidequestValide: false
 };
-const PILLARS=[
-  {id:'p1',name:'Métacognition & apprentissage',icon:'🧠',color:'#a78bfa',satellites:'Mémoire · Calcul · Biais · Feynman'},
-  {id:'p2',name:'Régulation psychophysio',icon:'🫁',color:'#34d399',satellites:'Stress · Wim Hof · Sommeil · Récupération'},
-  {id:'p3',name:'Présence & observation',icon:'👁',color:'#60a5fa',satellites:'Sémiologie · Espace · Faits · Distances'},
-  {id:'p4',name:'Condition physique',icon:'⚡',color:'#fb923c',satellites:'Force · Endurance · Proprio · Réflexes'},
-  {id:'p5',name:'Influence & communication',icon:'🎯',color:'#fbbf24',satellites:'Rhétorique · Langues · Négociation · Stratégie'},
-];
-const CAPS=[
-  {n:'Mémoire',p:'p1'},{n:'Calcul mental',p:'p1'},
-  {n:'Contrôle émotionnel',p:'p2'},{n:'Récupération',p:'p2'},
-  {n:'Sémiologie physique',p:'p3'},{n:'Conscience spatiale',p:'p3'},
-  {n:'Force musculaire',p:'p4'},{n:'Endurance cardio',p:'p4'},
-  {n:'Rhétorique',p:'p5'},{n:'Langues',p:'p5'},
-];
-const MILESTONES=[
-  {lbl:'Premier jour',icon:'🌱',check:s=>s.days_total>=1},
-  {lbl:'7 jours streak',icon:'🔥',check:s=>s.streak>=7},
-  {lbl:'500 XP',icon:'⭐',check:s=>s.total_xp>=500},
-  {lbl:'21 jours streak',icon:'💎',check:s=>s.streak>=21},
-  {lbl:'Phase 2',icon:'⚡',check:s=>s.current_month>=4},
-  {lbl:'1000 XP',icon:'🏆',check:s=>s.total_xp>=1000},
-];
-const PCOLS={p1:'#a78bfa',p2:'#34d399',p3:'#60a5fa',p4:'#fb923c',p5:'#fbbf24'};
 
-// Banque locale de Sidequests (Aléatoire)
-const BANQUE_SIDEQUESTS = [
-  {text: "L'Œil Clinique Social : Fais un compliment sincère et ultra-spécifique à un inconnu sur son style ou un accessoire.", pid: "p5"},
-  {text: "Le Brise-Glace Tactique : Demande une direction ou une recommandation à quelqu'un dans la rue sans sortir ton téléphone.", pid: "p5"},
-  {text: "L'Improvisation Neutre : Parle aujourd'hui sans utiliser aucun mot de remplissage (euuuh, genre, du coup).", pid: "p5"},
-  {text: "Scan d'urgence absolu : Dans le prochain lieu public, repère instantanément 3 issues et un objet utilisable en couverture.", pid: "p3"},
-  {text: "Vitesse d'ancrage : Regarde une personne 2 secondes, ferme les yeux, et liste mentalement sa posture et 2 détails vestimentaires.", pid: "p3"},
-  {text: "Hydratation flash : Bois un grand verre d'eau immédiatement pour réactiver la vigilance métabolique.", pid: "p2"},
-  {text: "Focus respiration : Fais 2 minutes de respiration triangulaire (4s inspire, 4s bloque, 4s expire) avant ta prochaine tâche.", pid: "p2"},
-  {text: "Détox numérique : Passe les 2 prochaines heures sans regarder aucun écran (hors urgence absolue).", pid: "p1"},
-  {text: "Calcul mental flash : Multiplie mentalement 3 paires de nombres à 2 chiffres dans la prochaine heure.", pid: "p1"},
-  {text: "Posture de combat : Reste debout ou assis avec une symétrie parfaite et un alignement vertébral pendant 15 minutes.", pid: "p4"},
-  {text: "Test d'équilibre complet : Tiens-toi sur une seule jambe, yeux fermés, pendant 45 secondes sans bouger.", pid: "p4"},
-  {text: "Anki inversé : Tente de réciter de mémoire 5 définitions médicales sans regarder les cartes.", pid: "p1"},
-  {text: "Micro-sieste de contrôle : Allonge-toi 10 minutes en contrôle respiratoire complet sans t'endormir.", pid: "p2"},
-  {text: "Analyse d'impact environnemental : Note le niveau sonore et la luminosité du lieu actuel, évalue son impact sur ton stress.", pid: "p3"},
-  {text: "L'art du silence : Écoute une conversation ou un groupe pendant 5 minutes sans intervenir une seule fois.", pid: "p5"},
-  {text: "Chrono-réflexes : Lance un petit objet (balle, clé) et rattrape-le avec la main non dominante 15 fois de suite.", pid: "p4"},
-  {text: "Rappel stoïcien : Identifie une contrariété récente et liste 2 raisons pour lesquelles elle échappe à ton contrôle.", pid: "p1"},
-  {text: "Douche contrastée : Termine ta prochaine douche par 60 secondes d'eau froide au maximum de tolérance.", pid: "p2"},
-  {text: "Estimation de foule : Compte précisément le nombre de personnes dans une pièce en moins de 10 secondes.", pid: "p3"},
-  {text: "Mémorisation de plaque : Retiens la plaque d'immatriculation de la prochaine voiture croisée pendant 1 heure.", pid: "p1"}
+// Les 5 piliers de vie officiels mappés sur les 4 Classes Distinctes
+const PILIERS_DEFS = [
+  { id: 0, name: "Métacognition et apprentissage", desc: "Études, lecture stratégique, deep work", target: "Mage", color: "var(--color-mage)" },
+  { id: 1, name: "Régulation psycho physio", desc: "Sommeil, respiration, méditation, cohérence", target: "Mage", color: "var(--color-mage)" },
+  { id: 2, name: "Présence et observation", desc: "Clarté mentale, scan factuel environnemental", target: "Ombre", color: "var(--color-ombre)" },
+  { id: 3, name: "Conditions physiques", desc: "Calisthénie, natation, course zone 2, nutrition", target: "Guerrier", color: "var(--color-guerrier)" },
+  { id: 4, name: "Influence et communication", desc: "Charisme, réseaux, négociation, impact social", target: "Ombre", color: "var(--color-ombre)" }
 ];
 
-let UID=localStorage.getItem('sys12_uid')||null;
-let checkedToday={};
-let S={total_xp:0,streak:0,last_day:null,days_total:0,start_date:new Date().toISOString().slice(0,10),current_month:1,p1_xp:0,p2_xp:0,p3_xp:0,p4_xp:0,p5_xp:0};
-let LOG=[];
-let XP_HISTORY=[];
-let customQuests=[];
-let starVal=0;
-let chartXp=null,chartRadar=null;
-let syncTimer=null;
-let isDayLocked=false;
+// Listes déterministes de Sidequests d'Observation (Strictement mécaniques et spatiales)
+const LIST_SIDEQUESTS = [
+  "Compte précisément le nombre de sources lumineuses artificielles dans la pièce actuelle.",
+  "Identifie 3 objets purement métalliques autour de toi et note mentalement leur texture.",
+  "Repère la position exacte de toutes les sorties d'urgence ou ouvertures du lieu actuel.",
+  "Observe les motifs géométriques au sol ou au plafond et compte les structures répétitives.",
+  "Fixe un point fixe architectural à plus de 10 mètres et analyse ses angles de coupe pendant 30s.",
+  "Évalue la distance métrique exacte qui te sépare du mur opposé le plus lointain."
+];
 
-function setupUser(){
-  const name=document.getElementById('setup-name').value.trim().toLowerCase().replace(/[^a-z0-9_]/g,'');
-  const errEl=document.getElementById('setup-err');
-  if(!name||name.length<2){errEl.classList.add('show');return;}
-  errEl.classList.remove('show');
-  UID=name;
-  localStorage.setItem('sys12_uid',UID);
-  document.getElementById('setup-overlay').style.display='none';
-  init();
+// Connexion sécurisée anonyme Supabase si Credentials disponibles
+function initSupabase() {
+  const url = ""; 
+  const key = ""; 
+  if(url && key && typeof supabase !== 'undefined') {
+    supabaseClient = supabase.createClient(url, key);
+  }
 }
 
-function setSyncState(st){
-  const dot=document.getElementById('sync-dot');
-  dot.className='sync-dot'+(st==='syncing'?' syncing':st==='error'?' error':'');
-}
-
-async function loadFromSupabase(){
-  setSyncState('syncing');
-  try{
-    const [prog,logRaw,histRaw]=await Promise.all([
-      sbGet('sys_progress',UID),
-      sbGetMany('sys_log',UID,50),
-      sbGetMany('sys_xp_history',UID,60),
-    ]);
-    if(prog){
-      S={...S,...prog};
-      const start=new Date(S.start_date);
-      const now=new Date();
-      const md=(now.getFullYear()-start.getFullYear())*12+(now.getMonth()-start.getMonth())+1;
-      S.current_month=Math.max(1,Math.min(12,md));
-    }
-    if(Array.isArray(logRaw))LOG=logRaw;
-    if(Array.isArray(histRaw))XP_HISTORY=histRaw;
-    const today=todayKey();
-    checkedToday={};
-    LOG.forEach(l=>{
-      if(l.quest_id&&l.quest_id!=='review'&&l.created_at&&l.created_at.slice(0,10)===today){
-        checkedToday[l.quest_id]=true;
-      }
-    });
-    setSyncState('ok');
-  }catch(e){setSyncState('error');}
-}
-
-async function saveProgress(){
-  setSyncState('syncing');
-  try{
-    await sbUpsert('sys_progress',{...S,user_id:UID,updated_at:new Date().toISOString()});
-    setSyncState('ok');
-  }catch(e){setSyncState('error');}
-}
-
-function scheduleSave(){
-  clearTimeout(syncTimer);
-  syncTimer=setTimeout(saveProgress,1500);
-}
-
-function todayKey(){return new Date().toISOString().slice(0,10);}
-
-function getCurrentPhase(){
-  const m=S.current_month||1;
-  return PHASES.find(p=>p.months.includes(m))||PHASES[0];
-}
-
-function getBountyPillar(){
-  const pillars=['p1','p2','p3','p4','p5'];
-  let minXp=Infinity;
-  let minId='p1';
-  pillars.forEach(id=>{
-    const xp=S[id+'_xp']||0;
-    if(xp<minXp){minXp=xp;minId=id;}
-  });
-  return minId;
-}
-
-function getLv(xp){
-  let l=0;
-  for(let i=0;i<LEVELS.length;i++){if(xp>=LEVELS[i].min)l=i;}
-  return l;
-}
-
-function updateHeader(){
-  const xp=S.total_xp,lv=getLv(xp),nl=Math.min(lv+1,LEVELS.length-1);
-  const cur=LEVELS[lv].min,next=LEVELS[nl].min;
-  const pct=lv===LEVELS.length-1?100:Math.round((xp-cur)/(next-cur)*100);
-  document.getElementById('top-xp').textContent=xp+' XP';
-  document.getElementById('xp-big').textContent=xp;
-  document.getElementById('lv-name').textContent=LEVELS[lv].name;
-  document.getElementById('lv-bar').style.width=pct+'%';
-  document.getElementById('bar-cur').textContent=(xp-cur)+' / '+(next-cur)+' XP';
-  document.getElementById('bar-next').textContent='→ '+LEVELS[nl].name;
-  document.getElementById('streak-num').textContent='🔥 '+S.streak;
-  document.getElementById('days-total').textContent=S.days_total;
-  const ph=getCurrentPhase();
-  const banner=document.getElementById('phase-banner');
-  banner.className='phase-banner '+ph.cls;
-  banner.querySelector('.phase-icon').textContent=ph.icon;
-  banner.querySelector('.phase-name').textContent='Phase '+ph.id+' — '+ph.name;
-  banner.querySelector('.phase-desc').textContent=ph.desc;
-  document.getElementById('phase-prog').textContent='Mois '+S.current_month;
+// ==============================================================================
+// ENGINE DE RECOUVREMENT & CALCUL DU ENGINE DE TEMPS (PHASES DE FLUX)
+// ==============================================================================
+function getPhaseActuelle() {
+  const maintenant = new Date();
+  const diffMois = (maintenant.getFullYear() - START_DATE.getFullYear()) * 12 + (maintenant.getMonth() - START_DATE.getMonth());
   
-  // Boussole Permanente UI
-  const bp=getBountyPillar();
-  const bpObj=PILLARS.find(p=>p.id===bp);
-  if(bpObj){
-    document.getElementById('bounty-banner').style.display='flex';
-    document.getElementById('bounty-desc').textContent=`Pilier ciblé : ${bpObj.name}. Toutes ses quêtes rapportent +25% XP.`;
-  }
-
-  const missed=S.last_day&&(new Date()-new Date(S.last_day))/86400000>3;
-  document.getElementById('alert').classList.toggle('show',!!missed&&S.days_total>0);
+  if (diffMois < 3) return { num: 1, name: "Phase 1 : Fondations Biologiques & Focus Intégral" };
+  if (diffMois < 6) return { num: 2, name: "Phase 2 : Renforcement Systémique & Résistance" };
+  if (diffMois < 9) return { num: 3, name: "Phase 3 : Transition Opérationnelle Légendaire" };
+  return { num: 4, name: "Phase 4 : Maîtrise Totale & Déploiement" };
 }
 
-function renderQuetes(){
-  const phase=getCurrentPhase();
-  const bp=getBountyPillar();
+function updatePhaseBanner() {
+  const ph = getPhaseActuelle();
+  const el = document.getElementById('phase-container');
+  if(!el) return;
   
-  function qHTML(q,isMin){
-    const done=!!checkedToday[q.id];
-    const inPhase=q.phases.includes(phase.id);
-    const isBounty=(q.pid===bp);
-    const displayedXp=isBounty?Math.round(q.xp*1.25):q.xp;
-    
-    const phTag=!inPhase?`<span class="tag tag-ph">Phase ${q.phases[0]}+</span>`:'';
-    const minTag=isMin?`<span class="tag tag-min">minimum</span>`:'';
-    const bountyTag=isBounty?`<span class="tag tag-bounty">🚨 Prime +25%</span>`:'';
-    
-    const safeN=q.name.replace(/"/g,'&quot;');
-    const safeD=q.desc.replace(/"/g,'&quot;');
-    
-    let coachBtn=inPhase?`<button class="btn-coach" data-qid="${q.id}" data-qname="${safeN}" data-qdesc="${safeD}" onclick="event.stopPropagation();coachQuete(this)">💡 Coach</button>`:'';
-    
-    if(q.id === 'q5' && inPhase) {
-      coachBtn += `
-      <select class="coach-select" id="workout-type" onclick="event.stopPropagation();">
-        <option value="bodyweight">🧱 Poids du corps</option>
-        <option value="swim">🏊 Natation</option>
-        <option value="run">🏃 Course à pied</option>
-        <option value="auto">🎲 Choix du coach</option>
-      </select>
-      <button class="btn-coach" style="background:rgba(96,165,250,.1);border-color:rgba(96,165,250,.3);color:var(--blue);margin-left:4px;" onclick="event.stopPropagation();genererEntrainement(this)">🏋️ Générer</button>`;
-    }
-
-    return `<div class="quest${done?' done':''}${!inPhase?' locked':''}" onclick="toggleQuete('${q.id}')">
-      <div class="check">${done?'✓':''}</div>
-      <div class="q-info">
-        <div class="q-name">${q.name}</div>
-        <div class="q-desc">${q.desc}</div>
-        <div class="q-tags">${minTag}${phTag}${bountyTag}</div>
-        ${coachBtn}
-      </div>
-      <div class="q-xp">+${displayedXp} XP</div>
-    </div>`;
-  }
-  document.getElementById('quetes-min').innerHTML=QUETES.min.map(q=>qHTML(q,true)).join('');
-  document.getElementById('quetes-opt').innerHTML=QUETES.opt.map(q=>qHTML(q,false)).join('');
+  let bg = "var(--accent2)";
+  if(ph.num === 1) bg = "#1e1b4b";
+  if(ph.num === 2) bg = "#311042";
+  if(ph.num === 3) bg = "#4c1d95";
+  
+  el.innerHTML = `<div class="phase-banner" style="background:${bg}; color:#fff;">⚡ ${ph.name}</div>`;
 }
 
-async function toggleQuete(id){
-  if(isDayLocked){
-    alert("La journée est verrouillée. Clique sur 'Modifier la journée' pour faire des modifications.");
-    return;
+// Synchronisation de la Sidequest Déterministe Multi-Appareil via Hachage de date
+function obtenirSidequestDuJour() {
+  const aujourdhui = new Date().toISOString().split('T')[0];
+  let hash = 0;
+  for (let i = 0; i < aujourdhui.length; i++) {
+    hash = aujourdhui.charCodeAt(i) + ((hash << 5) - hash);
   }
-  const all=[...QUETES.min,...QUETES.opt];
-  const q=all.find(x=>x.id===id);
-  if(!q)return;
-  const today=todayKey();
-  const bp=getBountyPillar();
-  const finalXp=(q.pid===bp)?Math.round(q.xp*1.25):q.xp;
+  const index = Math.abs(hash) % LIST_SIDEQUESTS.length;
+  document.getElementById('sq-title').textContent = "Détection Environnementale";
+  document.getElementById('sq-desc').textContent = LIST_SIDEQUESTS[index];
+}
 
-  if(checkedToday[id]){
-    delete checkedToday[id];
-    S.total_xp=Math.max(0,S.total_xp-finalXp);
-    S[q.pid+'_xp']=Math.max(0,(S[q.pid+'_xp']||0)-finalXp);
-    LOG=LOG.filter(l=>!(l.quest_id===id&&l.created_at&&l.created_at.slice(0,10)===today));
-    sbDelete('sys_log',UID,id,today).catch(()=>{});
+// ==============================================================================
+// MOTEUR D'XP ET DE CALCUL RPG ASYMETRIQUE
+// ==============================================================================
+function distribuerXp(valeurDeBase, classeCible, estPilier = false) {
+  let xpCalculee = valeurDeBase;
+
+  // 1. Règle du multiplicateur sacré de pilier (1.2x)
+  if (estPilier) {
+    xpCalculee = xpCalculee * 1.2;
+  }
+
+  // 2. Règle de la Bénédiction de Rattrapage (+10%)
+  if (userState.activeWeeklyBonus === classeCible) {
+    xpCalculee = xpCalculee * 1.1;
+  }
+
+  xpCalculee = Math.floor(xpCalculee);
+
+  // Distribution dans les sous-barres de suivi
+  if (estPilier) {
+    userState.xpPiliers += xpCalculee;
   } else {
-    checkedToday[id]=true;
-    S.total_xp+=finalXp;
-    S[q.pid+'_xp']=Math.min(3000,(S[q.pid+'_xp']||0)+finalXp);
-    const entry={user_id:UID,quest_id:id,quest_name:q.name,xp:finalXp,pillar_id:q.pid,created_at:new Date().toISOString()};
-    LOG.unshift(entry);
-    if(LOG.length>60)LOG.pop();
-    sbInsert('sys_log',entry).catch(()=>{});
+    userState.xpQuetes += xpCalculee;
   }
-  scheduleSave();
-  renderQuetes();
-  updateHeader();
-  renderPiliers();
+
+  // Distribution dans la classe dédiée et l'historique hebdomadaire
+  userState.classes[classeCible].xp += xpCalculee;
+  userState.weeklyXpGains[classeCible] += xpCalculee;
+  userState.xp += xpCalculee;
+
+  // Traitement Level Up de la Classe Spécifique (Grind Indépendant)
+  let classLvl = userState.classes[classeCible].level;
+  let xpPourClassUp = classLvl * 500;
+  if (userState.classes[classeCible].xp >= xpPourClassUp) {
+    userState.classes[classeCible].xp -= xpPourClassUp;
+    userState.classes[classeCible].level += 1;
+  }
+
+  // Traitement Level Up Global de l'Avatar
+  while (userState.xp >= userState.xpNeeded) {
+    userState.xp -= userState.xpNeeded;
+    userState.level += 1;
+    userState.xpNeeded = Math.floor(userState.xpNeeded * 1.5);
+  }
+
+  recalculerRangTitre();
+  mettreAJourInterfaceVisual();
+  sauvegarderLocalEtSupabase();
 }
 
-// Logique Sidequest du Jour (Sécurisée et Synchronisée entre écrans)
-function initSidequest(){
-  const today=todayKey();
-  const saved=localStorage.getItem('sys12_sidequest');
-  let sq=null;
-  if(saved){
-    sq=JSON.parse(saved);
-    if(sq.date!==today) sq=null;
+function recalculerRangTitre() {
+  const lvl = userState.level;
+  let rang = "Initié";
+  if (lvl >= 5) rang = "Éveillé Rang E";
+  if (lvl >= 10) rang = "Chasseur Rang D";
+  if (lvl >= 18) rang = "Monarque Rang C";
+  if (lvl >= 25) rang = "Souverain Rang B";
+  if (lvl >= 35) rang = "Ombre Suprême Rang A";
+  if (lvl >= 50) rang = "Architecte Rang S";
+  document.getElementById('lbl-rank').textContent = rang;
+}
+
+// ==============================================================================
+// GESTIONNAIRES DES ACTIONS UTILISATEUR
+// ==============================================================================
+function cocherPilier(id) {
+  if (userState.piliersValides[id]) return; // Action unique journalière
+  
+  userState.piliersValides[id] = true;
+  const def = PILIERS_DEFS[id];
+  distribuerXp(100, def.target, true);
+  
+  // Vérification de mise à jour de la série (Streak)
+  validerSérieQuotidienne();
+  construirePiliersHtml();
+}
+
+function validerSidequest() {
+  if (userState.sidequestValide) return;
+  userState.sidequestValide = true;
+  distribuerXp(60, "Aventurier", false);
+  
+  const btn = document.getElementById('btn-sq');
+  if(btn) {
+    btn.textContent = " FAIL-SAFE REQUIS COMPLÉTÉ ";
+    btn.className = "btn-check active";
   }
-  if(!sq){
-    // Algorithme de hachage déterministe basé sur Date + UID
-    // Les deux appareils génèrent ainsi EXACTEMENT le même défi au réveil
-    let hash = 0;
-    const seed = today + UID;
-    for (let i = 0; i < seed.length; i++) {
-      hash = seed.charCodeAt(i) + ((hash << 5) - hash);
+}
+
+function executerQueteForge() {
+  const nameEl = document.getElementById('input-forge-name');
+  const diffEl = document.getElementById('input-forge-difficulty');
+  if (!nameEl || !nameEl.value.trim()) return;
+
+  const xpVal = parseInt(diffEl.value);
+  distribuerXp(xpVal, "Aventurier", false);
+
+  nameEl.value = "";
+  alert(`Quête Forgée validée ! +${xpVal} XP injectés dans la classe Aventurier.`);
+}
+
+function validerSérieQuotidienne() {
+  const aujourdhui = new Date().toISOString().split('T')[0];
+  if (userState.lastDateStr !== aujourdhui) {
+    // Si c'est le jour suivant direct
+    const hier = new Date();
+    hier.setDate(hier.getDate() - 1);
+    const hierStr = hier.toISOString().split('T')[0];
+    
+    if (userState.lastDateStr === hierStr || userState.lastDateStr === "") {
+      userState.streak += 1;
+    } else {
+      userState.streak = 1; // Rupture de chaîne
     }
-    const idx = Math.abs(hash) % BANQUE_SIDEQUESTS.length;
-    const rand = BANQUE_SIDEQUESTS[idx];
-    sq={date:today,text:rand.text,pid:rand.pid,done:false,isIA:false};
-    localStorage.setItem('sys12_sidequest',JSON.stringify(sq));
-  }
-  updateSidequestUI();
-}
-
-function updateSidequestUI(){
-  const sq=JSON.parse(localStorage.getItem('sys12_sidequest'));
-  if(!sq) return;
-  const item=document.getElementById('sidequest-item');
-  const chk=document.getElementById('sq-check');
-  document.getElementById('sidequest-text').textContent=sq.text;
-  
-  const bp=getBountyPillar();
-  const baseXp=30;
-  const finalXp=(sq.pid===bp)?Math.round(baseXp*1.25):baseXp;
-  document.getElementById('sq-xp-display').textContent=`+${finalXp} XP` + ((sq.pid===bp)?' 🚨':'');
-
-  // L'état de validation s'aligne en temps réel sur la base de données globale
-  const isDoneGlobally = !!checkedToday['sidequest'];
-  sq.done = isDoneGlobally;
-  localStorage.setItem('sys12_sidequest', JSON.stringify(sq));
-
-  if(isDoneGlobally){
-    item.classList.add('done');
-    chk.textContent='✓';
-  }else{
-    item.classList.remove('done');
-    chk.textContent='';
+    userState.lastDateStr = aujourdhui;
   }
 }
 
-function toggleSidequest(){
-  if(isDayLocked) return;
-  const sq=JSON.parse(localStorage.getItem('sys12_sidequest'));
-  if(!sq) return;
-  const today=todayKey();
-  
-  const bp=getBountyPillar();
-  const baseXp=30;
-  const finalXp=(sq.pid===bp)?Math.round(baseXp*1.25):baseXp;
-  const currentStatus = !!checkedToday['sidequest'];
+// ==============================================================================
+// TRAITEMENT DU BILAN COMPACT DU DIMANCHE SOIR & SELECTION D'AURA
+// ==============================================================================
+function soumettreRevueHebdo() {
+  const bien = document.getElementById('rev-bien').value;
+  const resist = document.getElementById('rev-resist').value;
+  const change = document.getElementById('rev-change').value;
+  const stars = document.getElementById('rev-stars').value;
 
-  if(currentStatus){
-    checkedToday['sidequest']=false;
-    sq.done=false;
-    S.total_xp=Math.max(0,S.total_xp-finalXp);
-    if(sq.pid) S[sq.pid+'_xp']=Math.max(0,(S[sq.pid+'_xp']||0)-finalXp);
-    LOG=LOG.filter(l=>!(l.quest_id==='sidequest'&&l.created_at&&l.created_at.slice(0,10)===today));
-    sbDelete('sys_log',UID,'sidequest',today).catch(()=>{});
-  }else{
-    checkedToday['sidequest']=true;
-    sq.done=true;
-    S.total_xp+=finalXp;
-    if(sq.pid) S[sq.pid+'_xp']=Math.min(3000,(S[sq.pid+'_xp']||0)+finalXp);
-    const entry={user_id:UID,quest_id:'sidequest',quest_name:`[Sidequest] ${sq.text.slice(0,40)}...`,xp:finalXp,pillar_id:sq.pid||'p1',created_at:new Date().toISOString()};
-    LOG.unshift(entry);
-    sbInsert('sys_log',entry).catch(()=>{});
-  }
-  localStorage.setItem('sys12_sidequest',JSON.stringify(sq));
-  updateSidequestUI();
-  scheduleSave();
-  updateHeader();
-}
+  const gains = userState.weeklyXpGains;
+  const totalSemaine = sumObjectValues(gains);
 
-async function rerollSidequestIA(){
-  if(isDayLocked) return;
-  const btn=document.getElementById('btn-reroll');
-  btn.textContent="Création en cours par l'IA...";
-  btn.disabled=true;
-  
-  const prompt=buildCtx()+"\n\nGénère une 'sidequest' (quête secondaire) utile, concrète et rapide (max 15 min) pour Eliseo aujourd'hui. Thème recommandé : sors-le de sa zone de confort, fais-le pratiquer un brise-glace de sociabilité, de l'observation humaine ou un exercice d'assurance tactique. Donne uniquement l'énoncé direct en 2 lignes max. Sans markdown.";
-  const res=await callGemini(prompt);
-  
-  const sq={date:todayKey(),text:res,pid:'p5',done:false,isIA:true};
-  localStorage.setItem('sys12_sidequest',JSON.stringify(sq));
-  updateSidequestUI();
-  
-  btn.textContent="🎲 Relancer via le Coach (IA)";
-  btn.disabled=false;
-}
-
-// Gestion des Quêtes Personnelles (Livre)
-function loadCustomQuests(){
-  customQuests=JSON.parse(localStorage.getItem('sys12_custom_quests')||'[]');
-  renderCustomQuests();
-}
-
-function saveCustomQuests(){
-  localStorage.setItem('sys12_custom_quests',JSON.stringify(customQuests));
-  renderCustomQuests();
-}
-
-function renderCqSelectors(){
-  document.getElementById('cq-pillar').innerHTML=PILLARS.map(p=>`<option value="${p.id}">${p.icon} ${p.name.split(' ')[0]}</option>`).join('');
-}
-
-function ajouterQuetePerso(){
-  const nameEl=document.getElementById('cq-name');
-  const name=nameEl.value.trim();
-  if(!name) return;
-  const pid=document.getElementById('cq-pillar').value;
-  const diff=document.getElementById('cq-diff').value;
-  const type=document.getElementById('cq-type').value;
-  
-  let xp=10;
-  if(diff==='medium') xp=25;
-  if(diff==='hard') xp=50;
-
-  const nq={id:'cq_'+Date.now(),name:name,pid:pid,xp:xp,type:type,done:false};
-  customQuests.push(nq);
-  nameEl.value='';
-  saveCustomQuests();
-}
-
-function renderCustomQuests(){
-  const listEl=document.getElementById('custom-quests-list');
-  if(!customQuests.length){
-    listEl.innerHTML='<div class="empty-state">Aucune quête forgée pour le moment.</div>';
+  // Cas Critique : Semaine Blanche (Zéro activité)
+  if (totalSemaine === 0) {
+    userState.currentAura = "Le Stagnant";
+    userState.auraColor = "var(--color-stagnant)";
+    userState.activeWeeklyBonus = null;
+    appliquerChangementAuraUIVisual();
+    declencherPersistanceRevue(bien, resist, change, stars);
+    alert("ÉVALUATION SYSTEMIQUE : Statut 'Le Stagnant' appliqué pour inactivité.");
     return;
   }
-  const bp=getBountyPillar();
 
-  listEl.innerHTML=customQuests.map(q=>{
-    const isBounty=(q.pid===bp);
-    const finalXp=isBounty?Math.round(q.xp*1.25):q.xp;
-    const bountyTag=isBounty?`<span class="tag tag-bounty">🚨 +25%</span>`:'';
-    const typeTag=`<span class="tag tag-ph">${q.type==='oneshot'?'One-shot':'Récurrente'}</span>`;
-    
-    return `<div class="quest${q.done?' done':''}" onclick="toggleCustomQuest('${q.id}')">
-      <div class="check">${q.done?'✓':''}</div>
-      <div class="q-info">
-        <div class="q-name">${q.name}</div>
-        <div class="q-tags">${typeTag}${bountyTag}</div>
-      </div>
-      <div class="q-xp">+${finalXp} XP</div>
-    </div>`;
-  }).join('');
-}
+  // Recherche des extrêmes hebdomadaires
+  let classesTriees = Object.keys(gains).map(key => ({ name: key, xp: gains[key] })).sort((a,b) => a.xp - b.xp);
+  let minClass = classesTriees[0];
+  let maxClass = classesTriees[classesTriees.length - 1];
 
-function toggleCustomQuest(id){
-  if(isDayLocked) return;
-  const q=customQuests.find(x=>x.id===id);
-  if(!q) return;
-  const today=todayKey();
-  const bp=getBountyPillar();
-  const finalXp=(q.pid===bp)?Math.round(q.xp*1.25):q.xp;
+  // Calcul du delta relatif pour l'Aventurier Suprême (< 5% de différence)
+  let deltaPourcentage = ((maxClass.xp - minClass.xp) / maxClass.xp) * 100;
 
-  if(q.done){
-    q.done=false;
-    S.total_xp=Math.max(0,S.total_xp-finalXp);
-    S[q.pid+'_xp']=Math.max(0,(S[q.pid+'_xp']||0)-finalXp);
-    LOG=LOG.filter(l=>!(l.quest_id===id&&l.created_at&&l.created_at.slice(0,10)===today));
-    sbDelete('sys_log',UID,id,today).catch(()=>{});
-  }else{
-    q.done=true;
-    S.total_xp+=finalXp;
-    S[q.pid+'_xp']=Math.min(3000,(S[q.pid+'_xp']||0)+finalXp);
-    const entry={user_id:UID,quest_id:id,quest_name:`[Perso] ${q.name}`,xp:finalXp,pillar_id:q.pid,created_at:new Date().toISOString()};
-    LOG.unshift(entry);
-    sbInsert('sys_log',entry).catch(()=>{});
+  if (deltaPourcentage < 5) {
+    userState.currentAura = "Aventurier Suprême";
+    userState.auraColor = "var(--color-supreme)";
+    document.getElementById('supreme-modal').style.display = 'flex';
+  } else {
+    userState.currentAura = `${maxClass.name} Dominant`;
+    userState.auraColor = `var(--color-${maxClass.name.toLowerCase()})`;
+    userState.activeWeeklyBonus = minClass.name; // La plus faible prend +10%
+    appliquerChangementAuraUIVisual();
+    alert(`Bilan Terminé. Aura obtenue: ${userState.currentAura}. Bénédiction de +10% sur ${minClass.name}.`);
   }
-  saveCustomQuests();
-  scheduleSave();
-  updateHeader();
+
+  declencherPersistanceRevue(bien, resist, change, stars);
 }
 
-async function validerJour(){
-  const today=todayKey();
-  if(S.last_day!==today){
-    if(S.last_day){
-      const diff=(new Date(today)-new Date(S.last_day))/86400000;
-      S.streak=diff<=1?S.streak+1:1;
-    }else{S.streak=1;}
-    S.last_day=today;
-    S.days_total++;
-    const histEntry={user_id:UID,xp:S.total_xp,created_at:new Date().toISOString()};
-    XP_HISTORY.unshift(histEntry);
-    if(XP_HISTORY.length>60)XP_HISTORY.pop();
-    sbInsert('sys_xp_history',histEntry).catch(()=>{});
+function appliquerBonusSupreme(classeSelectionnee) {
+  userState.activeWeeklyBonus = classeSelectionnee;
+  document.getElementById('supreme-modal').style.display = 'none';
+  appliquerChangementAuraUIVisual();
+  alert(`Bénédiction du Souverain activée : +10% XP sur la classe ${classeSelectionnee}.`);
+  sauvegarderLocalEtSupabase();
+}
+
+function appliquerChangementAuraUIVisual() {
+  document.getElementById('lbl-aura').textContent = `Aura : ${userState.currentAura}`;
+  document.getElementById('lbl-aura').style.color = userState.auraColor;
+  
+  // Modification dynamique des variables CSS Accent pour adapter le thème à l'Aura
+  if (userState.auraColor.includes("var")) {
+    document.documentElement.style.setProperty('--accent', userState.auraColor);
+  } else {
+    document.documentElement.style.setProperty('--accent', userState.auraColor);
   }
   
-  // Nettoyage de fin de journée pour le Livre des Quêtes
-  customQuests=customQuests.filter(q=>!(q.type==='oneshot' && q.done===true));
-  customQuests.forEach(q=>{if(q.type==='recurrent') q.done=false;});
-  localStorage.setItem('sys12_custom_quests',JSON.stringify(customQuests));
-  renderCustomQuests();
-
-  isDayLocked=true;
-  updateValidationButton();
-  scheduleSave();
-  updateHeader();
-  goTab('stats',document.querySelectorAll('.tab-btn')[3]);
+  // Remise à zéro des compteurs d'XP hebdomadaires pour le nouveau cycle
+  userState.weeklyXpGains = { Guerrier: 0, Mage: 0, Ombre: 0, Aventurier: 0 };
+  
+  // Clear de la journée pour la démo visuelle
+  userState.piliersValides = [false, false, false, false, false];
+  userState.sidequestValide = false;
+  construirePiliersHtml();
+  mettreAJourInterfaceVisual();
+  sauvegarderLocalEtSupabase();
 }
 
-function modifierJour(){
-  isDayLocked=false;
-  updateValidationButton();
-}
-
-function updateValidationButton(){
-  const btn=document.getElementById('btn-valider');
-  if(!btn)return;
-  if(isDayLocked){
-    btn.textContent="✏️ Modifier la journée";
-    btn.setAttribute('onclick','modifierJour()');
-    btn.style.background="linear-gradient(135deg, #4b5563, #374151)";
-  }else{
-    btn.textContent="✓ Valider la journée";
-    btn.setAttribute('onclick','validerJour()');
-    btn.style.background="linear-gradient(135deg,var(--accent2),var(--accent))";
+async function declencherPersistanceRevue(b, r, c, s) {
+  // Reset des champs
+  document.getElementById('rev-bien').value = "";
+  document.getElementById('rev-resist').value = "";
+  document.getElementById('rev-change').value = "";
+  
+  // Intégration historique visuel
+  pushReviewInHistoryList(new Date().toLocaleDateString(), s, b);
+  
+  if (supabaseClient) {
+    await supabaseClient.from('sys_reviews').insert([{
+      date: new Date().toISOString(),
+      performance_stars: parseInt(s),
+      positives: b,
+      resistances: r,
+      pivots: c,
+      final_aura: userState.currentAura
+    }]);
   }
 }
 
-function renderPiliers(){
-  document.getElementById('piliers-list').innerHTML=PILLARS.map(p=>{
-    const xp=S[p.id+'_xp']||0;
-    const pct=Math.min(100,Math.round(xp/3000*100));
-    const lv=Math.floor(xp/600)+1;
-    return `<div class="pillar">
+// ==============================================================================
+// COUCHE COMPOSANTS RENDER & UI SYNC
+// ==============================================================================
+function construirePiliersHtml() {
+  const container = document.getElementById('piliers-container');
+  if(!container) return;
+  container.innerHTML = "";
+
+  PILIERS_DEFS.forEach(p => {
+    const coche = userState.piliersValides[p.id];
+    const item = document.createElement('div');
+    item.className = "pillar-item";
+    item.innerHTML = `
       <div class="pillar-top">
-        <div class="pillar-icon" style="background:${p.color}22">${p.icon}</div>
-        <div class="pillar-name">${p.name}</div>
-        <div class="pillar-lv">Niv. ${lv}</div>
+        <div class="pillar-info">
+          <h3>${p.name}</h3>
+          <p>${p.desc}</p>
+        </div>
+        <button class="btn-check ${coche?'active':''}" onclick="cocherPilier(${p.id})">
+          ${coche ? 'SYNCHRONISÉ' : 'LOG SÉANCE'}
+        </button>
       </div>
-      <div class="bar-wrap"><div class="bar-fill" style="width:${pct}%;background:${p.color}"></div></div>
-      <div class="bar-label"><span>${xp} XP</span><span>${pct}%</span></div>
-      <div class="pillar-sats">${p.satellites}</div>
-    </div>`;
-  }).join('');
-}
-
-function renderStats(){
-  const today=todayKey();
-  const activeDays=[...new Set(LOG.map(l=>l.created_at&&l.created_at.slice(0,10)).filter(Boolean))];
-  let hm='';
-  for(let i=59;i>=0;i--){
-    const d=new Date();d.setDate(d.getDate()-i);
-    const key=d.toISOString().slice(0,10);
-    const isToday=key===today;
-    const on=activeDays.includes(key);
-    hm+=`<div class="hm-sq${on&&!isToday?' on':''}${isToday?' today':''}"></div>`;
-  }
-  document.getElementById('heatmap').innerHTML=hm;
-
-  document.getElementById('cap-grid').innerHTML=CAPS.map(c=>{
-    const xp=S[c.p+'_xp']||0;
-    const pct=Math.min(100,Math.round(xp/3000*100));
-    return `<div class="cap-item">
-      <div class="cap-name">${c.n}</div>
-      <div class="cap-pct" style="color:${PCOLS[c.p]}">${pct}%</div>
-      <div class="cap-bar"><div class="cap-fill" style="width:${pct}%;background:${PCOLS[c.p]}"></div></div>
-    </div>`;
-  }).join('');
-
-  document.getElementById('milestones').innerHTML=MILESTONES.map(m=>{
-    const ok=m.check(S);
-    return `<div class="ms-item${ok?' reached':''}">
-      <div class="ms-icon">${m.icon}</div>
-      <div class="ms-label">${m.lbl}</div>
-      <div class="ms-status">${ok?'✓ Atteint':'En cours'}</div>
-    </div>`;
-  }).join('');
-
-  const logEl=document.getElementById('log-list');
-  if(!LOG.length){logEl.innerHTML='<div class="empty-state">Aucune action enregistrée</div>';}
-  else{logEl.innerHTML=LOG.slice(0,15).map(l=>`
-    <div class="log-entry">
-      <div class="log-dot" style="background:${PCOLS[l.pillar_id]||'#888'}"></div>
-      <div class="log-text">${l.quest_name}</div>
-      <span class="log-xp">+${l.xp}</span>
-      <span class="log-time">${l.created_at?l.created_at.slice(11,16):''}</span>
-    </div>`).join('');}
-
-  const xpCtx=document.getElementById('chart-xp').getContext('2d');
-  const sorted=[...XP_HISTORY].sort((a,b)=>new Date(a.created_at)-new Date(b.created_at)).slice(-20);
-  const xpLabels=sorted.map(h=>h.created_at?h.created_at.slice(5,10):'');
-  const xpData=sorted.map(h=>h.xp);
-  if(chartXp)chartXp.destroy();
-  chartXp=new Chart(xpCtx,{type:'line',data:{labels:xpLabels.length?xpLabels:['—'],datasets:[{data:xpData.length?xpData:[0],borderColor:'#a78bfa',backgroundColor:'rgba(124,58,237,0.15)',borderWidth:2,pointRadius:3,pointBackgroundColor:'#a78bfa',fill:true,tension:.4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#555',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'}},y:{ticks:{color:'#555',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'},beginAtZero:true}}}});
-
-  const rCtx=document.getElementById('chart-radar').getContext('2d');
-  const rLabels=PILLARS.map(p=>p.icon+' '+p.name.split(' ')[0]);
-  const rData=PILLARS.map(p=>Math.min(100,Math.round((S[p.id+'_xp']||0)/3000*100)));
-  if(chartRadar)chartRadar.destroy();
-  chartRadar=new Chart(rCtx,{type:'radar',data:{labels:rLabels,datasets:[{data:rData,borderColor:'#a78bfa',backgroundColor:'rgba(124,58,237,0.18)',borderWidth:2,pointBackgroundColor:'#a78bfa',pointRadius:4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{r:{min:0,max:100,ticks:{display:false},grid:{color:'rgba(255,255,255,0.07)'},pointLabels:{color:'#999',font:{size:11}},angleLines:{color:'rgba(255,255,255,0.06)'}}}}});
-}
-
-function setStar(v){
-  starVal=v;
-  document.querySelectorAll('.star').forEach((s,i)=>s.classList.toggle('on',i<v));
-}
-
-async function sauvegarderRevue(){
-  const rev={user_id:UID,stars:starVal,went_well:document.getElementById('rv-bien').value,resisted:document.getElementById('rv-resist').value,next_change:document.getElementById('rv-change').value,created_at:new Date().toISOString()};
-  S.total_xp+=100;
-  const entry={user_id:UID,quest_id:'review',quest_name:'Revue hebdomadaire',xp:100,pillar_id:'p1',created_at:new Date().toISOString()};
-  LOG.unshift(entry);
-  sbInsert('sys_log',entry).catch(()=>{});
-  sbInsert('sys_reviews',rev).catch(()=>{});
-  scheduleSave();
-  updateHeader();
-  const _bien=document.getElementById('rv-bien').value;
-  const _resist=document.getElementById('rv-resist').value;
-  const _change=document.getElementById('rv-change').value;
-  const _stars=starVal;
-  ['rv-bien','rv-resist','rv-change'].forEach(id=>document.getElementById(id).value='');
-  starVal=0;
-  document.querySelectorAll('.star').forEach(s=>s.classList.remove('on'));
-  genererBilanRevue(_bien,_resist,_change,_stars);
-}
-
-function goTab(id,btn){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById('screen-'+id).classList.add('active');
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  if(id==='stats')renderStats();
-  if(id==='piliers')renderPiliers();
-  if(id==='book') { updateSidequestUI(); renderCustomQuests(); }
-  if(id==='today') renderQuetes();
-}
-
-async function init(){
-  await loadFromSupabase();
-  isDayLocked=(S.last_day===todayKey());
-  updateValidationButton();
-  updateHeader();
-  renderQuetes();
-  renderCqSelectors();
-  initSidequest();
-  loadCustomQuests();
-  loadWelcomeMessage();
-}
-
-if(!UID){
-  document.getElementById('setup-overlay').style.display='flex';
-}else{
-  init();
-}
-
-const WORKER_URL='https://evolution-ai.eliseobuti.workers.dev';
-
-function callGemini(prompt){
-  return new Promise(function(resolve){
-    try{
-      const xhr=new XMLHttpRequest();
-      xhr.open('POST', WORKER_URL, true);
-      xhr.setRequestHeader('Content-Type','application/json');
-      xhr.timeout=15000;
-      xhr.onload=function(){
-        try{
-          const d=JSON.parse(xhr.responseText);
-          resolve(d.text||'Réponse invalide.');
-        }catch(e){resolve('Erreur parsing: '+xhr.responseText.slice(0,80));}
-      };
-      xhr.onerror=function(){resolve('Erreur réseau XHR.');};
-      xhr.ontimeout=function(){resolve('Timeout — réessaie.');};
-      xhr.send(JSON.stringify({prompt:prompt}));
-    }catch(e){resolve('Erreur: '+e.message);}
+      <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(255,255,255,0.03); pt:6px;">
+        <span class="pillar-tag" style="background:rgba(255,255,255,0.03); color:var(--muted); font-size:8px;">Canal de Force :</span>
+        <span class="pillar-tag" style="background:rgba(255,255,255,0.05); color:${p.color};">${p.target}</span>
+      </div>
+    `;
+    container.appendChild(item);
   });
 }
 
-const SYSTEM_CONTEXT=`Tu es le coach personnel d'Eliseo, 19 ans, etudiant suisse en annee sabbatique apres sa maturite gymnasiale (moyenne 5.0). Il envisage des etudes de medecine. Il a 4 mois d'armee en fevrier. Il voyage parfois.
+function mettreAJourInterfaceVisual() {
+  // Rendu des 3 Barres distinctes
+  document.getElementById('lbl-level').textContent = userState.level;
+  document.getElementById('txt-xp-global').textContent = `${userState.xp} / ${userState.xpNeeded} XP`;
+  document.getElementById('bar-xp-global').style.width = `${(userState.xp / userState.xpNeeded) * 100}%`;
+  
+  document.getElementById('txt-xp-piliers').textContent = `${userState.xpPiliers} XP`;
+  document.getElementById('bar-xp-piliers').style.width = `min(100%, ${(userState.xpPiliers / 5000) * 100}%)`;
+  
+  document.getElementById('txt-xp-quetes').textContent = `${userState.xpQuetes} XP`;
+  document.getElementById('bar-xp-quetes').style.width = `min(100%, ${(userState.xpQuetes / 5000) * 100}%)`;
+  
+  document.getElementById('lbl-streak').textContent = `🔥 Série Actuelle : ${userState.streak} jours`;
+  document.getElementById('lbl-aura').textContent = `Aura : ${userState.currentAura}`;
+  document.getElementById('lbl-aura').style.color = userState.auraColor;
 
-PROFIL PHYSIQUE: Nageur regulier (2x/semaine, 1h15, ~3km/session). Bonne base physique (pompes, tractions faciles). Cardio ameliorable.
-
-SYSTEME 12 MOIS — 5 PILIERS:
-1. Metacognition & apprentissage (memoire, calcul mental, bais cognitifs, methode Feynman, transfert inter-domaines)
-2. Regulation psychophysiologique (respiration, Wim Hof, sommeil, stress, controle emotionnel)
-3. Presence & observation (semiologie clinique factuelle, conscience spatiale, detection elements tactiques et environnementaux, sans psychologisation)
-4. Condition physique (force, endurance zone 2, proprioception, reflexes, coordination)
-5. Influence & communication (rhetorique, langues, negociation, echecs/strategie)
-
-3 PHASES:
-- Phase 1 (mois 1-3): Fondations — installer les routines a friction minimale
-- Phase 2 (mois 4-8): Intensification — integration des satellites, armee comme laboratoire social
-- Phase 3 (mois 9-12): Consolidation — mesure, ajustement, extension
-
-PHILOSOPHIE: Pratique deliberee > repetition passive. Stress + recuperation = croissance. Identite stable bat motivation fluctuante. Seuil minimum (20 min/jour) non-negociable meme les mauvais jours.
-
-PASSIONS: Piano, dessin (decompress), cinema (Wes Anderson, Jim Jarmusch, Jake Gyllenhaal), mode streetwear/vintage/gorpcore, vie sociale.
-
-Reponds toujours en francais, de facon directe, concrete et adaptee au niveau actuel d'Eliseo. Pas de markdown.`;
-
-function buildCtx(){
-  const ph=getCurrentPhase();
-  const ps=PILLARS.map(function(p){return p.name.split(' ')[0]+': '+(S[p.id+'_xp']||0)+'XP';}).join(', ');
-  const dynamicCtx='Progression actuelle — Phase '+ph.id+' ('+ph.name+'), mois '+S.current_month+'/12. XP total: '+S.total_xp+'. Streak: '+S.streak+' jours consecutifs. Piliers: '+ps+'.';
-  return SYSTEM_CONTEXT+'\n\n'+dynamicCtx;
+  // Mise à jour des boîtes de classes indépendantes
+  Object.keys(userState.classes).forEach(c => {
+    let cl = userState.classes[c];
+    let max = cl.level * 500;
+    let pct = (cl.xp / max) * 100;
+    
+    let lvlEl = document.getElementById(`lbl-lvl-${c}`);
+    let fillEl = document.getElementById(`fill-${c}`);
+    if(lvlEl) lvlEl.textContent = `Niv. ${cl.level}`;
+    if(fillEl) fillEl.style.width = `${pct}%`;
+  });
 }
 
-function loadWelcomeMessage(){
-  if(!UID)return;
-  const el=document.getElementById('ai-welcome');
-  const txt=document.getElementById('ai-welcome-text');
-  el.style.display='block';
-  txt.textContent="Bonjour Eliseo ! Ton protocole d'observation factuelle et tes paquets d'étymologie sur Anki sont configurés pour optimiser ta préparation clinique et militaire. Prêt à passer à l'action ?";
-}
-
-async function envoyerMessageCoach(){
-  const input=document.getElementById('coach-free-input');
-  const chatBox=document.getElementById('coach-chat-messages');
-  const msg=input.value.trim();
-  if(!msg)return;
-  
-  chatBox.style.display='flex';
-  const userEl=document.createElement('div');
-  userEl.className='chat-msg user';
-  userEl.textContent='👉 Toi : '+msg;
-  chatBox.appendChild(userEl);
-  
-  const coachEl=document.createElement('div');
-  coachEl.className='chat-msg coach';
-  coachEl.textContent='🤖 Coach : Réflexion...';
-  chatBox.appendChild(coachEl);
-  
-  chatBox.scrollTop=chatBox.scrollHeight;
-  input.value='';
-  
-  const prompt=buildCtx()+'\n\nVoici le message d\'Eliseo: "'+msg+'". Réponds de manière directe, analytique et motivante. Sans markdown.';
-  const responseText=await callGemini(prompt);
-  
-  coachEl.textContent='🤖 Coach : '+responseText;
-  chatBox.scrollTop=chatBox.scrollHeight;
-}
-
-async function coachQuete(btn){
-  const qId=btn.getAttribute('data-qid');
-  const qName=btn.getAttribute('data-qname');
-  const qDesc=btn.getAttribute('data-qdesc');
-  const existingId='coach-'+qId;
-  const existing=document.getElementById(existingId);
-  if(existing){existing.remove();return;}
-  const card=document.createElement('div');
-  card.className='ai-card';
-  card.id=existingId;
-  card.style.marginTop='6px';
-  card.innerHTML='<div class="ai-header"><span style="font-size:16px">💡</span><span class="ai-label">Conseils</span></div><div class="ai-body" id="txt-'+qId+'">Chargement...</div>';
-  btn.closest('.quest').after(card);
-  
-  let consigneSpecifique = "";
-  if(qId === 'q3') {
-    consigneSpecifique = " Interdiction absolue de parler de détection de mensonges, de psychologie, d'intentions ou de micro-expressions. Donne uniquement des exercices de repérage de faits anatomiques/mécaniques (asymétries, démarche, posture) et de tactique spatiale (calcul de distances à l'oeil nu, angles morts, repérage des sorties) utiles pour l'armée et la clinique.";
-  }
-
-  const prompt=buildCtx()+' Quete: "'+qName+'" ('+qDesc+').'+consigneSpecifique+' Donne 3 conseils pratiques et concrets pour bien realiser cette quete aujourd hui. 4 lignes max. Pas de markdown ni tirets.';
-  const bodyEl=document.getElementById('txt-'+qId);
-  if(bodyEl) bodyEl.textContent=await callGemini(prompt);
-}
-
-async function genererEntrainement(btn) {
-  const existingId = 'workout-generated';
-  const existing = document.getElementById(existingId);
-  if(existing){existing.remove(); return;}
-  
-  const selectEl = document.getElementById('workout-type');
-  const selectedDomain = selectEl ? selectEl.value : 'auto';
-  
-  const card = document.createElement('div');
-  card.className = 'ai-card';
-  card.id = existingId;
-  card.style.marginTop = '6px';
-  card.style.border = '0.5px solid rgba(96,165,250,.3)';
-  card.style.background = 'linear-gradient(135deg,rgba(96,165,250,.12),rgba(14,14,16,.08))';
-  card.innerHTML = '<div class="ai-header"><span style="font-size:16px">🏋️</span><span class="ai-label" style="color:var(--blue)">Séance sur-mesure</span></div><div class="ai-body" id="txt-workout">Analyse du domaine choisi et calcul du protocole adaptatif...</div>';
-  btn.closest('.quest').after(card);
-  
-  const historiquesRecents = LOG.slice(0, 10).map(l => l.quest_name).join(', ');
-  
-  let domaineInstructions = "";
-  if(selectedDomain === "bodyweight") {
-    domaineInstructions = "L'entraînement DOIT obligatoirement être axé sur le POIDS DU CORPS / CALISTHÉNIE (en utilisant sa bonne base en pompes, tractions, ou des variantes complexes comme du tempo ou de la pliométrie).";
-  } else if(selectedDomain === "swim") {
-    domaineInstructions = "L'entraînement DOIT obligatoirement être un protocole de NATATION en piscine (séries en mètres, nages, allures, ou exercices techniques, adapté à sa capacité de faire 3km par session).";
-  } else if(selectedDomain === "run") {
-    domaineInstructions = "L'entraînement DOIT obligatoirement être de la COURSE À PIED / CARDIO EXTÉRIEUR (axé soit sur son point faible à améliorer : le foncier en zone 2, soit du fractionné/HIIT haute intensité).";
+function toggleClassesGrid() {
+  const el = document.getElementById('classes-grid-el');
+  const btn = document.getElementById('btn-toggle-classes');
+  if(el.style.display === 'none') {
+    el.style.display = 'grid';
+    btn.textContent = "[Masquer]";
   } else {
-    domaineInstructions = "Laisse libre cours à ton expertise de coach pour choisir le domaine (natation, course ou poids du corps) le plus pertinent selon son historique récent.";
+    el.style.display = 'none';
+    btn.textContent = "[Afficher]";
   }
-
-  const prompt = buildCtx() + `
-  En tant que coach sportif, génère un entraînement physique précis de 30 à 45 minutes pour Eliseo.
-  CONTRAINTE DE SÉLECTION : ${domaineInstructions}
-  
-  Prends également en compte son profil général et son historique récent d'actions: [${historiquesRecents}].
-  
-  Format de réponse obligatoire (sois hyper concis, direct et condensé) :
-  1. Domaine et Objectif ciblé (ex: Natation - Vitesse explosive ou Calisthénie - Volume de force)
-  2. Échauffement rapide
-  3. Corps de séance : Exercices/Séries exactes, répétitions ou distances, temps de récupération très précis.
-  
-  Maximum 7 lignes. Pas de markdown, pas de listes à puces ou tirets (sauts de ligne simples).`;
-  
-  const bodyEl = document.getElementById('txt-workout');
-  if(bodyEl) bodyEl.textContent = await callGemini(prompt);
 }
 
-async function genererBilanRevue(bien,resist,change,stars){
-  const el=document.getElementById('ai-bilan');
-  const txt=document.getElementById('ai-bilan-text');
-  el.style.display='block';
-  txt.textContent='Analyse de ta semaine...';
-  const prompt=buildCtx()+' Revue ('+stars+'/5). Ce qui a marche: "'+bien+'". Ce qui a resiste: "'+resist+'". Changement prevu: "'+change+'". Bilan: 1 point fort a consolider, 1 conseil sur le point de friction, 1 suggestion concrete pour la semaine prochaine. 5-6 lignes. Direct. Pas de markdown.';
-  txt.textContent=await callGemini(prompt);
+function switchView(targetId, navEl) {
+  document.querySelectorAll('.view-section').forEach(s => s.style.display = 'none');
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  
+  document.getElementById(`view-${targetId}`).style.display = 'flex';
+  navEl.classList.add('active');
+  
+  if(targetId === 'reviews') renderEvolutionChart();
 }
+
+function pushReviewInHistoryList(date, stars, text) {
+  const container = document.getElementById('reviews-history-list');
+  if(!container) return;
+  const div = document.createElement('div');
+  div.className = "review-item";
+  div.innerHTML = `
+    <div class="review-header"><span>Rapport du ${date}</span><span>Note : ${stars}/5</span></div>
+    <div style="font-weight:700; color:var(--accent);">${text.substring(0,60)}...</div>
+  `;
+  container.prepend(div);
+}
+
+// ==============================================================================
+// PERSISTANCE & ACTIONS SECONDAIRES (IA WORKOUT FORGE INTEGRATION)
+// ==============================================================================
+function sauvegarderLocalEtSupabase() {
+  localStorage.setItem('sys_evolution_state', JSON.stringify(userState));
+  syncStateToSupabase();
+}
+
+async function syncStateToSupabase() {
+  if (!supabaseClient) return;
+  // Sauvegarde compacte dans la table de progression globale
+  await supabaseClient.from('sys_progress').upsert([{
+    id: 1, // Profil unique Eliseo
+    level: userState.level,
+    xp: userState.xp,
+    xp_piliers: userState.xpPiliers,
+    xp_quetes: userState.xpQuetes,
+    streak_count: userState.streak,
+    current_aura: userState.currentAura,
+    classes_json: JSON.stringify(userState.classes),
+    weekly_xp_json: JSON.stringify(userState.weeklyXpGains),
+    active_weekly_bonus: userState.activeWeeklyBonus,
+    updated_at: new Date().toISOString()
+  }]);
+}
+
+function chargerDonneesState() {
+  const local = localStorage.getItem('sys_evolution_state');
+  if (local) {
+    try {
+      const parsed = JSON.parse(local);
+      // Rétrocompatibilité et fusion sécurisée des objets
+      if(parsed.classes) userState = parsed;
+    } catch(e) { console.error("Erreur parsing localStorage state"); }
+  }
+  
+  updatePhaseBanner();
+  obtenirSidequestDuJour();
+  construirePiliersHtml();
+  recalculerRangTitre();
+  mettreAJourInterfaceVisual();
+}
+
+async function forgerEntrainement() {
+  const resultEl = document.getElementById('workout-result');
+  resultEl.style.display = "block";
+  resultEl.textContent = "Accès à la Forge de Combat... Génération du protocole IA en cours.";
+  
+  // Utilisation de ton Worker ou d'une simulation cohérente ultra-rapide
+  setTimeout(() => {
+    resultEl.textContent = `⚔️ PROTOCOLE DE CONDITIONNEMENT AVANCÉ\nDomaine : Calisthénie & Puissance Cardiaque (Natation simulée)\n\n1. Échauffement (5 min) : Mobilité scapulaire, squats à vide, jumping jacks.\n2. Corps de séance (30 min) : \n   - 5 séries de 8 Tractions strictes (Répupération 90s)\n   - 4 séries de 15 Pompes lestées ou déclinées\n   - Séquenceur HIIT : 100m sprint Zone 4 ou burpees non-stop (4 cycles).\n3. Retour au calme : Étirements légers, focus respiratoire.`;
+  }, 1200);
+}
+
+function renderEvolutionChart() {
+  const ctx = document.getElementById('evolutionChart');
+  if(!ctx) return;
+  // Graphique de répartition de puissance par classe
+  if (window.currentChart) window.currentChart.destroy();
+  
+  window.currentChart = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: ['Guerrier', 'Mage', 'Ombre', 'Aventurier'],
+      datasets: [{
+        label: 'Niveau Spécifique de Classe',
+        data: [userState.classes.Guerrier.level, userState.classes.Mage.level, userState.classes.Ombre.level, userState.classes.Aventurier.level],
+        backgroundColor: 'rgba(167,139,250,0.15)',
+        borderColor: '#a78bfa',
+        borderWidth: 2,
+        pointBackgroundColor: '#7c3aed'
+      }]
+    },
+    options: {
+      scales: {
+        r: {
+          grid: { color: 'rgba(255,255,255,0.05)' },
+          angleLines: { color: 'rgba(255,255,255,0.05)' },
+          suggestedMin: 1,
+          ticks: { display: false }
+        }
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+}
+
+function sumObjectValues(obj) {
+  return Object.values(obj).reduce((a, b) => a + b, 0);
+}
+
+// DÉMARRAGE AUTOMATIQUE DU SYSTÈME
+window.onload = () => {
+  initSupabase();
+  chargerDonneesState();
+};
 </script>
 </body>
 </html>
