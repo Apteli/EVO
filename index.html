@@ -11,7 +11,6 @@
 <link rel="apple-touch-icon" href="favicon.jpg?v=3">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-/* ---- Tous les styles (inchangés) ---- */
 :root{--bg:#0e0e10;--card:#18181c;--card2:#222228;--border:rgba(255,255,255,0.07);--text:#f0f0f0;--muted:#777;--accent:#a78bfa;--accent2:#7c3aed;--green:#34d399;--amber:#fbbf24;--coral:#f87171;--blue:#60a5fa;--orange:#fb923c;--r:14px;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;font-size:15px;min-height:100dvh;padding-bottom:calc(76px + env(safe-area-inset-bottom));}
@@ -174,6 +173,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 .class-item .class-icon{font-size:24px;margin-bottom:2px;}
 .class-item .class-name{font-size:12px;font-weight:600;}
 .class-item .class-level{font-size:11px;color:var(--muted);}
+.class-item .class-title{font-size:12px;font-weight:700;color:var(--accent);margin-bottom:2px;}
 .class-item .class-bar{margin-top:6px;height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;}
 .class-item .class-bar-fill{height:100%;border-radius:2px;transition:width .4s;}
 .class-item.highlight{border-color:var(--accent);background:rgba(167,139,250,0.08);}
@@ -436,26 +436,34 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
       <div class="class-item" id="class-guerrier">
         <div class="class-icon">⚔️</div>
         <div class="class-name">Guerrier</div>
-        <div class="class-level" id="guerrier-level">Niv. 1</div>
+        <div class="class-level" id="guerrier-level"></div>
+        <div class="class-title" id="guerrier-title">Apprenti</div>
         <div class="class-bar"><div class="class-bar-fill guerrier" id="guerrier-bar" style="width:0%"></div></div>
+        <div class="class-progress" style="font-size:10px;color:var(--muted);margin-top:2px;" id="guerrier-progress">0 / 100 XP</div>
       </div>
       <div class="class-item" id="class-mage">
         <div class="class-icon">🔮</div>
         <div class="class-name">Mage</div>
-        <div class="class-level" id="mage-level">Niv. 1</div>
+        <div class="class-level" id="mage-level"></div>
+        <div class="class-title" id="mage-title">Apprenti</div>
         <div class="class-bar"><div class="class-bar-fill mage" id="mage-bar" style="width:0%"></div></div>
+        <div class="class-progress" style="font-size:10px;color:var(--muted);margin-top:2px;" id="mage-progress">0 / 100 XP</div>
       </div>
       <div class="class-item" id="class-ombre">
         <div class="class-icon">🌑</div>
         <div class="class-name">Ombre</div>
-        <div class="class-level" id="ombre-level">Niv. 1</div>
+        <div class="class-level" id="ombre-level"></div>
+        <div class="class-title" id="ombre-title">Apprenti</div>
         <div class="class-bar"><div class="class-bar-fill ombre" id="ombre-bar" style="width:0%"></div></div>
+        <div class="class-progress" style="font-size:10px;color:var(--muted);margin-top:2px;" id="ombre-progress">0 / 100 XP</div>
       </div>
       <div class="class-item" id="class-aventurier">
         <div class="class-icon">🎒</div>
         <div class="class-name">Aventurier</div>
-        <div class="class-level" id="aventurier-level">Niv. 1</div>
+        <div class="class-level" id="aventurier-level"></div>
+        <div class="class-title" id="aventurier-title">Apprenti</div>
         <div class="class-bar"><div class="class-bar-fill aventurier" id="aventurier-bar" style="width:0%"></div></div>
+        <div class="class-progress" style="font-size:10px;color:var(--muted);margin-top:2px;" id="aventurier-progress">0 / 100 XP</div>
       </div>
     </div>
   </div>
@@ -532,6 +540,37 @@ const PILLAR_RANKS = [
   { level: 25, xp: 62000, title: 'Éternel' },
 ];
 
+// ---- NOUVEAU : Paliers pour les classes RPG ----
+const CLASS_RANKS = [
+  { level: 1, xp: 0, title: 'Apprenti' },
+  { level: 2, xp: 100, title: 'Initié' },
+  { level: 3, xp: 300, title: 'Praticien' },
+  { level: 4, xp: 600, title: 'Expert' },
+  { level: 5, xp: 1000, title: 'Maître' },
+  { level: 6, xp: 1500, title: 'Grand Maître' },
+  { level: 7, xp: 2100, title: 'Archimage' },
+  { level: 8, xp: 2800, title: 'Savant' },
+  { level: 9, xp: 3600, title: 'Sage' },
+  { level: 10, xp: 4500, title: 'Visionnaire' },
+  { level: 11, xp: 5500, title: 'Érudit' },
+  { level: 12, xp: 6600, title: 'Oracle' },
+  { level: 13, xp: 7800, title: 'Prophète' },
+  { level: 14, xp: 9100, title: 'Illuminé' },
+  { level: 15, xp: 10500, title: 'Transcendant' },
+  { level: 16, xp: 12000, title: 'Légende' },
+  { level: 17, xp: 13600, title: 'Mythe' },
+  { level: 18, xp: 15300, title: 'Divin' },
+  { level: 19, xp: 17100, title: 'Omniscient' },
+  { level: 20, xp: 19000, title: 'Alpha' },
+  // Au-delà du niveau 20, on continue avec des titres épiques
+  { level: 21, xp: 21000, title: 'Oméga' },
+  { level: 22, xp: 23100, title: 'Cosmique' },
+  { level: 23, xp: 25300, title: 'Primordial' },
+  { level: 24, xp: 27600, title: 'Éternel' },
+  { level: 25, xp: 30000, title: '★ Infini' },
+];
+
+// ---- Fonctions pour les piliers (inchangées) ----
 function getPillarRank(xp) {
   let rank = PILLAR_RANKS[0];
   for (const r of PILLAR_RANKS) {
@@ -560,7 +599,6 @@ function getNextPillarRank(xp) {
   return next;
 }
 
-// --- Fonction pour calculer la progression vers le prochain palier ---
 function getPillarProgress(xp) {
   const current = getPillarRank(xp);
   const next = getNextPillarRank(xp);
@@ -571,8 +609,47 @@ function getPillarProgress(xp) {
   return { pct, xp_into, xp_needed, nextLevel: next.level, nextTitle: next.title };
 }
 
+// ---- Fonctions pour les classes (nouvelle version basée sur CLASS_RANKS) ----
+function getClassRank(xp) {
+  let rank = CLASS_RANKS[0];
+  for (const r of CLASS_RANKS) {
+    if (xp >= r.xp) rank = r;
+  }
+  return rank;
+}
+
+function getClassLevel(xp) {
+  let level = 1;
+  for (const r of CLASS_RANKS) {
+    if (xp >= r.xp) level = r.level;
+  }
+  return level;
+}
+
+function getNextClassRank(xp) {
+  let next = null;
+  for (const r of CLASS_RANKS) {
+    if (xp < r.xp) { next = r; break; }
+  }
+  if (!next) {
+    const last = CLASS_RANKS[CLASS_RANKS.length - 1];
+    next = { level: last.level + 1, xp: last.xp + 2000, title: '★ ' + last.title + ' ∞' };
+  }
+  return next;
+}
+
+function getClassProgress(xp) {
+  const current = getClassRank(xp);
+  const next = getNextClassRank(xp);
+  if (!next) return { pct: 100, xp_into: xp - current.xp, xp_needed: 1 };
+  const xp_into = xp - current.xp;
+  const xp_needed = next.xp - current.xp;
+  const pct = Math.min(100, Math.round((xp_into / xp_needed) * 100));
+  return { pct, xp_into, xp_needed, nextLevel: next.level, nextTitle: next.title };
+}
+
 // ============================================================
-// FONCTIONS SUPABASE (inchangées)
+// FONCTIONS SUPABASE
 // ============================================================
 async function sbGet(table, uid) {
   const r = await fetch(`${SB_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(uid)}&limit=1`, { headers: HDR });
@@ -602,7 +679,7 @@ async function sbGetMany(table, uid, limit = 30) {
 }
 
 // ============================================================
-// DONNÉES STATIQUES (inchangées)
+// DONNÉES STATIQUES
 // ============================================================
 const LEVELS = [
   { min: 0, name: 'Initié' }, { min: 500, name: 'Apprenti' }, { min: 1200, name: 'Praticien' },
@@ -714,7 +791,7 @@ let editQuestId = null;
 let isProcessing = false;
 
 // ============================================================
-// FONCTIONS UTILITAIRES (inchangées)
+// FONCTIONS UTILITAIRES
 // ============================================================
 function toast(msg) {
   const el = document.getElementById('toast');
@@ -728,23 +805,7 @@ function getClassForPillar(pid) {
   return PILIER_TO_CLASSE[pid] || 'aventurier';
 }
 
-function getClassLevel(xp) {
-  if (xp < 100) return 1;
-  if (xp < 300) return 2;
-  if (xp < 600) return 3;
-  if (xp < 1000) return 4;
-  if (xp < 1500) return 5;
-  if (xp < 2100) return 6;
-  if (xp < 2800) return 7;
-  if (xp < 3600) return 8;
-  if (xp < 4500) return 9;
-  return 10;
-}
-
-function getClassProgress(xp) {
-  const maxXP = 5000;
-  return Math.min(100, Math.round((xp / maxXP) * 100));
-}
+// Plus besoin de getClassLevel et getClassProgress car nous utilisons les nouvelles versions basées sur CLASS_RANKS.
 
 function getClassFromId(id) {
   return CLASSES[id] || null;
@@ -812,7 +873,7 @@ function distributeClassXP(xp, pid, isCustom = false) {
 }
 
 // ============================================================
-// FONCTIONS SUPABASE SPÉCIFIQUES (inchangées)
+// FONCTIONS SUPABASE SPÉCIFIQUES
 // ============================================================
 async function saveClassData() {
   try {
@@ -909,7 +970,7 @@ async function loadCustomQuestsFromDB() {
 }
 
 // ============================================================
-// INITIALISATION ET CHARGEMENT (inchangé)
+// INITIALISATION ET CHARGEMENT
 // ============================================================
 function setupUser() {
   const name = document.getElementById('setup-name').value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
@@ -1054,7 +1115,7 @@ function getLv(xp) {
 }
 
 // ============================================================
-// AFFICHAGE PRINCIPAL (inchangé sauf updateXPbars qui reste)
+// AFFICHAGE PRINCIPAL
 // ============================================================
 function updateHeader() {
   const xp = S.total_xp, lv = getLv(xp), nl = Math.min(lv + 1, LEVELS.length - 1);
@@ -1099,7 +1160,7 @@ function updateXPbars() {
 }
 
 // ============================================================
-// QUÊTES PRÉ-DÉFINIES (inchangées)
+// QUÊTES PRÉ-DÉFINIES
 // ============================================================
 function renderQuetes() {
   const phase = getCurrentPhase();
@@ -1199,7 +1260,7 @@ async function toggleQuete(id) {
 }
 
 // ============================================================
-// SIDEQUEST (inchangée)
+// SIDEQUEST
 // ============================================================
 function initSidequest() {
   updateSidequestUI();
@@ -1347,7 +1408,7 @@ async function rerollSidequestIA() {
 }
 
 // ============================================================
-// QUÊTES FORGÉES (AVENTURIER) - AVEC STOP PROPAGATION ET VERROU
+// QUÊTES FORGÉES
 // ============================================================
 function loadCustomQuests() {
   customQuests = JSON.parse(localStorage.getItem('sys12_custom_quests') || '[]');
@@ -1361,7 +1422,7 @@ function saveCustomQuests() {
 }
 
 function renderCqSelectors() {
-  // Plus de sélecteur de pilier
+  // plus de sélecteur de pilier
 }
 
 function ajouterQuetePerso() {
@@ -1401,7 +1462,6 @@ function renderCustomQuests() {
     const typeTag = `<span class="tag tag-ph">${q.type === 'oneshot' ? 'One-shot' : 'Récurrente'}</span>`;
     const aventurierTag = `<span class="tag tag-aventurier">🎒 Aventurier</span>`;
 
-    // Utiliser une fonction fléchée avec event pour stopper la propagation et éviter les doubles appels
     return `<div class="quest${q.done ? ' done' : ''}" style="position:relative;" data-quest-id="${q.id}">
       <div class="check" onclick="event.stopPropagation();event.preventDefault();toggleCustomQuest('${q.id}')">${q.done ? '✓' : ''}</div>
       <div class="q-info" onclick="event.stopPropagation();event.preventDefault();toggleCustomQuest('${q.id}')">
@@ -1483,7 +1543,6 @@ function deleteCustomQuest(id) {
   updateHeader();
 }
 
-// 🔒 VERSION SÉCURISÉE AVEC VERROU
 async function toggleCustomQuest(id) {
   if (isProcessing) {
     console.warn('toggleCustomQuest déjà en cours, ignore');
@@ -1545,7 +1604,7 @@ async function toggleCustomQuest(id) {
 }
 
 // ============================================================
-// VALIDATION DE JOURNÉE (inchangée)
+// VALIDATION DE JOURNÉE
 // ============================================================
 async function validerJour() {
   const today = todayKey();
@@ -1606,7 +1665,7 @@ function updateValidationButton() {
 }
 
 // ============================================================
-// AFFICHAGE DES PILIERS - VERSION PROGRESSION PAR NIVEAU
+// AFFICHAGE DES PILIERS
 // ============================================================
 function renderPiliers() {
   document.getElementById('piliers-list').innerHTML = PILLARS.map(p => {
@@ -1644,7 +1703,85 @@ function renderPiliers() {
 }
 
 // ============================================================
-// STATISTIQUES - RADAR BASÉ SUR LES NIVEAUX
+// AVATAR / CLASSES - NOUVELLE VERSION AVEC PROGRESSION PAR NIVEAU
+// ============================================================
+function renderAvatar() {
+  // Aura
+  const banner = document.getElementById('aura-banner');
+  const icon = document.getElementById('aura-icon');
+  const name = document.getElementById('aura-name');
+  const desc = document.getElementById('aura-desc');
+
+  if (currentAura) {
+    icon.textContent = currentAura.icon || '⚔️';
+    name.textContent = currentAura.name || 'Aventurier';
+    if (isSouverain) {
+      desc.textContent = 'Équilibre parfait atteint ! Tu choisis ton boost.';
+      banner.className = 'aura-banner souverain';
+    } else if (isStagnant) {
+      desc.textContent = 'Aucune activité cette semaine. Retour au front !';
+      banner.className = 'aura-banner stagnant';
+    } else {
+      const cls = getClassFromId(currentAura.id);
+      desc.textContent = `Classe dominante de la semaine${boostClass ? ` — Bénédiction: +10% ${CLASSES[boostClass]?.name || ''}` : ''}`;
+      banner.className = 'aura-banner ' + currentAura.id;
+    }
+  } else {
+    icon.textContent = '⚔️';
+    name.textContent = 'En attente';
+    desc.textContent = 'Effectue ton premier bilan hebdomadaire';
+    banner.className = 'aura-banner';
+  }
+
+  // Classes
+  for (const [id, cls] of Object.entries(CLASSES)) {
+    const xp = classXP[id] || 0;
+    const rank = getClassRank(xp);
+    const level = rank.level;
+    const title = rank.title;
+    const progress = getClassProgress(xp);
+    const pct = progress.pct;
+    const xp_into = progress.xp_into;
+    const xp_needed = progress.xp_needed;
+
+    const el = document.getElementById('class-' + id);
+    const levelEl = document.getElementById(id + '-level');
+    const titleEl = document.getElementById(id + '-title');
+    const bar = document.getElementById(id + '-bar');
+    const progressEl = document.getElementById(id + '-progress');
+
+    el.className = 'class-item';
+    if (currentAura && currentAura.id === id && !isSouverain && !isStagnant) {
+      el.classList.add('highlight');
+    }
+    if (boostClass === id && boostClass !== null) {
+      el.classList.add('weak');
+    }
+
+    levelEl.textContent = 'Niv. ' + level;
+    titleEl.textContent = title;
+    bar.style.width = pct + '%';
+    progressEl.textContent = xp_into + ' / ' + xp_needed + ' XP';
+  }
+
+  // Bénédiction
+  const benedictionEl = document.getElementById('benediction-desc');
+  if (boostClass && boostClass !== null) {
+    const cls = getClassFromId(boostClass);
+    benedictionEl.textContent = '+10% XP pour le ' + (cls ? cls.name : boostClass) + ' jusqu\'au prochain bilan.';
+  } else if (isSouverain) {
+    benedictionEl.textContent = 'Équilibre parfait — choisis ta bénédiction ci-dessous.';
+  } else if (isStagnant) {
+    benedictionEl.textContent = '⚠️ Aucune bénédiction active. Reprends l\'entraînement.';
+  } else {
+    benedictionEl.textContent = 'Aucune bénédiction active.';
+  }
+
+  updateXPbars();
+}
+
+// ============================================================
+// STATISTIQUES
 // ============================================================
 function renderStats() {
   const today = todayKey();
@@ -1690,7 +1827,6 @@ function renderStats() {
     </div>`).join('');
   }
 
-  // Graphique XP (inchangé)
   const xpCtx = document.getElementById('chart-xp').getContext('2d');
   const sorted = [...XP_HISTORY].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).slice(-20);
   const xpLabels = sorted.map(h => h.created_at ? h.created_at.slice(5, 10) : '');
@@ -1712,7 +1848,6 @@ function renderStats() {
     }
   });
 
-  // Radar basé sur les niveaux (0-25)
   const rCtx = document.getElementById('chart-radar').getContext('2d');
   const rLabels = PILLARS.map(p => p.icon + ' ' + p.name.split(' ')[0]);
   const rData = PILLARS.map(p => {
@@ -1742,7 +1877,7 @@ function renderStats() {
 }
 
 // ============================================================
-// REVUE (inchangée)
+// REVUE
 // ============================================================
 function setStar(v) {
   starVal = v;
@@ -1777,7 +1912,7 @@ async function sauvegarderRevue() {
 }
 
 // ============================================================
-// NAVIGATION (inchangée)
+// NAVIGATION
 // ============================================================
 function goTab(id, btn) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -1801,74 +1936,15 @@ function goTab(id, btn) {
     });
   }
   if (id === 'today') renderQuetes();
-  if (id === 'avatar') { renderAvatar(); renderBilanHistory(); }
+  if (id === 'avatar') {
+    renderAvatar();
+    renderBilanHistory();
+  }
 }
 
 // ============================================================
-// AVATAR / CLASSES (inchangé)
+// AUTRES FONCTIONS (bilan, boost, etc.) inchangées
 // ============================================================
-function renderAvatar() {
-  const banner = document.getElementById('aura-banner');
-  const icon = document.getElementById('aura-icon');
-  const name = document.getElementById('aura-name');
-  const desc = document.getElementById('aura-desc');
-
-  if (currentAura) {
-    icon.textContent = currentAura.icon || '⚔️';
-    name.textContent = currentAura.name || 'Aventurier';
-    if (isSouverain) {
-      desc.textContent = 'Équilibre parfait atteint ! Tu choisis ton boost.';
-      banner.className = 'aura-banner souverain';
-    } else if (isStagnant) {
-      desc.textContent = 'Aucune activité cette semaine. Retour au front !';
-      banner.className = 'aura-banner stagnant';
-    } else {
-      const cls = getClassFromId(currentAura.id);
-      desc.textContent = `Classe dominante de la semaine${boostClass ? ` — Bénédiction: +10% ${CLASSES[boostClass]?.name || ''}` : ''}`;
-      banner.className = 'aura-banner ' + currentAura.id;
-    }
-  } else {
-    icon.textContent = '⚔️';
-    name.textContent = 'En attente';
-    desc.textContent = 'Effectue ton premier bilan hebdomadaire';
-    banner.className = 'aura-banner';
-  }
-
-  for (const [id, cls] of Object.entries(CLASSES)) {
-    const xp = classXP[id] || 0;
-    const level = getClassLevel(xp);
-    const progress = getClassProgress(xp);
-    const el = document.getElementById('class-' + id);
-    const bar = document.getElementById(id + '-bar');
-    const levelEl = document.getElementById(id + '-level');
-
-    el.className = 'class-item';
-    if (currentAura && currentAura.id === id && !isSouverain && !isStagnant) {
-      el.classList.add('highlight');
-    }
-    if (boostClass === id && boostClass !== null) {
-      el.classList.add('weak');
-    }
-
-    bar.style.width = progress + '%';
-    levelEl.textContent = 'Niv. ' + level;
-  }
-
-  const benedictionEl = document.getElementById('benediction-desc');
-  if (boostClass && boostClass !== null) {
-    const cls = getClassFromId(boostClass);
-    benedictionEl.textContent = '+10% XP pour le ' + (cls ? cls.name : boostClass) + ' jusqu\'au prochain bilan.';
-  } else if (isSouverain) {
-    benedictionEl.textContent = 'Équilibre parfait — choisis ta bénédiction ci-dessous.';
-  } else if (isStagnant) {
-    benedictionEl.textContent = '⚠️ Aucune bénédiction active. Reprends l\'entraînement.';
-  } else {
-    benedictionEl.textContent = 'Aucune bénédiction active.';
-  }
-
-  updateXPbars();
-}
-
 function renderBilanHistory() {
   const container = document.getElementById('bilan-history');
   if (!bilanHistory.length) {
