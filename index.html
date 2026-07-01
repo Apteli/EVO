@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="favicon.jpg?v=3">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-/* === TOUS LES STYLES (identiques à la version précédente) === */
+/* ---- Tous les styles (inchangés) ---- */
 :root{--bg:#0e0e10;--card:#18181c;--card2:#222228;--border:rgba(255,255,255,0.07);--text:#f0f0f0;--muted:#777;--accent:#a78bfa;--accent2:#7c3aed;--green:#34d399;--amber:#fbbf24;--coral:#f87171;--blue:#60a5fa;--orange:#fb923c;--r:14px;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;font-size:15px;min-height:100dvh;padding-bottom:calc(76px + env(safe-area-inset-bottom));}
@@ -373,7 +373,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
     <canvas id="chart-xp" height="130"></canvas>
   </div>
   <div class="chart-card">
-    <div class="chart-title">Équilibre des piliers</div>
+    <div class="chart-title">Niveaux des piliers</div>
     <canvas id="chart-radar" height="200"></canvas>
   </div>
   <div class="section-title">Activité — 60 jours</div>
@@ -491,7 +491,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 
 <script>
 // ============================================================
-// CONFIGURATION
+// CONFIGURATION ET CONSTANTES
 // ============================================================
 const SB_URL = 'https://nlicstxewcrzjliyslkm.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5saWNzdHhld2NyempsaXlzbGttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1ODg1NzUsImV4cCI6MjA5ODE2NDU3NX0.CTHaV_iM50Q_sA1l8_5rVL7b4nU8XonYRcds8Z702GI';
@@ -560,8 +560,19 @@ function getNextPillarRank(xp) {
   return next;
 }
 
+// --- Fonction pour calculer la progression vers le prochain palier ---
+function getPillarProgress(xp) {
+  const current = getPillarRank(xp);
+  const next = getNextPillarRank(xp);
+  if (!next) return { pct: 100, xp_into: xp - current.xp, xp_needed: 1 };
+  const xp_into = xp - current.xp;
+  const xp_needed = next.xp - current.xp;
+  const pct = Math.min(100, Math.round((xp_into / xp_needed) * 100));
+  return { pct, xp_into, xp_needed, nextLevel: next.level, nextTitle: next.title };
+}
+
 // ============================================================
-// FONCTIONS SUPABASE
+// FONCTIONS SUPABASE (inchangées)
 // ============================================================
 async function sbGet(table, uid) {
   const r = await fetch(`${SB_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(uid)}&limit=1`, { headers: HDR });
@@ -591,7 +602,7 @@ async function sbGetMany(table, uid, limit = 30) {
 }
 
 // ============================================================
-// DONNÉES STATIQUES
+// DONNÉES STATIQUES (inchangées)
 // ============================================================
 const LEVELS = [
   { min: 0, name: 'Initié' }, { min: 500, name: 'Apprenti' }, { min: 1200, name: 'Praticien' },
@@ -700,10 +711,10 @@ let lastBilanDate = null;
 let bilanHistory = [];
 let currentSidequest = null;
 let editQuestId = null;
-let isProcessing = false; // 🔒 Verrou pour éviter les doubles appels
+let isProcessing = false;
 
 // ============================================================
-// FONCTIONS UTILITAIRES
+// FONCTIONS UTILITAIRES (inchangées)
 // ============================================================
 function toast(msg) {
   const el = document.getElementById('toast');
@@ -801,7 +812,7 @@ function distributeClassXP(xp, pid, isCustom = false) {
 }
 
 // ============================================================
-// FONCTIONS SUPABASE SPÉCIFIQUES
+// FONCTIONS SUPABASE SPÉCIFIQUES (inchangées)
 // ============================================================
 async function saveClassData() {
   try {
@@ -898,7 +909,7 @@ async function loadCustomQuestsFromDB() {
 }
 
 // ============================================================
-// INITIALISATION
+// INITIALISATION ET CHARGEMENT (inchangé)
 // ============================================================
 function setupUser() {
   const name = document.getElementById('setup-name').value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
@@ -962,7 +973,6 @@ async function loadFromSupabase() {
       } catch (e) {}
     }
 
-    // ---- CHARGEMENT DES QUÊTES PERSONNELLES (PRIORITÉ SUPABASE) ----
     const dbQuests = await loadCustomQuestsFromDB();
     if (dbQuests && Array.isArray(dbQuests)) {
       customQuests = dbQuests;
@@ -971,7 +981,6 @@ async function loadFromSupabase() {
       customQuests = JSON.parse(localStorage.getItem('sys12_custom_quests') || '[]');
     }
 
-    // ---- CHARGEMENT DE LA SIDEQUEST (PRIORITÉ SUPABASE) ----
     const dbSq = await loadSidequestFromDB();
     const todayStr = todayKey();
 
@@ -1045,7 +1054,7 @@ function getLv(xp) {
 }
 
 // ============================================================
-// AFFICHAGE PRINCIPAL
+// AFFICHAGE PRINCIPAL (inchangé sauf updateXPbars qui reste)
 // ============================================================
 function updateHeader() {
   const xp = S.total_xp, lv = getLv(xp), nl = Math.min(lv + 1, LEVELS.length - 1);
@@ -1090,7 +1099,7 @@ function updateXPbars() {
 }
 
 // ============================================================
-// QUÊTES PRÉ-DÉFINIES
+// QUÊTES PRÉ-DÉFINIES (inchangées)
 // ============================================================
 function renderQuetes() {
   const phase = getCurrentPhase();
@@ -1190,7 +1199,7 @@ async function toggleQuete(id) {
 }
 
 // ============================================================
-// SIDEQUEST
+// SIDEQUEST (inchangée)
 // ============================================================
 function initSidequest() {
   updateSidequestUI();
@@ -1392,14 +1401,14 @@ function renderCustomQuests() {
     const typeTag = `<span class="tag tag-ph">${q.type === 'oneshot' ? 'One-shot' : 'Récurrente'}</span>`;
     const aventurierTag = `<span class="tag tag-aventurier">🎒 Aventurier</span>`;
 
-    // 🔒 stopPropagation sur les éléments cliquables pour éviter le double déclenchement
-    return `<div class="quest${q.done ? ' done' : ''}" style="position:relative;">
-      <div class="check" onclick="event.stopPropagation();toggleCustomQuest('${q.id}')">${q.done ? '✓' : ''}</div>
-      <div class="q-info" onclick="event.stopPropagation();toggleCustomQuest('${q.id}')">
+    // Utiliser une fonction fléchée avec event pour stopper la propagation et éviter les doubles appels
+    return `<div class="quest${q.done ? ' done' : ''}" style="position:relative;" data-quest-id="${q.id}">
+      <div class="check" onclick="event.stopPropagation();event.preventDefault();toggleCustomQuest('${q.id}')">${q.done ? '✓' : ''}</div>
+      <div class="q-info" onclick="event.stopPropagation();event.preventDefault();toggleCustomQuest('${q.id}')">
         <div class="q-name">${q.name}</div>
         <div class="q-tags">${typeTag}${aventurierTag}</div>
       </div>
-      <div class="q-xp" onclick="event.stopPropagation();toggleCustomQuest('${q.id}')">+${finalXp} XP</div>
+      <div class="q-xp" onclick="event.stopPropagation();event.preventDefault();toggleCustomQuest('${q.id}')">+${finalXp} XP</div>
       <div class="q-actions">
         <button class="edit" onclick="event.stopPropagation();openEditModal('${q.id}')">✏️</button>
         <button class="del" onclick="event.stopPropagation();deleteCustomQuest('${q.id}')">🗑️</button>
@@ -1454,7 +1463,6 @@ function deleteCustomQuest(id) {
   const q = customQuests.find(x => x.id === id);
   if (!q) return;
 
-  // Si la quête était cochée, retirer les XP
   if (q.done) {
     const today = todayKey();
     let xp = q.xp;
@@ -1475,9 +1483,8 @@ function deleteCustomQuest(id) {
   updateHeader();
 }
 
-// 🔒 VERSION SÉCURISÉE DE toggleCustomQuest AVEC VERROU
+// 🔒 VERSION SÉCURISÉE AVEC VERROU
 async function toggleCustomQuest(id) {
-  // Éviter les appels simultanés (double-clic, propagation)
   if (isProcessing) {
     console.warn('toggleCustomQuest déjà en cours, ignore');
     return;
@@ -1500,7 +1507,6 @@ async function toggleCustomQuest(id) {
     const finalXp = xp;
 
     if (q.done) {
-      // Décocher
       q.done = false;
       S.total_xp = Math.max(0, S.total_xp - finalXp);
       classXP.aventurier = Math.max(0, (classXP.aventurier || 0) - finalXp);
@@ -1510,7 +1516,6 @@ async function toggleCustomQuest(id) {
       sbDelete('sys_log', UID, id, today).catch(() => {});
       toast("↩️ Quête forgée décochée — XP retirés");
     } else {
-      // Cocher
       q.done = true;
       S.total_xp += finalXp;
       classXP.aventurier = (classXP.aventurier || 0) + finalXp;
@@ -1540,7 +1545,7 @@ async function toggleCustomQuest(id) {
 }
 
 // ============================================================
-// VALIDATION DE JOURNÉE
+// VALIDATION DE JOURNÉE (inchangée)
 // ============================================================
 async function validerJour() {
   const today = todayKey();
@@ -1601,15 +1606,20 @@ function updateValidationButton() {
 }
 
 // ============================================================
-// AFFICHAGE DES PILIERS
+// AFFICHAGE DES PILIERS - VERSION PROGRESSION PAR NIVEAU
 // ============================================================
 function renderPiliers() {
   document.getElementById('piliers-list').innerHTML = PILLARS.map(p => {
     const xp = S[p.id + '_xp'] || 0;
-    const pct = Math.min(100, Math.round((xp / MAX_PILLIER_XP) * 100));
     const rank = getPillarRank(xp);
-    const nextRank = getNextPillarRank(xp);
-    const level = getPillarLevel(xp);
+    const level = rank.level;
+    const title = rank.title;
+    const progress = getPillarProgress(xp);
+    const pct = progress.pct;
+    const xp_into = progress.xp_into;
+    const xp_needed = progress.xp_needed;
+    const nextLevel = progress.nextLevel;
+    const nextTitle = progress.nextTitle;
 
     return `<div class="pillar">
       <div class="pillar-top">
@@ -1617,16 +1627,16 @@ function renderPiliers() {
         <div class="pillar-name">${p.name}</div>
         <div class="pillar-lv">
           Niv. ${level} 
-          <span class="pillar-title">${rank.title}</span>
+          <span class="pillar-title">${title}</span>
         </div>
       </div>
       <div class="bar-wrap"><div class="bar-fill" style="width:${pct}%;background:${p.color}"></div></div>
       <div class="bar-label">
-        <span>${xp} / ${MAX_PILLIER_XP} XP</span>
+        <span>${xp_into} / ${xp_needed} XP</span>
         <span>${pct}%</span>
       </div>
       <div class="pillar-sats">
-        Prochain palier : ${nextRank.title} (${nextRank.xp} XP)
+        Prochain palier : ${nextTitle} (Niv. ${nextLevel}) — ${xp_needed - xp_into} XP restants
         <br>${p.satellites}
       </div>
     </div>`;
@@ -1634,7 +1644,7 @@ function renderPiliers() {
 }
 
 // ============================================================
-// STATISTIQUES
+// STATISTIQUES - RADAR BASÉ SUR LES NIVEAUX
 // ============================================================
 function renderStats() {
   const today = todayKey();
@@ -1651,7 +1661,8 @@ function renderStats() {
 
   document.getElementById('cap-grid').innerHTML = CAPS.map(c => {
     const xp = S[c.p + '_xp'] || 0;
-    const pct = Math.min(100, Math.round((xp / MAX_PILLIER_XP) * 100));
+    const level = getPillarLevel(xp);
+    const pct = Math.min(100, Math.round((level / 25) * 100));
     return `<div class="cap-item">
       <div class="cap-name">${c.n}</div>
       <div class="cap-pct" style="color:${PCOLS[c.p]}">${pct}%</div>
@@ -1679,6 +1690,7 @@ function renderStats() {
     </div>`).join('');
   }
 
+  // Graphique XP (inchangé)
   const xpCtx = document.getElementById('chart-xp').getContext('2d');
   const sorted = [...XP_HISTORY].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).slice(-20);
   const xpLabels = sorted.map(h => h.created_at ? h.created_at.slice(5, 10) : '');
@@ -1700,9 +1712,13 @@ function renderStats() {
     }
   });
 
+  // Radar basé sur les niveaux (0-25)
   const rCtx = document.getElementById('chart-radar').getContext('2d');
   const rLabels = PILLARS.map(p => p.icon + ' ' + p.name.split(' ')[0]);
-  const rData = PILLARS.map(p => Math.min(100, Math.round(((S[p.id + '_xp'] || 0) / MAX_PILLIER_XP) * 100)));
+  const rData = PILLARS.map(p => {
+    const level = getPillarLevel(S[p.id + '_xp'] || 0);
+    return Math.min(100, Math.round((level / 25) * 100));
+  });
   if (chartRadar) chartRadar.destroy();
   chartRadar = new Chart(rCtx, {
     type: 'radar',
@@ -1726,7 +1742,7 @@ function renderStats() {
 }
 
 // ============================================================
-// REVUE
+// REVUE (inchangée)
 // ============================================================
 function setStar(v) {
   starVal = v;
@@ -1761,7 +1777,7 @@ async function sauvegarderRevue() {
 }
 
 // ============================================================
-// NAVIGATION
+// NAVIGATION (inchangée)
 // ============================================================
 function goTab(id, btn) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -1772,7 +1788,6 @@ function goTab(id, btn) {
   if (id === 'stats') renderStats();
   if (id === 'piliers') renderPiliers();
   if (id === 'book') {
-    // Recharger les quêtes depuis la base pour être synchronisé
     loadCustomQuestsFromDB().then(dbQuests => {
       if (dbQuests && Array.isArray(dbQuests)) {
         customQuests = dbQuests;
@@ -1790,7 +1805,7 @@ function goTab(id, btn) {
 }
 
 // ============================================================
-// AVATAR / CLASSES
+// AVATAR / CLASSES (inchangé)
 // ============================================================
 function renderAvatar() {
   const banner = document.getElementById('aura-banner');
