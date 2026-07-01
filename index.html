@@ -11,6 +11,7 @@
 <link rel="apple-touch-icon" href="favicon.jpg?v=3">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
+/* --- Tous les styles restent IDENTIQUES à la version précédente --- */
 :root{--bg:#0e0e10;--card:#18181c;--card2:#222228;--border:rgba(255,255,255,0.07);--text:#f0f0f0;--muted:#777;--accent:#a78bfa;--accent2:#7c3aed;--green:#34d399;--amber:#fbbf24;--coral:#f87171;--blue:#60a5fa;--orange:#fb923c;--r:14px;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;font-size:15px;min-height:100dvh;padding-bottom:calc(76px + env(safe-area-inset-bottom));}
@@ -97,6 +98,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .cap-pct{font-size:16px;font-weight:700;margin-bottom:4px;}
 .cap-bar{height:4px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden;}
 .cap-fill{height:100%;border-radius:2px;transition:width .4s;}
+.cap-progress-text{font-size:10px;color:var(--muted);margin-top:2px;}
 .heatmap{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px;}
 .hm-sq{width:12px;height:12px;border-radius:2px;background:rgba(255,255,255,0.05);}
 .hm-sq.on{background:var(--accent2);}
@@ -176,6 +178,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 .class-item .class-title{font-size:12px;font-weight:700;color:var(--accent);margin-bottom:2px;}
 .class-item .class-bar{margin-top:6px;height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;}
 .class-item .class-bar-fill{height:100%;border-radius:2px;transition:width .4s;}
+.class-item .class-progress{font-size:10px;color:var(--muted);margin-top:2px;}
 .class-item.highlight{border-color:var(--accent);background:rgba(167,139,250,0.08);}
 .class-item.weak{border-color:var(--coral);background:rgba(248,113,113,0.08);}
 .class-item .class-bar-fill.guerrier{background:#ef4444;}
@@ -439,7 +442,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
         <div class="class-level" id="guerrier-level"></div>
         <div class="class-title" id="guerrier-title">Apprenti</div>
         <div class="class-bar"><div class="class-bar-fill guerrier" id="guerrier-bar" style="width:0%"></div></div>
-        <div class="class-progress" style="font-size:10px;color:var(--muted);margin-top:2px;" id="guerrier-progress">0 / 100 XP</div>
+        <div class="class-progress" id="guerrier-progress">0 / 100 XP</div>
       </div>
       <div class="class-item" id="class-mage">
         <div class="class-icon">🔮</div>
@@ -447,7 +450,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
         <div class="class-level" id="mage-level"></div>
         <div class="class-title" id="mage-title">Apprenti</div>
         <div class="class-bar"><div class="class-bar-fill mage" id="mage-bar" style="width:0%"></div></div>
-        <div class="class-progress" style="font-size:10px;color:var(--muted);margin-top:2px;" id="mage-progress">0 / 100 XP</div>
+        <div class="class-progress" id="mage-progress">0 / 100 XP</div>
       </div>
       <div class="class-item" id="class-ombre">
         <div class="class-icon">🌑</div>
@@ -455,7 +458,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
         <div class="class-level" id="ombre-level"></div>
         <div class="class-title" id="ombre-title">Apprenti</div>
         <div class="class-bar"><div class="class-bar-fill ombre" id="ombre-bar" style="width:0%"></div></div>
-        <div class="class-progress" style="font-size:10px;color:var(--muted);margin-top:2px;" id="ombre-progress">0 / 100 XP</div>
+        <div class="class-progress" id="ombre-progress">0 / 100 XP</div>
       </div>
       <div class="class-item" id="class-aventurier">
         <div class="class-icon">🎒</div>
@@ -463,7 +466,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
         <div class="class-level" id="aventurier-level"></div>
         <div class="class-title" id="aventurier-title">Apprenti</div>
         <div class="class-bar"><div class="class-bar-fill aventurier" id="aventurier-bar" style="width:0%"></div></div>
-        <div class="class-progress" style="font-size:10px;color:var(--muted);margin-top:2px;" id="aventurier-progress">0 / 100 XP</div>
+        <div class="class-progress" id="aventurier-progress">0 / 100 XP</div>
       </div>
     </div>
   </div>
@@ -511,6 +514,7 @@ const HDR = {
 };
 
 const MAX_PILLIER_XP = 100000;
+const MAX_QUESTS_PER_PILLAR = 50; // Objectif pour les capacités
 
 const PILLAR_RANKS = [
   { level: 1, xp: 0, title: 'Apprenti' },
@@ -540,7 +544,6 @@ const PILLAR_RANKS = [
   { level: 25, xp: 62000, title: 'Éternel' },
 ];
 
-// ---- NOUVEAU : Paliers pour les classes RPG ----
 const CLASS_RANKS = [
   { level: 1, xp: 0, title: 'Apprenti' },
   { level: 2, xp: 100, title: 'Initié' },
@@ -562,7 +565,6 @@ const CLASS_RANKS = [
   { level: 18, xp: 15300, title: 'Divin' },
   { level: 19, xp: 17100, title: 'Omniscient' },
   { level: 20, xp: 19000, title: 'Alpha' },
-  // Au-delà du niveau 20, on continue avec des titres épiques
   { level: 21, xp: 21000, title: 'Oméga' },
   { level: 22, xp: 23100, title: 'Cosmique' },
   { level: 23, xp: 25300, title: 'Primordial' },
@@ -570,7 +572,6 @@ const CLASS_RANKS = [
   { level: 25, xp: 30000, title: '★ Infini' },
 ];
 
-// ---- Fonctions pour les piliers (inchangées) ----
 function getPillarRank(xp) {
   let rank = PILLAR_RANKS[0];
   for (const r of PILLAR_RANKS) {
@@ -609,7 +610,6 @@ function getPillarProgress(xp) {
   return { pct, xp_into, xp_needed, nextLevel: next.level, nextTitle: next.title };
 }
 
-// ---- Fonctions pour les classes (nouvelle version basée sur CLASS_RANKS) ----
 function getClassRank(xp) {
   let rank = CLASS_RANKS[0];
   for (const r of CLASS_RANKS) {
@@ -716,11 +716,16 @@ const PILLARS = [
   { id: 'p5', name: 'Influence & communication', icon: '🎯', color: '#fbbf24', satellites: 'Rhétorique · Langues · Négociation · Stratégie' },
 ];
 const CAPS = [
-  { n: 'Mémoire', p: 'p1' }, { n: 'Calcul mental', p: 'p1' },
-  { n: 'Contrôle émotionnel', p: 'p2' }, { n: 'Récupération', p: 'p2' },
-  { n: 'Sémiologie physique', p: 'p3' }, { n: 'Conscience spatiale', p: 'p3' },
-  { n: 'Force musculaire', p: 'p4' }, { n: 'Endurance cardio', p: 'p4' },
-  { n: 'Rhétorique', p: 'p5' }, { n: 'Langues', p: 'p5' },
+  { n: 'Mémoire', p: 'p1' },
+  { n: 'Calcul mental', p: 'p1' },
+  { n: 'Contrôle émotionnel', p: 'p2' },
+  { n: 'Récupération', p: 'p2' },
+  { n: 'Sémiologie physique', p: 'p3' },
+  { n: 'Conscience spatiale', p: 'p3' },
+  { n: 'Force musculaire', p: 'p4' },
+  { n: 'Endurance cardio', p: 'p4' },
+  { n: 'Rhétorique', p: 'p5' },
+  { n: 'Langues', p: 'p5' },
 ];
 const MILESTONES = [
   { lbl: 'Premier jour', icon: '🌱', check: s => s.days_total >= 1 },
@@ -769,7 +774,9 @@ let checkedToday = {};
 let S = {
   total_xp: 0, streak: 0, last_day: null, days_total: 0,
   start_date: new Date().toISOString().slice(0, 10), current_month: 1,
-  p1_xp: 0, p2_xp: 0, p3_xp: 0, p4_xp: 0, p5_xp: 0
+  p1_xp: 0, p2_xp: 0, p3_xp: 0, p4_xp: 0, p5_xp: 0,
+  // ---- NOUVEAU : compteurs de quêtes par pilier ----
+  p1_quests: 0, p2_quests: 0, p3_quests: 0, p4_quests: 0, p5_quests: 0
 };
 let LOG = [];
 let XP_HISTORY = [];
@@ -804,8 +811,6 @@ function toast(msg) {
 function getClassForPillar(pid) {
   return PILIER_TO_CLASSE[pid] || 'aventurier';
 }
-
-// Plus besoin de getClassLevel et getClassProgress car nous utilisons les nouvelles versions basées sur CLASS_RANKS.
 
 function getClassFromId(id) {
   return CLASSES[id] || null;
@@ -873,7 +878,7 @@ function distributeClassXP(xp, pid, isCustom = false) {
 }
 
 // ============================================================
-// FONCTIONS SUPABASE SPÉCIFIQUES
+// FONCTIONS SUPABASE SPÉCIFIQUES (inchangées)
 // ============================================================
 async function saveClassData() {
   try {
@@ -1230,9 +1235,11 @@ async function toggleQuete(id) {
   const finalXp = xp;
 
   if (checkedToday[id]) {
+    // Décocher
     delete checkedToday[id];
     S.total_xp = Math.max(0, S.total_xp - finalXp);
     S[q.pid + '_xp'] = Math.max(0, (S[q.pid + '_xp'] || 0) - finalXp);
+    S[q.pid + '_quests'] = Math.max(0, (S[q.pid + '_quests'] || 0) - 1);
     const cId = getClassForPillar(q.pid);
     classXP[cId] = Math.max(0, (classXP[cId] || 0) - finalXp);
     weeklyClassXP[cId] = Math.max(0, (weeklyClassXP[cId] || 0) - finalXp);
@@ -1240,9 +1247,11 @@ async function toggleQuete(id) {
     sbDelete('sys_log', UID, id, today).catch(() => {});
     toast("↩️ Quête décochée — XP retirés");
   } else {
+    // Cocher
     checkedToday[id] = true;
     S.total_xp += finalXp;
     S[q.pid + '_xp'] = Math.min(MAX_PILLIER_XP, (S[q.pid + '_xp'] || 0) + finalXp);
+    S[q.pid + '_quests'] = (S[q.pid + '_quests'] || 0) + 1;
     const cId = getClassForPillar(q.pid);
     classXP[cId] = (classXP[cId] || 0) + finalXp;
     weeklyClassXP[cId] = (weeklyClassXP[cId] || 0) + finalXp;
@@ -1336,14 +1345,14 @@ async function toggleSidequest() {
     baseXp = Math.round(baseXp * 1.1);
   }
   const finalXp = baseXp;
+  const pid = currentSidequest.pid || 'p1';
 
   if (currentSidequest.done) {
     currentSidequest.done = false;
     S.total_xp = Math.max(0, S.total_xp - finalXp);
-    if (currentSidequest.pid) {
-      S[currentSidequest.pid + '_xp'] = Math.max(0, (S[currentSidequest.pid + '_xp'] || 0) - finalXp);
-    }
-    const cId = getClassForPillar(currentSidequest.pid);
+    S[pid + '_xp'] = Math.max(0, (S[pid + '_xp'] || 0) - finalXp);
+    S[pid + '_quests'] = Math.max(0, (S[pid + '_quests'] || 0) - 1);
+    const cId = getClassForPillar(pid);
     classXP[cId] = Math.max(0, (classXP[cId] || 0) - finalXp);
     weeklyClassXP[cId] = Math.max(0, (weeklyClassXP[cId] || 0) - finalXp);
     LOG = LOG.filter(l => !(l.quest_id === 'sidequest' && l.created_at && l.created_at.slice(0, 10) === today));
@@ -1352,10 +1361,9 @@ async function toggleSidequest() {
   } else {
     currentSidequest.done = true;
     S.total_xp += finalXp;
-    if (currentSidequest.pid) {
-      S[currentSidequest.pid + '_xp'] = Math.min(MAX_PILLIER_XP, (S[currentSidequest.pid + '_xp'] || 0) + finalXp);
-    }
-    const cId = getClassForPillar(currentSidequest.pid);
+    S[pid + '_xp'] = Math.min(MAX_PILLIER_XP, (S[pid + '_xp'] || 0) + finalXp);
+    S[pid + '_quests'] = (S[pid + '_quests'] || 0) + 1;
+    const cId = getClassForPillar(pid);
     classXP[cId] = (classXP[cId] || 0) + finalXp;
     weeklyClassXP[cId] = (weeklyClassXP[cId] || 0) + finalXp;
     const entry = {
@@ -1363,7 +1371,7 @@ async function toggleSidequest() {
       quest_id: 'sidequest',
       quest_name: '[Sidequest] ' + currentSidequest.text.slice(0, 40) + '...',
       xp: finalXp,
-      pillar_id: currentSidequest.pid || 'p1',
+      pillar_id: pid,
       created_at: new Date().toISOString()
     };
     LOG.unshift(entry);
@@ -1408,7 +1416,7 @@ async function rerollSidequestIA() {
 }
 
 // ============================================================
-// QUÊTES FORGÉES
+// QUÊTES FORGÉES (AVENTURIER)
 // ============================================================
 function loadCustomQuests() {
   customQuests = JSON.parse(localStorage.getItem('sys12_custom_quests') || '[]');
@@ -1697,16 +1705,116 @@ function renderPiliers() {
       <div class="pillar-sats">
         Prochain palier : ${nextTitle} (Niv. ${nextLevel}) — ${xp_needed - xp_into} XP restants
         <br>${p.satellites}
+        <br><span style="color:var(--muted);font-size:10px;">Quêtes accomplies : ${S[p.id + '_quests'] || 0}</span>
       </div>
     </div>`;
   }).join('');
 }
 
 // ============================================================
-// AVATAR / CLASSES - NOUVELLE VERSION AVEC PROGRESSION PAR NIVEAU
+// STATISTIQUES - CAPACITÉS BASÉES SUR LE NOMBRE DE QUÊTES
+// ============================================================
+function renderStats() {
+  const today = todayKey();
+  const activeDays = [...new Set(LOG.map(l => l.created_at && l.created_at.slice(0, 10)).filter(Boolean))];
+  let hm = '';
+  for (let i = 59; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    const isToday = key === today;
+    const on = activeDays.includes(key);
+    hm += `<div class="hm-sq${on && !isToday ? ' on' : ''}${isToday ? ' today' : ''}"></div>`;
+  }
+  document.getElementById('heatmap').innerHTML = hm;
+
+  // ---- CAPACITÉS : basées sur le nombre de quêtes ----
+  document.getElementById('cap-grid').innerHTML = CAPS.map(c => {
+    const questCount = S[c.p + '_quests'] || 0;
+    const maxQuests = MAX_QUESTS_PER_PILLAR;
+    const pct = Math.min(100, Math.round((questCount / maxQuests) * 100));
+    return `<div class="cap-item">
+      <div class="cap-name">${c.n}</div>
+      <div class="cap-pct" style="color:${PCOLS[c.p]}">${pct}%</div>
+      <div class="cap-bar"><div class="cap-fill" style="width:${pct}%;background:${PCOLS[c.p]}"></div></div>
+      <div class="cap-progress-text">${questCount} / ${maxQuests} quêtes</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('milestones').innerHTML = MILESTONES.map(m => {
+    const ok = m.check(S);
+    return `<div class="ms-item${ok ? ' reached' : ''}">
+      <div class="ms-icon">${m.icon}</div>
+      <div class="ms-label">${m.lbl}</div>
+      <div class="ms-status">${ok ? '✓ Atteint' : 'En cours'}</div>
+    </div>`;
+  }).join('');
+
+  const logEl = document.getElementById('log-list');
+  if (!LOG.length) { logEl.innerHTML = '<div class="empty-state">Aucune action enregistrée</div>'; } else {
+    logEl.innerHTML = LOG.slice(0, 15).map(l => `
+    <div class="log-entry">
+      <div class="log-dot" style="background:${PCOLS[l.pillar_id] || '#888'}"></div>
+      <div class="log-text">${l.quest_name}</div>
+      <span class="log-xp">+${l.xp}</span>
+      <span class="log-time">${l.created_at ? l.created_at.slice(11, 16) : ''}</span>
+    </div>`).join('');
+  }
+
+  // Graphique XP (inchangé)
+  const xpCtx = document.getElementById('chart-xp').getContext('2d');
+  const sorted = [...XP_HISTORY].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).slice(-20);
+  const xpLabels = sorted.map(h => h.created_at ? h.created_at.slice(5, 10) : '');
+  const xpData = sorted.map(h => h.xp);
+  if (chartXp) chartXp.destroy();
+  chartXp = new Chart(xpCtx, {
+    type: 'line',
+    data: {
+      labels: xpLabels.length ? xpLabels : ['—'],
+      datasets: [{ data: xpData.length ? xpData : [0], borderColor: '#a78bfa', backgroundColor: 'rgba(124,58,237,0.15)', borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#a78bfa', fill: true, tension: .4 }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#555', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
+        y: { ticks: { color: '#555', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' }, beginAtZero: true }
+      }
+    }
+  });
+
+  // Radar (inchangé)
+  const rCtx = document.getElementById('chart-radar').getContext('2d');
+  const rLabels = PILLARS.map(p => p.icon + ' ' + p.name.split(' ')[0]);
+  const rData = PILLARS.map(p => {
+    const level = getPillarLevel(S[p.id + '_xp'] || 0);
+    return Math.min(100, Math.round((level / 25) * 100));
+  });
+  if (chartRadar) chartRadar.destroy();
+  chartRadar = new Chart(rCtx, {
+    type: 'radar',
+    data: {
+      labels: rLabels,
+      datasets: [{ data: rData, borderColor: '#a78bfa', backgroundColor: 'rgba(124,58,237,0.18)', borderWidth: 2, pointBackgroundColor: '#a78bfa', pointRadius: 4 }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        r: {
+          min: 0, max: 100, ticks: { display: false },
+          grid: { color: 'rgba(255,255,255,0.07)' },
+          pointLabels: { color: '#999', font: { size: 11 } },
+          angleLines: { color: 'rgba(255,255,255,0.06)' }
+        }
+      }
+    }
+  });
+}
+
+// ============================================================
+// AVATAR / CLASSES
 // ============================================================
 function renderAvatar() {
-  // Aura
   const banner = document.getElementById('aura-banner');
   const icon = document.getElementById('aura-icon');
   const name = document.getElementById('aura-name');
@@ -1733,7 +1841,6 @@ function renderAvatar() {
     banner.className = 'aura-banner';
   }
 
-  // Classes
   for (const [id, cls] of Object.entries(CLASSES)) {
     const xp = classXP[id] || 0;
     const rank = getClassRank(xp);
@@ -1764,7 +1871,6 @@ function renderAvatar() {
     progressEl.textContent = xp_into + ' / ' + xp_needed + ' XP';
   }
 
-  // Bénédiction
   const benedictionEl = document.getElementById('benediction-desc');
   if (boostClass && boostClass !== null) {
     const cls = getClassFromId(boostClass);
@@ -1778,102 +1884,6 @@ function renderAvatar() {
   }
 
   updateXPbars();
-}
-
-// ============================================================
-// STATISTIQUES
-// ============================================================
-function renderStats() {
-  const today = todayKey();
-  const activeDays = [...new Set(LOG.map(l => l.created_at && l.created_at.slice(0, 10)).filter(Boolean))];
-  let hm = '';
-  for (let i = 59; i >= 0; i--) {
-    const d = new Date(); d.setDate(d.getDate() - i);
-    const key = d.toISOString().slice(0, 10);
-    const isToday = key === today;
-    const on = activeDays.includes(key);
-    hm += `<div class="hm-sq${on && !isToday ? ' on' : ''}${isToday ? ' today' : ''}"></div>`;
-  }
-  document.getElementById('heatmap').innerHTML = hm;
-
-  document.getElementById('cap-grid').innerHTML = CAPS.map(c => {
-    const xp = S[c.p + '_xp'] || 0;
-    const level = getPillarLevel(xp);
-    const pct = Math.min(100, Math.round((level / 25) * 100));
-    return `<div class="cap-item">
-      <div class="cap-name">${c.n}</div>
-      <div class="cap-pct" style="color:${PCOLS[c.p]}">${pct}%</div>
-      <div class="cap-bar"><div class="cap-fill" style="width:${pct}%;background:${PCOLS[c.p]}"></div></div>
-    </div>`;
-  }).join('');
-
-  document.getElementById('milestones').innerHTML = MILESTONES.map(m => {
-    const ok = m.check(S);
-    return `<div class="ms-item${ok ? ' reached' : ''}">
-      <div class="ms-icon">${m.icon}</div>
-      <div class="ms-label">${m.lbl}</div>
-      <div class="ms-status">${ok ? '✓ Atteint' : 'En cours'}</div>
-    </div>`;
-  }).join('');
-
-  const logEl = document.getElementById('log-list');
-  if (!LOG.length) { logEl.innerHTML = '<div class="empty-state">Aucune action enregistrée</div>'; } else {
-    logEl.innerHTML = LOG.slice(0, 15).map(l => `
-    <div class="log-entry">
-      <div class="log-dot" style="background:${PCOLS[l.pillar_id] || '#888'}"></div>
-      <div class="log-text">${l.quest_name}</div>
-      <span class="log-xp">+${l.xp}</span>
-      <span class="log-time">${l.created_at ? l.created_at.slice(11, 16) : ''}</span>
-    </div>`).join('');
-  }
-
-  const xpCtx = document.getElementById('chart-xp').getContext('2d');
-  const sorted = [...XP_HISTORY].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).slice(-20);
-  const xpLabels = sorted.map(h => h.created_at ? h.created_at.slice(5, 10) : '');
-  const xpData = sorted.map(h => h.xp);
-  if (chartXp) chartXp.destroy();
-  chartXp = new Chart(xpCtx, {
-    type: 'line',
-    data: {
-      labels: xpLabels.length ? xpLabels : ['—'],
-      datasets: [{ data: xpData.length ? xpData : [0], borderColor: '#a78bfa', backgroundColor: 'rgba(124,58,237,0.15)', borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#a78bfa', fill: true, tension: .4 }]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { ticks: { color: '#555', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
-        y: { ticks: { color: '#555', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' }, beginAtZero: true }
-      }
-    }
-  });
-
-  const rCtx = document.getElementById('chart-radar').getContext('2d');
-  const rLabels = PILLARS.map(p => p.icon + ' ' + p.name.split(' ')[0]);
-  const rData = PILLARS.map(p => {
-    const level = getPillarLevel(S[p.id + '_xp'] || 0);
-    return Math.min(100, Math.round((level / 25) * 100));
-  });
-  if (chartRadar) chartRadar.destroy();
-  chartRadar = new Chart(rCtx, {
-    type: 'radar',
-    data: {
-      labels: rLabels,
-      datasets: [{ data: rData, borderColor: '#a78bfa', backgroundColor: 'rgba(124,58,237,0.18)', borderWidth: 2, pointBackgroundColor: '#a78bfa', pointRadius: 4 }]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: false } },
-      scales: {
-        r: {
-          min: 0, max: 100, ticks: { display: false },
-          grid: { color: 'rgba(255,255,255,0.07)' },
-          pointLabels: { color: '#999', font: { size: 11 } },
-          angleLines: { color: 'rgba(255,255,255,0.06)' }
-        }
-      }
-    }
-  });
 }
 
 // ============================================================
@@ -2149,117 +2159,4 @@ function buildCtx() {
 function loadWelcomeMessage() {
   if (!UID) return;
   const el = document.getElementById('ai-welcome');
-  const txt = document.getElementById('ai-welcome-text');
-  el.style.display = 'block';
-  txt.textContent = "Bonjour Eliseo ! Ton protocole d'observation factuelle et tes paquets d'étymologie sur Anki sont configurés pour optimiser ta préparation clinique et militaire. Prêt à passer à l'action ?";
-}
-
-async function envoyerMessageCoach() {
-  const input = document.getElementById('coach-free-input');
-  const chatBox = document.getElementById('coach-chat-messages');
-  const msg = input.value.trim();
-  if (!msg) return;
-
-  chatBox.style.display = 'flex';
-  const userEl = document.createElement('div');
-  userEl.className = 'chat-msg user';
-  userEl.textContent = '👉 Toi : ' + msg;
-  chatBox.appendChild(userEl);
-
-  const coachEl = document.createElement('div');
-  coachEl.className = 'chat-msg coach';
-  coachEl.textContent = '🤖 Coach : Réflexion...';
-  chatBox.appendChild(coachEl);
-
-  chatBox.scrollTop = chatBox.scrollHeight;
-  input.value = '';
-
-  const prompt = buildCtx() + '\n\nVoici le message d\'Eliseo: "' + msg + '". Réponds de manière directe, analytique et motivante. Sans markdown.';
-  const responseText = await callGemini(prompt);
-
-  coachEl.textContent = '🤖 Coach : ' + responseText;
-  chatBox.scrollTop = chatBox.scrollHeight;
-}
-
-async function coachQuete(btn) {
-  const qId = btn.getAttribute('data-qid');
-  const qName = btn.getAttribute('data-qname');
-  const qDesc = btn.getAttribute('data-qdesc');
-  const existingId = 'coach-' + qId;
-  const existing = document.getElementById(existingId);
-  if (existing) { existing.remove(); return; }
-  const card = document.createElement('div');
-  card.className = 'ai-card';
-  card.id = existingId;
-  card.style.marginTop = '6px';
-  card.innerHTML = '<div class="ai-header"><span style="font-size:16px">💡</span><span class="ai-label">Conseils</span></div><div class="ai-body" id="txt-' + qId + '">Chargement...</div>';
-  btn.closest('.quest').after(card);
-
-  let consigneSpecifique = "";
-  if (qId === 'q3') {
-    consigneSpecifique = " Interdiction absolue de parler de détection de mensonges, de psychologie, d'intentions ou de micro-expressions. Donne uniquement des exercices de repérage de faits anatomiques/mécaniques (asymétries, démarche, posture) et de tactique spatiale (calcul de distances à l'oeil nu, angles morts, repérage des sorties) utiles pour l'armée et la clinique.";
-  }
-
-  const prompt = buildCtx() + ' Quete: "' + qName + '" (' + qDesc + ').' + consigneSpecifique + ' Donne 3 conseils pratiques et concrets pour bien realiser cette quete aujourd hui. 4 lignes max. Pas de markdown ni tirets.';
-  const bodyEl = document.getElementById('txt-' + qId);
-  if (bodyEl) bodyEl.textContent = await callGemini(prompt);
-}
-
-async function genererEntrainement(btn) {
-  const existingId = 'workout-generated';
-  const existing = document.getElementById(existingId);
-  if (existing) { existing.remove(); return; }
-
-  const selectEl = document.getElementById('workout-type');
-  const selectedDomain = selectEl ? selectEl.value : 'auto';
-
-  const card = document.createElement('div');
-  card.className = 'ai-card';
-  card.id = existingId;
-  card.style.marginTop = '6px';
-  card.style.border = '0.5px solid rgba(96,165,250,.3)';
-  card.style.background = 'linear-gradient(135deg,rgba(96,165,250,.12),rgba(14,14,16,.08))';
-  card.innerHTML = '<div class="ai-header"><span style="font-size:16px">🏋️</span><span class="ai-label" style="color:var(--blue)">Séance sur-mesure</span></div><div class="ai-body" id="txt-workout">Analyse du domaine choisi et calcul du protocole adaptatif...</div>';
-  btn.closest('.quest').after(card);
-
-  const historiquesRecents = LOG.slice(0, 10).map(l => l.quest_name).join(', ');
-
-  let domaineInstructions = "";
-  if (selectedDomain === "bodyweight") {
-    domaineInstructions = "L'entraînement DOIT obligatoirement être axé sur le POIDS DU CORPS / CALISTHÉNIE (en utilisant sa bonne base en pompes, tractions, ou des variantes complexes comme du tempo ou de la pliométrie).";
-  } else if (selectedDomain === "swim") {
-    domaineInstructions = "L'entraînement DOIT obligatoirement être un protocole de NATATION en piscine (séries en mètres, nages, allures, ou exercices techniques, adapté à sa capacité de faire 3km par session).";
-  } else if (selectedDomain === "run") {
-    domaineInstructions = "L'entraînement DOIT obligatoirement être de la COURSE À PIED / CARDIO EXTÉRIEUR (axé soit sur son point faible à améliorer : le foncier en zone 2, soit du fractionné/HIIT haute intensité).";
-  } else {
-    domaineInstructions = "Laisse libre cours à ton expertise de coach pour choisir le domaine (natation, course ou poids du corps) le plus pertinent selon son historique récent.";
-  }
-
-  const prompt = buildCtx() + `
-  En tant que coach sportif, génère un entraînement physique précis de 30 à 45 minutes pour Eliseo.
-  CONTRAINTE DE SÉLECTION : ${domaineInstructions}
-  
-  Prends également en compte son profil général et son historique récent d'actions: [${historiquesRecents}].
-  
-  Format de réponse obligatoire (sois hyper concis, direct et condensé) :
-  1. Domaine et Objectif ciblé (ex: Natation - Vitesse explosive ou Calisthénie - Volume de force)
-  2. Échauffement rapide
-  3. Corps de séance : Exercices/Séries exactes, répétitions ou distances, temps de récupération très précis.
-  
-  Maximum 7 lignes. Pas de markdown, pas de listes à puces ou tirets (sauts de ligne simples).`;
-
-  const bodyEl = document.getElementById('txt-workout');
-  if (bodyEl) bodyEl.textContent = await callGemini(prompt);
-}
-
-async function genererBilanRevue(bien, resist, change, stars) {
-  const el = document.getElementById('ai-bilan');
-  const txt = document.getElementById('ai-bilan-text');
-  el.style.display = 'block';
-  txt.textContent = 'Analyse de ta semaine...';
-  const prompt = buildCtx() + ' Revue (' + stars + '/5). Ce qui a marche: "' + bien + '". Ce qui a resiste: "' + resist + '". Changement prevu: "' + change + '". Bilan: 1 point fort a consolider, 1 conseil sur le point de friction, 1 suggestion concrete pour la semaine prochaine. 5-6 lignes. Direct. Pas de markdown.';
-  txt.textContent = await callGemini(prompt);
-}
-</script>
-</body>
-</html>
+  const txt = document.getElementById
