@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="favicon.jpg?v=3">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-/* ===== STYLES (ajout des styles pour les blocs déroulants, pastilles, recettes) ===== */
+/* ===== STYLES COMPLETS ===== */
 :root{--bg:#0e0e10;--card:#18181c;--card2:#222228;--border:rgba(255,255,255,0.07);--text:#f0f0f0;--muted:#777;--accent:#a78bfa;--accent2:#7c3aed;--green:#34d399;--amber:#fbbf24;--coral:#f87171;--blue:#60a5fa;--orange:#fb923c;--r:14px;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;font-size:15px;min-height:100dvh;padding-bottom:calc(76px + env(safe-area-inset-bottom));}
@@ -81,6 +81,10 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .q-actions button.edit:hover{color:var(--blue);border-color:var(--blue);}
 .btn-main{width:100%;background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;border:none;border-radius:14px;padding:16px;font-size:16px;font-weight:700;cursor:pointer;margin-top:14px;transition:opacity .15s;font-family:inherit;}
 .btn-main:active{opacity:.8;}
+.btn-sm{padding:10px 14px;font-size:13px;font-weight:600;border-radius:8px;border:none;cursor:pointer;font-family:inherit;}
+.btn-accent{background:var(--accent2);color:#fff;}
+.btn-muted{background:rgba(255,255,255,0.06);color:var(--text);border:0.5px solid var(--border);}
+.btn-accent:active,.btn-muted:active{opacity:0.8;}
 .alert{background:rgba(251,191,36,.1);border:0.5px solid rgba(251,191,36,.3);border-radius:10px;padding:12px 14px;font-size:13px;color:#fbbf24;margin-bottom:12px;display:none;}
 .alert.show{display:block;}
 .pillar{background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;}
@@ -158,10 +162,6 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
 .form-select,.form-input{width:100%;background:rgba(255,255,255,.05);border:0.5px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-family:inherit;font-size:13px;outline:none;}
 .form-select:focus,.form-input:focus{border-color:var(--accent);}
-.btn-sm{padding:10px 14px;font-size:13px;font-weight:600;border-radius:8px;border:none;cursor:pointer;font-family:inherit;}
-.btn-accent{background:var(--accent2);color:#fff;}
-.btn-muted{background:rgba(255,255,255,0.06);color:var(--text);border:0.5px solid var(--border);}
-.btn-accent:active,.btn-muted:active{opacity:0.8;}
 .sidequest-box{background:linear-gradient(135deg,rgba(251,191,36,0.1),rgba(249,146,60,0.05));border:0.5px solid rgba(251,191,36,0.25);border-radius:12px;padding:14px;margin-bottom:14px;}
 .sidequest-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
 .sidequest-title{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--amber);letter-spacing:0.05em;}
@@ -188,12 +188,16 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 .aura-banner .aura-info{flex:1;}
 .aura-banner .aura-name{font-size:14px;font-weight:700;}
 .aura-banner .aura-desc{font-size:11px;color:var(--muted);}
-.aura-banner.souverain{border-color:rgba(255,255,255,0.3);background:rgba(255,255,255,0.05);}
-.aura-banner.stagnant{border-color:rgba(255,255,255,0.1);background:rgba(255,255,255,0.02);opacity:0.6;}
-.aura-banner.guerrier{border-color:rgba(239,68,68,0.4);background:rgba(239,68,68,0.1);}
-.aura-banner.mage{border-color:rgba(59,130,246,0.4);background:rgba(59,130,246,0.1);}
-.aura-banner.ombre{border-color:rgba(139,92,246,0.4);background:rgba(139,92,246,0.1);}
-.aura-banner.aventurier{border-color:rgba(34,197,94,0.4);background:rgba(34,197,94,0.1);}
+.aura-banner.stratege{border-color:#7c3aed;background:rgba(124,58,237,0.15);}
+.aura-banner.vagabond{border-color:#f59e0b;background:rgba(245,158,11,0.15);}
+.aura-banner.traqueur{border-color:#6b7280;background:rgba(107,114,128,0.15);}
+.aura-banner.savant{border-color:#06b6d4;background:rgba(6,182,212,0.15);}
+.aura-banner.souverain{border-color:#fbbf24;background:rgba(251,191,36,0.2);}
+.aura-banner.guerrier{border-color:#ef4444;background:rgba(239,68,68,0.1);}
+.aura-banner.mage{border-color:#3b82f6;background:rgba(59,130,246,0.1);}
+.aura-banner.ombre{border-color:#8b5cf6;background:rgba(139,92,246,0.1);}
+.aura-banner.aventurier{border-color:#22c55e;background:rgba(34,197,94,0.1);}
+.aura-banner.stagnant{border-color:#6b7280;background:rgba(107,114,128,0.05);opacity:0.6;}
 .bilan-btn{background:rgba(167,139,250,0.1);border:0.5px solid rgba(167,139,250,0.25);border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;color:var(--accent);cursor:pointer;font-family:inherit;width:100%;margin-top:8px;}
 .bilan-btn:active{opacity:0.8;}
 .bilan-btn:disabled{opacity:0.4;cursor:default;}
@@ -211,27 +215,25 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 .modal-actions button{flex:1;padding:10px;border-radius:10px;border:none;font-weight:600;cursor:pointer;font-family:inherit;}
 .modal-actions .btn-confirm{background:var(--accent2);color:#fff;}
 .modal-actions .btn-cancel{background:rgba(255,255,255,0.06);color:var(--text);border:0.5px solid var(--border);}
-
-/* === NOUVEAUX STYLES POUR ACCORDÉON, PASTILLES, RECETTES === */
-.accordion { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
-.accordion-item { background: var(--card); border: 0.5px solid var(--border); border-radius: 12px; overflow: hidden; }
-.accordion-header { width: 100%; background: transparent; border: none; padding: 14px 16px; text-align: left; font-size: 15px; font-weight: 600; color: var(--text); cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-family: inherit; }
-.accordion-header:hover { background: rgba(255,255,255,0.03); }
-.accordion-header .badge { display: none; background: var(--orange); width: 8px; height: 8px; border-radius: 50%; margin-left: 8px; flex-shrink: 0; }
-.accordion-header .badge.show { display: inline-block; }
-.accordion-body { padding: 0 16px 16px; display: none; }
-.accordion-body.open { display: block; }
-.accordion-body .btn-group { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
-.accordion-body .btn-group .btn-sm { flex: 1; min-width: 100px; }
-.recipe-item { display: flex; align-items: center; gap: 12px; background: var(--card2); border: 0.5px solid var(--border); border-radius: 10px; padding: 10px 12px; margin-bottom: 6px; cursor: pointer; }
-.recipe-item .recipe-info { flex: 1; }
-.recipe-item .recipe-name { font-weight: 500; }
-.recipe-item .recipe-meta { font-size: 11px; color: var(--muted); }
-.recipe-item .recipe-xp { font-size: 12px; font-weight: 700; color: var(--accent); }
-.recipe-item .recipe-steps { font-size: 13px; color: var(--muted); margin-top: 4px; padding-left: 12px; border-left: 2px solid var(--border); display: none; white-space: pre-wrap; }
-.recipe-item .recipe-steps.open { display: block; }
-.recipe-item.done { opacity: 0.4; }
-.recipe-item.done .recipe-name { text-decoration: line-through; }
+.accordion{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
+.accordion-item{background:var(--card);border:0.5px solid var(--border);border-radius:12px;overflow:hidden;}
+.accordion-header{width:100%;background:transparent;border:none;padding:14px 16px;text-align:left;font-size:15px;font-weight:600;color:var(--text);cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-family:inherit;}
+.accordion-header:hover{background:rgba(255,255,255,0.03);}
+.accordion-header .badge{display:none;background:var(--orange);width:8px;height:8px;border-radius:50%;margin-left:8px;flex-shrink:0;}
+.accordion-header .badge.show{display:inline-block;}
+.accordion-body{padding:0 16px 16px;display:none;}
+.accordion-body.open{display:block;}
+.accordion-body .btn-group{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+.accordion-body .btn-group .btn-sm{flex:1;min-width:100px;}
+.recipe-item{display:flex;align-items:center;gap:12px;background:var(--card2);border:0.5px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:6px;cursor:pointer;}
+.recipe-item .recipe-info{flex:1;}
+.recipe-item .recipe-name{font-weight:500;}
+.recipe-item .recipe-meta{font-size:11px;color:var(--muted);}
+.recipe-item .recipe-xp{font-size:12px;font-weight:700;color:var(--accent);}
+.recipe-item .recipe-steps{font-size:13px;color:var(--muted);margin-top:4px;padding-left:12px;border-left:2px solid var(--border);display:none;white-space:pre-wrap;}
+.recipe-item .recipe-steps.open{display:block;}
+.recipe-item.done{opacity:0.4;}
+.recipe-item.done .recipe-name{text-decoration:line-through;}
 </style>
 </head>
 <body>
@@ -316,7 +318,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
       <span class="xp-bar-value" id="bar-pilliers-val">0 XP</span>
     </div>
     <div class="xp-bar-row">
-      <span class="xp-bar-label">🎒</span> <!-- Nouvel emoji pour Aventurier -->
+      <span class="xp-bar-label">🎒</span>
       <div class="xp-bar-track"><div class="xp-bar-fill forges" id="bar-forges" style="width:0%"></div></div>
       <span class="xp-bar-value" id="bar-forges-val">0 XP</span>
     </div>
@@ -344,7 +346,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
   <button class="btn-main" id="btn-valider" onclick="validerJour()">✓ Valider la journée</button>
 </div>
 
-<!-- Écran Livre des Quêtes (REFONDU) -->
+<!-- Écran Livre des Quêtes -->
 <div id="screen-book" class="screen">
   <div class="accordion">
     <!-- Bloc 1 : Sidequest -->
@@ -650,6 +652,20 @@ const CLASS_RANKS = [
   { level: 25, xp: 30000, title: '★ Infini' },
 ];
 
+// --- Configuration des Auras ---
+const AURA_CONFIG = {
+  'guerrier': { name: 'Guerrier', icon: '⚔️', color: '#ef4444', cssClass: 'guerrier' },
+  'mage': { name: 'Mage', icon: '🔮', color: '#3b82f6', cssClass: 'mage' },
+  'ombre': { name: 'Ombre', icon: '🌑', color: '#8b5cf6', cssClass: 'ombre' },
+  'aventurier': { name: 'Aventurier', icon: '🎒', color: '#22c55e', cssClass: 'aventurier' },
+  'stratege': { name: 'Le Stratège', icon: '🎯', color: '#7c3aed', cssClass: 'stratege' },
+  'vagabond': { name: 'Le Vagabond', icon: '🧭', color: '#f59e0b', cssClass: 'vagabond' },
+  'traqueur': { name: 'Le Traqueur', icon: '🐾', color: '#6b7280', cssClass: 'traqueur' },
+  'savant': { name: 'Le Savant', icon: '📚', color: '#06b6d4', cssClass: 'savant' },
+  'souverain': { name: 'Aventurier Suprême', icon: '👑', color: '#fbbf24', cssClass: 'souverain' },
+  'stagnant': { name: 'Le Stagnant', icon: '💤', color: '#6b7280', cssClass: 'stagnant' }
+};
+
 // --- Fonctions piliers ---
 function getPillarRank(xp) {
   let rank = PILLAR_RANKS[0];
@@ -723,7 +739,7 @@ function getClassProgress(xp) {
 }
 
 // ============================================================
-// FONCTIONS SUPABASE (inchangées)
+// FONCTIONS SUPABASE
 // ============================================================
 async function sbGet(table, uid) {
   const r = await fetch(`${SB_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(uid)}&limit=1`, { headers: HDR });
@@ -749,7 +765,7 @@ async function sbGetMany(table, uid, limit = 30) {
 }
 
 // ============================================================
-// DONNÉES STATIQUES (inchangées sauf les XP des quêtes forgées réduits)
+// DONNÉES STATIQUES
 // ============================================================
 const LEVELS = [
   { min: 0, name: 'Initié' }, { min: 500, name: 'Apprenti' }, { min: 1200, name: 'Praticien' },
@@ -825,6 +841,17 @@ const BANQUE_SIDEQUESTS = [
 ];
 
 // ============================================================
+// CONSTANTES POUR LES QUÊTES IA
+// ============================================================
+const IA_DIFFICULTY = {
+  easy: { label: 'Facile', xp: 20, emoji: '🟢' },
+  medium: { label: 'Moyen', xp: 40, emoji: '🟡' },
+  hard: { label: 'Difficile', xp: 60, emoji: '🔴' }
+};
+const IA_MAX_PER_DAY = 3;
+const IA_BONUS_MULTIPLIER = 1.2;
+
+// ============================================================
 // VARIABLES GLOBALES
 // ============================================================
 let UID = localStorage.getItem('sys12_uid') || null;
@@ -837,7 +864,8 @@ let S = {
 let LOG = [];
 let XP_HISTORY = [];
 let customQuests = [];
-let recipes = [];           // ← Nouvelle collection pour les recettes
+let recipes = [];
+let iaQuests = [];
 let starVal = 0;
 let chartXp = null, chartRadar = null;
 let syncTimer = null;
@@ -853,6 +881,7 @@ let bilanHistory = [];
 let currentSidequest = null;
 let editQuestId = null;
 let isProcessing = false;
+let isGeneratingIA = false;
 
 // ============================================================
 // FONCTIONS UTILITAIRES
@@ -934,10 +963,9 @@ function distributeClassXP(xp, pid, isCustom = false) {
   return boostedXP;
 }
 
-// ---- Fonctions pour les recettes ----
 function calculateRecipeXP(time, people) {
-  const base = Math.round(time / 5); // 1 XP toutes les 5 min
-  const bonus = 1 + (people - 1) * 0.2; // +20% par personne supplémentaire
+  const base = Math.round(time / 5);
+  const bonus = 1 + (people - 1) * 0.2;
   return Math.max(1, Math.round(base * bonus));
 }
 
@@ -948,52 +976,8 @@ function formatSteps(text) {
 }
 
 // ============================================================
-// FONCTIONS SUPABASE SPÉCIFIQUES (ajout des recettes)
+// FONCTIONS SUPABASE SPÉCIFIQUES
 // ============================================================
-async function saveRecipes() {
-  if (!UID) return;
-  try {
-    // On sauvegarde chaque recette individuellement (upsert)
-    for (const r of recipes) {
-      await sbUpsert('sys_recipes', {
-        user_id: UID,
-        id: r.id,
-        name: r.name,
-        time: r.time,
-        people: r.people,
-        steps: r.steps,
-        done: r.done || false,
-        total_xp: r.total_xp || 0,
-        created_at: r.created_at || new Date().toISOString()
-      });
-    }
-    // On supprime celles qui ne sont plus dans la liste (pour nettoyer)
-    const ids = recipes.map(r => r.id);
-    // On ne supprime pas ici pour éviter les conflits, on le fera en cas de suppression explicite.
-  } catch (e) { console.warn('saveRecipes:', e); }
-}
-
-async function loadRecipes() {
-  if (!UID) return;
-  try {
-    const data = await sbGetMany('sys_recipes', UID, 100);
-    if (Array.isArray(data)) {
-      recipes = data.map(r => ({
-        id: r.id,
-        name: r.name,
-        time: r.time || 30,
-        people: r.people || 2,
-        steps: r.steps || '',
-        done: r.done || false,
-        total_xp: r.total_xp || 0,
-        created_at: r.created_at || new Date().toISOString()
-      }));
-      // Trier par date de création (plus récent en premier)
-      recipes.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-    }
-  } catch (e) { console.warn('loadRecipes:', e); }
-}
-
 async function saveClassData() {
   try {
     await sbUpsert('sys_classes', {
@@ -1088,56 +1072,335 @@ async function loadCustomQuestsFromDB() {
   return null;
 }
 
-// ============================================================
-// GESTION DES PASTILLES ORANGE
-// ============================================================
-function updateBadges() {
-  const forgeBadge = document.getElementById('forge-badge');
-  const recipeBadge = document.getElementById('recipe-badge');
-  const newForges = localStorage.getItem('newForgedQuest') === 'true';
-  const newRecipes = localStorage.getItem('newRecipe') === 'true';
-  forgeBadge.classList.toggle('show', newForges);
-  recipeBadge.classList.toggle('show', newRecipes);
+async function saveRecipes() {
+  if (!UID) return;
+  try {
+    for (const r of recipes) {
+      await sbUpsert('sys_recipes', {
+        user_id: UID,
+        id: r.id,
+        name: r.name,
+        time: r.time,
+        people: r.people,
+        steps: r.steps,
+        done: r.done || false,
+        total_xp: r.total_xp || 0,
+        created_at: r.created_at || new Date().toISOString()
+      });
+    }
+  } catch (e) { console.warn('saveRecipes:', e); }
 }
 
-function setNewForgedQuest() {
-  localStorage.setItem('newForgedQuest', 'true');
-  updateBadges();
+async function loadRecipes() {
+  if (!UID) return;
+  try {
+    const data = await sbGetMany('sys_recipes', UID, 100);
+    if (Array.isArray(data)) {
+      recipes = data.map(r => ({
+        id: r.id,
+        name: r.name,
+        time: r.time || 30,
+        people: r.people || 2,
+        steps: r.steps || '',
+        done: r.done || false,
+        total_xp: r.total_xp || 0,
+        created_at: r.created_at || new Date().toISOString()
+      }));
+      recipes.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    }
+  } catch (e) { console.warn('loadRecipes:', e); }
 }
 
-function setNewRecipe() {
-  localStorage.setItem('newRecipe', 'true');
-  updateBadges();
+async function saveIAQuestToDB(q) {
+  if (!UID) return;
+  try {
+    await sbUpsert('sys_ia_quests', {
+      user_id: UID,
+      id: q.id,
+      date: q.date,
+      class_id: q.classId,
+      text: q.text,
+      difficulty: q.difficulty,
+      xp_base: q.xpBase,
+      xp_bonus: q.xpBonus,
+      done: q.done || false,
+      created_at: q.created_at || new Date().toISOString()
+    });
+  } catch (e) { console.warn('saveIAQuestToDB:', e); }
 }
 
-function hideBadge(id) {
-  if (id === 'forge-badge') localStorage.setItem('newForgedQuest', 'false');
-  if (id === 'recipe-badge') localStorage.setItem('newRecipe', 'false');
-  updateBadges();
+async function loadIAQuestsFromDB() {
+  if (!UID) return;
+  try {
+    const data = await sbGetMany('sys_ia_quests', UID, 50);
+    if (Array.isArray(data)) {
+      iaQuests = data.map(q => ({
+        id: q.id,
+        date: q.date,
+        classId: q.class_id,
+        text: q.text,
+        difficulty: q.difficulty,
+        xpBase: q.xp_base,
+        xpBonus: q.xp_bonus,
+        done: q.done || false,
+        created_at: q.created_at || new Date().toISOString()
+      }));
+    }
+  } catch (e) { console.warn('loadIAQuestsFromDB:', e); }
 }
 
 // ============================================================
-// ACCORDÉON
+// FONCTIONS POUR LES QUÊTES IA
 // ============================================================
-function toggleAccordion(id) {
-  const body = document.getElementById(id);
-  if (body) {
-    body.classList.toggle('open');
-    body.style.display = body.classList.contains('open') ? 'block' : 'none';
+function detectWeakestClasses() {
+  const scores = {
+    guerrier: classXP.guerrier || 0,
+    mage: classXP.mage || 0,
+    ombre: classXP.ombre || 0,
+    aventurier: classXP.aventurier || 0
+  };
+  const minScore = Math.min(...Object.values(scores));
+  const weakest = Object.keys(scores).filter(key => scores[key] === minScore);
+  return weakest;
+}
+
+function getIAQuestsCount() {
+  const today = todayKey();
+  return iaQuests.filter(q => q.date === today).length;
+}
+
+function getIAQuestsForToday() {
+  const today = todayKey();
+  return iaQuests.filter(q => q.date === today);
+}
+
+function generateFallbackIAQuest(classId, difficulty) {
+  const difficultyData = IA_DIFFICULTY[difficulty];
+  const xpBase = difficultyData.xp;
+  const xpBonus = Math.round(xpBase * IA_BONUS_MULTIPLIER);
+  
+  const fallbackQuests = {
+    guerrier: [
+      'Fais 20 pompes et 20 squats en 5 minutes chrono.',
+      'Porte un objet lourd sur 100 mètres sans t\'arrêter.',
+      'Tiens une planche pendant 2 minutes.'
+    ],
+    mage: [
+      'Lis 10 pages d\'un livre technique en 20 minutes.',
+      'Résous 5 problèmes de calcul mental en 10 minutes.',
+      'Apprends 5 nouveaux mots de vocabulaire médical.'
+    ],
+    ombre: [
+      'Observe 3 personnes dans un lieu public et note leur posture.',
+      'Dessine un plan mental de la pièce où tu te trouves.',
+      'Écoute une conversation sans intervenir pendant 5 minutes.'
+    ],
+    aventurier: [
+      'Essaie une nouvelle activité manuelle (dessin, bricolage, etc.) pendant 15 minutes.',
+      'Fais une micro-sieste de 10 minutes en pleine conscience.',
+      'Explore un lieu que tu ne connais pas dans ton quartier.'
+    ]
+  };
+  
+  const texts = fallbackQuests[classId] || fallbackQuests.aventurier;
+  const text = texts[Math.floor(Math.random() * texts.length)];
+  
+  return {
+    id: 'ia_' + Date.now(),
+    date: todayKey(),
+    classId: classId,
+    text: text,
+    difficulty: difficulty,
+    xpBase: xpBase,
+    xpBonus: xpBonus,
+    done: false,
+    created_at: new Date().toISOString()
+  };
+}
+
+async function generateIAQuest() {
+  if (isGeneratingIA) {
+    toast("⏳ Une quête est déjà en cours de génération...");
+    return;
+  }
+  
+  const today = todayKey();
+  const count = getIAQuestsCount();
+  
+  if (count >= IA_MAX_PER_DAY) {
+    toast("⚠️ Limite de " + IA_MAX_PER_DAY + " quêtes IA atteinte pour aujourd'hui.");
+    return;
+  }
+  
+  // Détecter les classes faibles
+  const weakest = detectWeakestClasses();
+  let selectedClass = weakest[0];
+  
+  if (weakest.length > 1) {
+    // Plusieurs classes à égalité → prompt pour choisir
+    const classOptions = weakest.map((c, i) => {
+      const emoji = CLASSES[c]?.icon || '🎒';
+      const name = CLASSES[c]?.name || c;
+      return (i + 1) + '. ' + emoji + ' ' + name;
+    }).join('\n');
+    
+    const choice = prompt(
+      "Plusieurs classes sont à égalité. Choisis la classe à cibler :\n" + classOptions,
+      "1"
+    );
+    const idx = parseInt(choice) - 1;
+    if (idx >= 0 && idx < weakest.length) {
+      selectedClass = weakest[idx];
+    } else {
+      toast("⚠️ Choix invalide. Annulation.");
+      return;
+    }
+  }
+  
+  // Choisir la difficulté
+  const diffChoice = prompt(
+    "Choisis la difficulté :\n" +
+    "1. Facile (+" + IA_DIFFICULTY.easy.xp + " XP)\n" +
+    "2. Moyen (+" + IA_DIFFICULTY.medium.xp + " XP)\n" +
+    "3. Difficile (+" + IA_DIFFICULTY.hard.xp + " XP)",
+    "2"
+  );
+  const diffMap = { '1': 'easy', '2': 'medium', '3': 'hard' };
+  const difficulty = diffMap[diffChoice] || 'medium';
+  
+  isGeneratingIA = true;
+  toast("🤖 Génération de la quête IA en cours...");
+  
+  try {
+    const classDisplay = CLASSES[selectedClass]?.name || selectedClass;
+    const difficultyLabel = IA_DIFFICULTY[difficulty].label;
+    
+    const prompt = buildCtx() + `
+    Génère une quête courte (15-30 minutes) pour améliorer la classe **${classDisplay}**.
+    
+    La classe ${classDisplay} est actuellement la plus faible. La quête doit être :
+    - **Concrète et réalisable** dans le quotidien d'Eliseo (étudiant, armée, vie sociale).
+    - **Adaptée à la difficulté choisie** : ${difficultyLabel}.
+    - **En lien direct avec la classe** et son pilier principal.
+    
+    Format de réponse (2 lignes max) : un titre court et une description précise.
+    Pas de markdown, pas de tirets, pas de listes.
+    `;
+    
+    const response = await callGemini(prompt);
+    
+    const xpBase = IA_DIFFICULTY[difficulty].xp;
+    const xpBonus = Math.round(xpBase * IA_BONUS_MULTIPLIER);
+    
+    const newQuest = {
+      id: 'ia_' + Date.now(),
+      date: today,
+      classId: selectedClass,
+      text: response || 'Quête IA non disponible. Réessaie plus tard.',
+      difficulty: difficulty,
+      xpBase: xpBase,
+      xpBonus: xpBonus,
+      done: false,
+      created_at: new Date().toISOString()
+    };
+    
+    iaQuests.push(newQuest);
+    await saveIAQuestToDB(newQuest);
+    
+    toast("✅ Quête IA générée ! (" + difficultyLabel + " - +" + xpBonus + " XP)");
+    renderIAQuests();
+    renderQuetes();
+    
+  } catch (e) {
+    console.error('generateIAQuest error:', e);
+    toast("⚠️ Erreur lors de la génération. Utilisation d'une quête de secours.");
+    
+    const fallback = generateFallbackIAQuest(selectedClass, difficulty);
+    iaQuests.push(fallback);
+    await saveIAQuestToDB(fallback);
+    renderIAQuests();
+    renderQuetes();
+  } finally {
+    isGeneratingIA = false;
   }
 }
 
-function toggleSection(id) {
-  const el = document.getElementById(id);
-  if (el) {
-    const isOpen = el.style.display === 'block';
-    el.style.display = isOpen ? 'none' : 'block';
-    // Si on ouvre une section, on peut fermer l'autre (optionnel)
+async function toggleIAQuest(id) {
+  if (isDayLocked) {
+    toast("⚠️ Journée verrouillée. Utilise 'Modifier la journée' pour ajuster.");
+    return;
   }
+  const q = iaQuests.find(x => x.id === id);
+  if (!q) return;
+  const today = todayKey();
+  
+  if (q.done) {
+    q.done = false;
+    S.total_xp = Math.max(0, S.total_xp - q.xpBonus);
+    classXP[q.classId] = Math.max(0, (classXP[q.classId] || 0) - q.xpBonus);
+    weeklyClassXP[q.classId] = Math.max(0, (weeklyClassXP[q.classId] || 0) - q.xpBonus);
+    LOG = LOG.filter(l => !(l.quest_id === id && l.created_at && l.created_at.slice(0, 10) === today));
+    sbDelete('sys_log', UID, id, today).catch(() => {});
+    toast("↩️ Quête IA décochée — XP retirés");
+  } else {
+    q.done = true;
+    S.total_xp += q.xpBonus;
+    classXP[q.classId] = (classXP[q.classId] || 0) + q.xpBonus;
+    weeklyClassXP[q.classId] = (weeklyClassXP[q.classId] || 0) + q.xpBonus;
+    const entry = {
+      user_id: UID,
+      quest_id: id,
+      quest_name: '[IA] ' + q.text.slice(0, 40) + '...',
+      xp: q.xpBonus,
+      pillar_id: 'custom',
+      created_at: new Date().toISOString()
+    };
+    LOG.unshift(entry);
+    sbInsert('sys_log', entry).catch(() => {});
+    toast("✅ +" + q.xpBonus + " XP pour la quête IA !");
+  }
+  
+  await saveIAQuestToDB(q);
+  scheduleSave();
+  renderIAQuests();
+  renderQuetes();
+  updateHeader();
+}
+
+function renderIAQuests() {
+  const container = document.getElementById('ia-quests-container');
+  if (!container) return;
+  
+  const today = todayKey();
+  const todayQuests = iaQuests.filter(q => q.date === today);
+  
+  if (!todayQuests.length) {
+    container.innerHTML = '';
+    return;
+  }
+  
+  container.innerHTML = todayQuests.map(q => {
+    const classEmoji = CLASSES[q.classId]?.icon || '🎒';
+    const difficultyLabel = IA_DIFFICULTY[q.difficulty]?.label || 'Moyen';
+    const done = q.done || false;
+    
+    return `<div class="quest${done ? ' done' : ''}" onclick="toggleIAQuest('${q.id}')">
+      <div class="check">${done ? '✓' : ''}</div>
+      <div class="q-info">
+        <div class="q-name">🤖 ${q.text}</div>
+        <div class="q-desc">Classe : ${classEmoji} ${CLASSES[q.classId]?.name || q.classId} · Difficulté : ${difficultyLabel}</div>
+        <div class="q-tags">
+          <span class="tag tag-min">🤖 IA – Quête bonus</span>
+          <span class="tag" style="background:rgba(251,191,36,0.15);color:#fbbf24;">+20% bonus</span>
+        </div>
+      </div>
+      <div class="q-xp">+${q.xpBonus} XP</div>
+    </div>`;
+  }).join('');
 }
 
 // ============================================================
-// INITIALISATION
+// INITIALISATION ET CHARGEMENT
 // ============================================================
 function setupUser() {
   const name = document.getElementById('setup-name').value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
@@ -1185,6 +1448,7 @@ async function loadFromSupabase() {
     await loadClassData();
     await loadBilanHistory();
     await loadRecipes();
+    await loadIAQuestsFromDB();
 
     const savedWeekly = localStorage.getItem('sys12_weekly_xp');
     if (savedWeekly) {
@@ -1202,7 +1466,6 @@ async function loadFromSupabase() {
       } catch (e) {}
     }
 
-    // Quêtes forgées
     const dbQuests = await loadCustomQuestsFromDB();
     if (dbQuests && Array.isArray(dbQuests)) {
       customQuests = dbQuests;
@@ -1211,7 +1474,6 @@ async function loadFromSupabase() {
       customQuests = JSON.parse(localStorage.getItem('sys12_custom_quests') || '[]');
     }
 
-    // Sidequest
     const dbSq = await loadSidequestFromDB();
     const todayStr = todayKey();
     if (dbSq && dbSq.date === todayStr) {
@@ -1230,7 +1492,6 @@ async function loadFromSupabase() {
       await saveSidequestToDB(currentSidequest);
     }
 
-    // Déverrouillage auto à minuit
     if (S.last_day && S.last_day !== todayStr) {
       isDayLocked = false;
       updateValidationButton();
@@ -1239,7 +1500,6 @@ async function loadFromSupabase() {
       isDayLocked = (S.last_day === todayStr && isDayLocked);
     }
 
-    // Initialiser les pastilles
     if (!localStorage.getItem('newForgedQuest')) localStorage.setItem('newForgedQuest', 'false');
     if (!localStorage.getItem('newRecipe')) localStorage.setItem('newRecipe', 'false');
     updateBadges();
@@ -1258,6 +1518,9 @@ async function saveProgress() {
     await saveClassData();
     await saveCustomQuestsToDB();
     await saveRecipes();
+    for (const q of iaQuests) {
+      await saveIAQuestToDB(q);
+    }
     if (currentSidequest) {
       await saveSidequestToDB(currentSidequest);
     }
@@ -1326,15 +1589,22 @@ function updateHeader() {
 
   updateXPbars();
   renderAvatar();
+  
+  // Mettre à jour le compteur IA
+  const iaCount = getIAQuestsCount();
+  const iaBtn = document.getElementById('generate-ia-btn');
+  if (iaBtn) {
+    iaBtn.textContent = '🤖 Générer une quête IA (' + iaCount + '/' + IA_MAX_PER_DAY + ')';
+    iaBtn.disabled = (iaCount >= IA_MAX_PER_DAY);
+  }
 }
 
-// === CORRECTION DU DOUBLE XP : on utilise uniquement le total cumulé des quêtes forgées ===
 function updateXPbars() {
   const maxXP = 5000;
   const pilliersXP = (S.p1_xp || 0) + (S.p2_xp || 0) + (S.p3_xp || 0) + (S.p4_xp || 0) + (S.p5_xp || 0);
-  // On additionne le total_xp de chaque quête forgée (cumulé) et les recettes
   const forgesXP = customQuests.reduce((sum, q) => sum + (q.total_xp || 0), 0)
-                   + recipes.reduce((sum, r) => sum + (r.total_xp || 0), 0);
+                   + recipes.reduce((sum, r) => sum + (r.total_xp || 0), 0)
+                   + iaQuests.filter(q => q.date === todayKey()).reduce((sum, q) => sum + (q.done ? q.xpBonus : 0), 0);
 
   document.getElementById('bar-global').style.width = Math.min(100, (S.total_xp / maxXP) * 100) + '%';
   document.getElementById('bar-global-val').textContent = S.total_xp + ' XP';
@@ -1347,14 +1617,51 @@ function updateXPbars() {
 }
 
 // ============================================================
-// QUÊTES PRÉ-DÉFINIES (avec emojis de classe)
+// QUÊTES PRÉ-DÉFINIES
 // ============================================================
+function getClassEmoji(pid) {
+  const c = getClassForPillar(pid);
+  return CLASSES[c]?.icon || '🎒';
+}
+
 function renderQuetes() {
   const phase = getCurrentPhase();
-
-  function getClassEmoji(pid) {
-    const c = getClassForPillar(pid);
-    return CLASSES[c]?.icon || '🎒';
+  
+  // Rendre les quêtes IA en premier
+  const optContainer = document.getElementById('quetes-opt');
+  let iaContainer = document.getElementById('ia-quests-container');
+  if (!iaContainer) {
+    iaContainer = document.createElement('div');
+    iaContainer.id = 'ia-quests-container';
+    const sectionTitle = document.querySelector('.section-title');
+    if (sectionTitle) {
+      sectionTitle.after(iaContainer);
+    }
+  }
+  renderIAQuests();
+  
+  // Bouton de génération IA
+  const iaBtnContainer = document.getElementById('ia-btn-container');
+  if (!iaBtnContainer) {
+    const btnContainer = document.createElement('div');
+    btnContainer.id = 'ia-btn-container';
+    btnContainer.style.marginBottom = '10px';
+    const btn = document.createElement('button');
+    btn.id = 'generate-ia-btn';
+    btn.className = 'btn-sm btn-accent';
+    btn.style.width = '100%';
+    btn.onclick = generateIAQuest;
+    btnContainer.appendChild(btn);
+    const container = document.getElementById('ia-quests-container');
+    if (container) {
+      container.before(btnContainer);
+    }
+  }
+  const iaBtn = document.getElementById('generate-ia-btn');
+  if (iaBtn) {
+    const count = getIAQuestsCount();
+    iaBtn.textContent = '🤖 Générer une quête IA (' + count + '/' + IA_MAX_PER_DAY + ')';
+    iaBtn.disabled = (count >= IA_MAX_PER_DAY);
   }
 
   function qHTML(q, isMin) {
@@ -1454,7 +1761,7 @@ async function toggleQuete(id) {
 }
 
 // ============================================================
-// SIDEQUEST (inchangée)
+// SIDEQUEST
 // ============================================================
 function initSidequest() {
   updateSidequestUI();
@@ -1602,7 +1909,7 @@ async function rerollSidequestIA() {
 }
 
 // ============================================================
-// QUÊTES FORGÉES (avec XP réduits : 5, 15, 30)
+// QUÊTES FORGÉES
 // ============================================================
 function loadCustomQuests() {
   customQuests = JSON.parse(localStorage.getItem('sys12_custom_quests') || '[]');
@@ -1613,6 +1920,46 @@ function saveCustomQuests() {
   localStorage.setItem('sys12_custom_quests', JSON.stringify(customQuests));
   saveCustomQuestsToDB();
   renderCustomQuests();
+}
+
+function updateBadges() {
+  const forgeBadge = document.getElementById('forge-badge');
+  const recipeBadge = document.getElementById('recipe-badge');
+  const newForges = localStorage.getItem('newForgedQuest') === 'true';
+  const newRecipes = localStorage.getItem('newRecipe') === 'true';
+  if (forgeBadge) forgeBadge.classList.toggle('show', newForges);
+  if (recipeBadge) recipeBadge.classList.toggle('show', newRecipes);
+}
+
+function setNewForgedQuest() {
+  localStorage.setItem('newForgedQuest', 'true');
+  updateBadges();
+}
+
+function setNewRecipe() {
+  localStorage.setItem('newRecipe', 'true');
+  updateBadges();
+}
+
+function hideBadge(id) {
+  if (id === 'forge-badge') localStorage.setItem('newForgedQuest', 'false');
+  if (id === 'recipe-badge') localStorage.setItem('newRecipe', 'false');
+  updateBadges();
+}
+
+function toggleAccordion(id) {
+  const body = document.getElementById(id);
+  if (body) {
+    body.classList.toggle('open');
+    body.style.display = body.classList.contains('open') ? 'block' : 'none';
+  }
+}
+
+function toggleSection(id) {
+  const el = document.getElementById(id);
+  if (el) {
+    el.style.display = el.style.display === 'block' ? 'none' : 'block';
+  }
 }
 
 function ajouterQuetePerso() {
@@ -1735,10 +2082,7 @@ function deleteCustomQuest(id) {
 }
 
 async function toggleCustomQuest(id) {
-  if (isProcessing) {
-    console.warn('toggleCustomQuest déjà en cours, ignore');
-    return;
-  }
+  if (isProcessing) return;
   isProcessing = true;
 
   try {
@@ -1795,7 +2139,7 @@ async function toggleCustomQuest(id) {
 }
 
 // ============================================================
-// RECETTES (NOUVEAU)
+// RECETTES
 // ============================================================
 function ajouterRecette() {
   const name = document.getElementById('recipe-name').value.trim();
@@ -1861,11 +2205,9 @@ async function toggleRecipe(id) {
   if (!r) return;
   const today = todayKey();
 
-  // Calcul de l'XP selon la recette (basé sur le temps et le nombre de personnes)
   const xp = calculateRecipeXP(r.time, r.people);
 
   if (r.done) {
-    // Décocher
     r.done = false;
     S.total_xp = Math.max(0, S.total_xp - xp);
     classXP.aventurier = Math.max(0, (classXP.aventurier || 0) - xp);
@@ -1875,7 +2217,6 @@ async function toggleRecipe(id) {
     sbDelete('sys_log', UID, id, today).catch(() => {});
     toast("↩️ Recette décochée — XP retirés");
   } else {
-    // Cocher
     r.done = true;
     S.total_xp += xp;
     classXP.aventurier = (classXP.aventurier || 0) + xp;
@@ -1905,7 +2246,7 @@ function toggleRecipeSteps(el) {
 }
 
 // ============================================================
-// VALIDATION DE JOURNÉE (avec réinitialisation des recettes)
+// VALIDATION DE JOURNÉE
 // ============================================================
 async function validerJour() {
   const today = todayKey();
@@ -1927,16 +2268,18 @@ async function validerJour() {
     sbInsert('sys_xp_history', histEntry).catch(() => {});
   }
 
-  // Réinitialiser les quêtes forgées récurrentes et les recettes
   customQuests = customQuests.filter(q => !(q.type === 'oneshot' && q.done === true));
   customQuests.forEach(q => { if (q.type === 'recurrent') q.done = false; });
   recipes.forEach(r => { r.done = false; });
+  iaQuests.forEach(q => { if (q.date === today) q.done = false; });
 
   localStorage.setItem('sys12_custom_quests', JSON.stringify(customQuests));
   await saveCustomQuestsToDB();
   await saveRecipes();
+  for (const q of iaQuests) { await saveIAQuestToDB(q); }
   renderCustomQuests();
   renderRecipes();
+  renderIAQuests();
 
   isDayLocked = true;
   updateValidationButton();
@@ -1971,7 +2314,7 @@ function updateValidationButton() {
 }
 
 // ============================================================
-// AFFICHAGE DES PILIERS (inchangé)
+// AFFICHAGE DES PILIERS
 // ============================================================
 function renderPiliers() {
   document.getElementById('piliers-list').innerHTML = PILLARS.map(p => {
@@ -2009,7 +2352,7 @@ function renderPiliers() {
 }
 
 // ============================================================
-// AVATAR / CLASSES (inchangé)
+// AVATAR / CLASSES
 // ============================================================
 function renderAvatar() {
   const banner = document.getElementById('aura-banner');
@@ -2020,16 +2363,15 @@ function renderAvatar() {
   if (currentAura) {
     icon.textContent = currentAura.icon || '⚔️';
     name.textContent = currentAura.name || 'Aventurier';
-    if (isSouverain) {
+    if (currentAura.cssClass === 'souverain') {
       desc.textContent = 'Équilibre parfait atteint ! Tu choisis ton boost.';
       banner.className = 'aura-banner souverain';
-    } else if (isStagnant) {
+    } else if (currentAura.cssClass === 'stagnant') {
       desc.textContent = 'Aucune activité cette semaine. Retour au front !';
       banner.className = 'aura-banner stagnant';
     } else {
-      const cls = getClassFromId(currentAura.id);
       desc.textContent = `Classe dominante de la semaine${boostClass ? ` — Bénédiction: +10% ${CLASSES[boostClass]?.name || ''}` : ''}`;
-      banner.className = 'aura-banner ' + currentAura.id;
+      banner.className = 'aura-banner ' + currentAura.cssClass;
     }
   } else {
     icon.textContent = '⚔️';
@@ -2055,7 +2397,7 @@ function renderAvatar() {
     const progressEl = document.getElementById(id + '-progress');
 
     el.className = 'class-item';
-    if (currentAura && currentAura.id === id && !isSouverain && !isStagnant) {
+    if (currentAura && currentAura.cssClass === id && currentAura.cssClass !== 'souverain' && currentAura.cssClass !== 'stagnant') {
       el.classList.add('highlight');
     }
     if (boostClass === id && boostClass !== null) {
@@ -2077,14 +2419,28 @@ function renderAvatar() {
   } else if (isStagnant) {
     benedictionEl.textContent = '⚠️ Aucune bénédiction active. Reprends l\'entraînement.';
   } else {
-    benedictionEl.textContent = 'Aucune bénédiction active.';
+    // Indiquer la classe la plus faible
+    const scores = {
+      guerrier: classXP.guerrier || 0,
+      mage: classXP.mage || 0,
+      ombre: classXP.ombre || 0,
+      aventurier: classXP.aventurier || 0
+    };
+    const minScore = Math.min(...Object.values(scores));
+    let weakest = Object.keys(scores).find(key => scores[key] === minScore);
+    if (weakest && scores[weakest] < 500) {
+      const cls = getClassFromId(weakest);
+      benedictionEl.textContent = '🔴 Classe à renforcer : ' + (cls ? cls.name : weakest) + ' (' + scores[weakest] + ' XP)';
+    } else {
+      benedictionEl.textContent = 'Aucune bénédiction active.';
+    }
   }
 
   updateXPbars();
 }
 
 // ============================================================
-// STATISTIQUES (inchangé sauf l'appel aux recettes pour le radar)
+// STATISTIQUES
 // ============================================================
 function renderStats() {
   const today = todayKey();
@@ -2099,7 +2455,6 @@ function renderStats() {
   }
   document.getElementById('heatmap').innerHTML = hm;
 
-  // Radar : écart relatif
   const maxXP = Math.max(
     S.p1_xp || 0,
     S.p2_xp || 0,
@@ -2156,7 +2511,6 @@ function renderStats() {
     }
   });
 
-  // Graphique XP
   const xpCtx = document.getElementById('chart-xp').getContext('2d');
   const sorted = [...XP_HISTORY].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).slice(-20);
   const xpLabels = sorted.map(h => h.created_at ? h.created_at.slice(5, 10) : '');
@@ -2178,7 +2532,6 @@ function renderStats() {
     }
   });
 
-  // Capacités (compteurs par pilier)
   const capCounts = {};
   LOG.forEach(l => {
     if (l.pillar_id && l.pillar_id !== 'custom' && l.pillar_id !== 'review') {
@@ -2198,7 +2551,6 @@ function renderStats() {
     </div>`;
   }).join('');
 
-  // Jalons
   document.getElementById('milestones').innerHTML = MILESTONES.map(m => {
     const ok = m.check(S);
     return `<div class="ms-item${ok ? ' reached' : ''}">
@@ -2208,7 +2560,6 @@ function renderStats() {
     </div>`;
   }).join('');
 
-  // Journal
   const logEl = document.getElementById('log-list');
   if (!LOG.length) { logEl.innerHTML = '<div class="empty-state">Aucune action enregistrée</div>'; } else {
     logEl.innerHTML = LOG.slice(0, 15).map(l => `
@@ -2222,7 +2573,7 @@ function renderStats() {
 }
 
 // ============================================================
-// REVUE (inchangée)
+// REVUE
 // ============================================================
 function setStar(v) {
   starVal = v;
@@ -2257,7 +2608,7 @@ async function sauvegarderRevue() {
 }
 
 // ============================================================
-// NAVIGATION (avec mise à jour des listes)
+// NAVIGATION
 // ============================================================
 function goTab(id, btn) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -2274,17 +2625,23 @@ function goTab(id, btn) {
         localStorage.setItem('sys12_custom_quests', JSON.stringify(customQuests));
       }
       loadRecipes().then(() => {
-        updateSidequestUI();
-        renderCustomQuests();
-        renderRecipes();
-        updateBadges();
+        loadIAQuestsFromDB().then(() => {
+          updateSidequestUI();
+          renderCustomQuests();
+          renderRecipes();
+          renderIAQuests();
+          updateBadges();
+        });
       });
     }).catch(() => {
       loadRecipes().then(() => {
-        updateSidequestUI();
-        renderCustomQuests();
-        renderRecipes();
-        updateBadges();
+        loadIAQuestsFromDB().then(() => {
+          updateSidequestUI();
+          renderCustomQuests();
+          renderRecipes();
+          renderIAQuests();
+          updateBadges();
+        });
       });
     });
   }
@@ -2296,7 +2653,7 @@ function goTab(id, btn) {
 }
 
 // ============================================================
-// AUTRES FONCTIONS (bilan, boost, etc.)
+// BILAN HEBDOMADAIRE
 // ============================================================
 function renderBilanHistory() {
   const container = document.getElementById('bilan-history');
@@ -2304,13 +2661,14 @@ function renderBilanHistory() {
     container.innerHTML = '<div class="empty-state">Aucun bilan enregistré</div>';
     return;
   }
-  container.innerHTML = bilanHistory.slice(0, 5).map(b => `
-    <div class="log-entry">
-      <div class="log-dot" style="background:${b.aura_id === 'souverain' ? '#fff' : b.aura_id === 'stagnant' ? '#666' : CLASSES[b.aura_id]?.color || '#888'}"></div>
-      <div class="log-text">${b.aura_name || 'Bilan'} — ${b.week_end}</div>
+  container.innerHTML = bilanHistory.slice(0, 5).map(b => {
+    const aura = AURA_CONFIG[b.aura_id] || AURA_CONFIG['aventurier'];
+    return `<div class="log-entry">
+      <div class="log-dot" style="background:${aura.color || '#888'}"></div>
+      <div class="log-text">${aura.name || 'Bilan'} — ${b.week_end}</div>
       <span class="log-xp">${(b.guerrier_xp + b.mage_xp + b.ombre_xp + b.aventurier_xp) || 0} XP</span>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
 function renderBoostOptions() {
@@ -2353,29 +2711,51 @@ function lancerBilanHebdo() {
   const weeklyXP = { ...weeklyClassXP };
   const totalXP = Object.values(weeklyXP).reduce((a, b) => a + b, 0);
 
+  let auraId = 'stagnant';
   let aura = null;
   let isSouv = false;
   let isStag = false;
 
   if (totalXP === 0) {
     isStag = true;
-    aura = { id: 'stagnant', name: 'Le Stagnant', icon: '💤' };
+    auraId = 'stagnant';
   } else {
-    const dominant = getDominantClass(weeklyXP);
-    if (dominant === 'souverain') {
+    // Déterminer l'aura avec les XP bruts
+    const sorted = Object.entries(weeklyXP).sort((a, b) => b[1] - a[1]);
+    const top1 = sorted[0][0];
+    const top2 = sorted[1][0];
+    const top3 = sorted[2] ? sorted[2][0] : null;
+    
+    // Vérifier l'équilibre parfait (écart < 10% entre les 4)
+    const values = Object.values(weeklyXP);
+    const maxDiff = Math.max(...values) - Math.min(...values);
+    const avg = totalXP / 4;
+    if (maxDiff <= 10 && Object.values(weeklyXP).every(x => x >= avg * 0.8)) {
       isSouv = true;
-      aura = { id: 'souverain', name: 'Aventurier Suprême', icon: '👑' };
+      auraId = 'souverain';
+    } else if (sorted[0][1] - sorted[1][1] > 50) {
+      // Dominance claire
+      auraId = top1;
     } else {
-      const cls = getClassFromId(dominant);
-      aura = { id: dominant, name: cls ? cls.name : 'Inconnu', icon: cls ? cls.icon : '❓' };
+      // Combinaison des 3 premières classes
+      const set = new Set([top1, top2, top3].filter(Boolean));
+      if (set.has('guerrier') && set.has('mage') && set.has('ombre')) auraId = 'stratege';
+      else if (set.has('guerrier') && set.has('mage') && set.has('aventurier')) auraId = 'vagabond';
+      else if (set.has('guerrier') && set.has('ombre') && set.has('aventurier')) auraId = 'traqueur';
+      else if (set.has('mage') && set.has('ombre') && set.has('aventurier')) auraId = 'savant';
+      else auraId = top1;
     }
   }
+
+  aura = AURA_CONFIG[auraId] || AURA_CONFIG['aventurier'];
+  isSouverain = isSouv;
+  isStagnant = isStag;
 
   const bilan = {
     week_start: new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10),
     week_end: new Date().toISOString().slice(0, 10),
-    aura_id: aura ? aura.id : null,
-    aura_name: aura ? aura.name : null,
+    aura_id: auraId,
+    aura_name: aura ? aura.name : 'Inconnu',
     guerrier_xp: weeklyXP.guerrier || 0,
     mage_xp: weeklyXP.mage || 0,
     ombre_xp: weeklyXP.ombre || 0,
@@ -2387,8 +2767,6 @@ function lancerBilanHebdo() {
   bilanHistory.unshift(bilan);
 
   currentAura = aura;
-  isSouverain = isSouv;
-  isStagnant = isStag;
   lastBilanDate = new Date().toISOString().slice(0, 10);
 
   if (isSouv) {
@@ -2405,7 +2783,15 @@ function lancerBilanHebdo() {
     btn.disabled = true;
     toast("💤 Bilan : Le Stagnant. Retour au front !");
   } else {
-    const weakest = getWeakestClass(weeklyXP);
+    // Classe la plus faible (XP brut)
+    let minXP = Infinity;
+    let weakest = null;
+    for (const [cls, xp] of Object.entries(weeklyXP)) {
+      if (xp < minXP) {
+        minXP = xp;
+        weakest = cls;
+      }
+    }
     boostClass = weakest;
     document.getElementById('choose-boost-container').style.display = 'none';
     btn.textContent = '📊 Bilan effectué';
@@ -2435,6 +2821,7 @@ async function init() {
   initSidequest();
   loadCustomQuests();
   renderRecipes();
+  renderIAQuests();
   loadWelcomeMessage();
   renderAvatar();
   renderBilanHistory();
@@ -2449,7 +2836,7 @@ if (!UID) {
 }
 
 // ============================================================
-// IA / COACH (inchangé)
+// IA / COACH
 // ============================================================
 const WORKER_URL = 'https://evolution-ai.eliseobuti.workers.dev';
 
