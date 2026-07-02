@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="favicon.jpg?v=3">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-/* ===== STYLES ===== */
+/* ===== STYLES (ajout des styles pour les blocs déroulants, pastilles, recettes) ===== */
 :root{--bg:#0e0e10;--card:#18181c;--card2:#222228;--border:rgba(255,255,255,0.07);--text:#f0f0f0;--muted:#777;--accent:#a78bfa;--accent2:#7c3aed;--green:#34d399;--amber:#fbbf24;--coral:#f87171;--blue:#60a5fa;--orange:#fb923c;--r:14px;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;font-size:15px;min-height:100dvh;padding-bottom:calc(76px + env(safe-area-inset-bottom));}
@@ -211,6 +211,27 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 .modal-actions button{flex:1;padding:10px;border-radius:10px;border:none;font-weight:600;cursor:pointer;font-family:inherit;}
 .modal-actions .btn-confirm{background:var(--accent2);color:#fff;}
 .modal-actions .btn-cancel{background:rgba(255,255,255,0.06);color:var(--text);border:0.5px solid var(--border);}
+
+/* === NOUVEAUX STYLES POUR ACCORDÉON, PASTILLES, RECETTES === */
+.accordion { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.accordion-item { background: var(--card); border: 0.5px solid var(--border); border-radius: 12px; overflow: hidden; }
+.accordion-header { width: 100%; background: transparent; border: none; padding: 14px 16px; text-align: left; font-size: 15px; font-weight: 600; color: var(--text); cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-family: inherit; }
+.accordion-header:hover { background: rgba(255,255,255,0.03); }
+.accordion-header .badge { display: none; background: var(--orange); width: 8px; height: 8px; border-radius: 50%; margin-left: 8px; flex-shrink: 0; }
+.accordion-header .badge.show { display: inline-block; }
+.accordion-body { padding: 0 16px 16px; display: none; }
+.accordion-body.open { display: block; }
+.accordion-body .btn-group { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.accordion-body .btn-group .btn-sm { flex: 1; min-width: 100px; }
+.recipe-item { display: flex; align-items: center; gap: 12px; background: var(--card2); border: 0.5px solid var(--border); border-radius: 10px; padding: 10px 12px; margin-bottom: 6px; cursor: pointer; }
+.recipe-item .recipe-info { flex: 1; }
+.recipe-item .recipe-name { font-weight: 500; }
+.recipe-item .recipe-meta { font-size: 11px; color: var(--muted); }
+.recipe-item .recipe-xp { font-size: 12px; font-weight: 700; color: var(--accent); }
+.recipe-item .recipe-steps { font-size: 13px; color: var(--muted); margin-top: 4px; padding-left: 12px; border-left: 2px solid var(--border); display: none; white-space: pre-wrap; }
+.recipe-item .recipe-steps.open { display: block; }
+.recipe-item.done { opacity: 0.4; }
+.recipe-item.done .recipe-name { text-decoration: line-through; }
 </style>
 </head>
 <body>
@@ -228,7 +249,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
   </div>
 </div>
 
-<!-- Modal d'édition -->
+<!-- Modal d'édition des quêtes forgées -->
 <div class="modal-overlay" id="edit-modal">
   <div class="modal-box">
     <div class="modal-title">✏️ Modifier la quête</div>
@@ -237,9 +258,9 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
     </div>
     <div class="form-row">
       <select id="edit-cq-diff" class="form-select">
-        <option value="easy">Facile (10 XP)</option>
-        <option value="medium">Moyen (25 XP)</option>
-        <option value="hard">Difficile (50 XP)</option>
+        <option value="easy">Facile (5 XP)</option>
+        <option value="medium">Moyen (15 XP)</option>
+        <option value="hard">Difficile (30 XP)</option>
       </select>
       <select id="edit-cq-type" class="form-select">
         <option value="oneshot">One-shot</option>
@@ -295,7 +316,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
       <span class="xp-bar-value" id="bar-pilliers-val">0 XP</span>
     </div>
     <div class="xp-bar-row">
-      <span class="xp-bar-label">⚔️</span>
+      <span class="xp-bar-label">🎒</span> <!-- Nouvel emoji pour Aventurier -->
       <div class="xp-bar-track"><div class="xp-bar-fill forges" id="bar-forges" style="width:0%"></div></div>
       <span class="xp-bar-value" id="bar-forges-val">0 XP</span>
     </div>
@@ -323,43 +344,101 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
   <button class="btn-main" id="btn-valider" onclick="validerJour()">✓ Valider la journée</button>
 </div>
 
-<!-- Écran Livre des Quêtes -->
+<!-- Écran Livre des Quêtes (REFONDU) -->
 <div id="screen-book" class="screen">
-  <div class="sidequest-box" id="sidequest-card">
-    <div class="sidequest-header">
-      <div class="sidequest-title">🎲 Sidequest du Jour (Aléatoire)</div>
-      <div class="sidequest-xp" id="sq-xp-display">+30 XP</div>
-    </div>
-    <div class="quest" id="sidequest-item" onclick="toggleSidequest()" style="margin-bottom:8px;">
-      <div class="check" id="sq-check"></div>
-      <div class="q-info">
-        <div class="q-name" id="sidequest-text">Chargement du défi...</div>
-        <div class="q-desc" id="sidequest-sub">Zone de confort, sociabilité et observation de terrain.</div>
+  <div class="accordion">
+    <!-- Bloc 1 : Sidequest -->
+    <div class="accordion-item">
+      <button class="accordion-header" onclick="toggleAccordion('sidequest-block')">
+        <span>🎲 Sidequest du Jour</span>
+        <span>▼</span>
+      </button>
+      <div class="accordion-body open" id="sidequest-block">
+        <div class="sidequest-box" style="margin-bottom:0;">
+          <div class="sidequest-header">
+            <div class="sidequest-title">🎲 Sidequest du Jour</div>
+            <div class="sidequest-xp" id="sq-xp-display">+30 XP</div>
+          </div>
+          <div class="quest" id="sidequest-item" onclick="toggleSidequest()" style="margin-bottom:8px;">
+            <div class="check" id="sq-check"></div>
+            <div class="q-info">
+              <div class="q-name" id="sidequest-text">Chargement du défi...</div>
+              <div class="q-desc" id="sidequest-sub">Zone de confort, sociabilité et observation de terrain.</div>
+            </div>
+          </div>
+          <button class="btn-sm btn-muted" id="btn-reroll" onclick="rerollSidequestIA()" style="width:100%;">🎲 Relancer via le Coach (IA)</button>
+        </div>
       </div>
     </div>
-    <button class="btn-sm btn-muted" id="btn-reroll" onclick="rerollSidequestIA()" style="width:100%;">🎲 Relancer via le Coach (IA)</button>
-  </div>
-  <div class="rev-card">
-    <div class="chart-title" style="margin-bottom:10px;">Forges de Quêtes Personnelles</div>
-    <div class="avatar-subtitle" style="margin-bottom:10px;color:var(--muted);font-size:11px;">⚠️ Les quêtes forgées alimentent automatiquement la classe <span style="color:#22c55e;">Aventurier</span> (🎒).</div>
-    <div class="form-group">
-      <input type="text" id="cq-name" class="form-input" placeholder="Nom de ta tâche ou objectif..." autocomplete="off">
+
+    <!-- Bloc 2 : Quêtes forgées -->
+    <div class="accordion-item">
+      <button class="accordion-header" onclick="toggleAccordion('forges-block')">
+        <span>🔨 Quêtes forgées <span class="badge" id="forge-badge"></span></span>
+        <span>▼</span>
+      </button>
+      <div class="accordion-body" id="forges-block">
+        <div class="btn-group">
+          <button class="btn-sm btn-accent" onclick="toggleSection('forge-form')">➕ Forger une quête</button>
+          <button class="btn-sm btn-muted" onclick="toggleSection('forge-list'); hideBadge('forge-badge')">📋 Voir mes quêtes</button>
+        </div>
+        <div id="forge-form" style="display:none;">
+          <div class="rev-card" style="margin-bottom:8px;">
+            <div class="form-group">
+              <input type="text" id="cq-name" class="form-input" placeholder="Nom de la quête..." autocomplete="off">
+            </div>
+            <div class="form-row">
+              <select id="cq-diff" class="form-select">
+                <option value="easy">Facile (5 XP)</option>
+                <option value="medium">Moyen (15 XP)</option>
+                <option value="hard">Difficile (30 XP)</option>
+              </select>
+              <select id="cq-type" class="form-select">
+                <option value="oneshot">One-shot</option>
+                <option value="recurrent">Récurrente</option>
+              </select>
+            </div>
+            <button class="btn-sm btn-accent" onclick="ajouterQuetePerso()" style="width:100%;">+ Forger</button>
+          </div>
+        </div>
+        <div id="forge-list" style="display:none;">
+          <div id="custom-quests-list"></div>
+        </div>
+      </div>
     </div>
-    <div class="form-row">
-      <select id="cq-diff" class="form-select">
-        <option value="easy">Facile (10 XP)</option>
-        <option value="medium">Moyen (25 XP)</option>
-        <option value="hard">Difficile (50 XP)</option>
-      </select>
-      <select id="cq-type" class="form-select">
-        <option value="oneshot">One-shot (To-Do ponctuelle)</option>
-        <option value="recurrent">Récurrente (Quotidienne)</option>
-      </select>
+
+    <!-- Bloc 3 : Recettes -->
+    <div class="accordion-item">
+      <button class="accordion-header" onclick="toggleAccordion('recipes-block')">
+        <span>🍳 Recettes <span class="badge" id="recipe-badge"></span></span>
+        <span>▼</span>
+      </button>
+      <div class="accordion-body" id="recipes-block">
+        <div class="btn-group">
+          <button class="btn-sm btn-accent" onclick="toggleSection('recipe-form')">➕ Ajouter une recette</button>
+          <button class="btn-sm btn-muted" onclick="toggleSection('recipe-list'); hideBadge('recipe-badge')">📋 Voir mes recettes</button>
+        </div>
+        <div id="recipe-form" style="display:none;">
+          <div class="rev-card" style="margin-bottom:8px;">
+            <div class="form-group">
+              <input type="text" id="recipe-name" class="form-input" placeholder="Nom de la recette..." autocomplete="off">
+            </div>
+            <div class="form-row">
+              <input type="number" id="recipe-time" class="form-input" placeholder="Temps (min)" min="1" value="30">
+              <input type="number" id="recipe-people" class="form-input" placeholder="Personnes" min="1" value="2">
+            </div>
+            <div class="form-group">
+              <textarea id="recipe-steps" class="form-input" placeholder="Étapes (une par ligne)" rows="4"></textarea>
+            </div>
+            <button class="btn-sm btn-accent" onclick="ajouterRecette()" style="width:100%;">+ Ajouter</button>
+          </div>
+        </div>
+        <div id="recipe-list" style="display:none;">
+          <div id="recipes-list-container"></div>
+        </div>
+      </div>
     </div>
-    <button class="btn-sm btn-accent" onclick="ajouterQuetePerso()" style="width:100%;">+ Forger la Quête</button>
   </div>
-  <div class="section-title">Tes Quêtes Personnelles Actives</div>
-  <div id="custom-quests-list"></div>
 </div>
 
 <!-- Écran Piliers -->
@@ -571,7 +650,7 @@ const CLASS_RANKS = [
   { level: 25, xp: 30000, title: '★ Infini' },
 ];
 
-// --- Fonctions pour les piliers ---
+// --- Fonctions piliers ---
 function getPillarRank(xp) {
   let rank = PILLAR_RANKS[0];
   for (const r of PILLAR_RANKS) {
@@ -607,7 +686,7 @@ function getPillarProgress(xp) {
   return { pct, xp_into, xp_needed, nextLevel: next.level, nextTitle: next.title };
 }
 
-// --- Fonctions pour les classes ---
+// --- Fonctions classes ---
 function getClassRank(xp) {
   let rank = CLASS_RANKS[0];
   for (const r of CLASS_RANKS) {
@@ -644,7 +723,7 @@ function getClassProgress(xp) {
 }
 
 // ============================================================
-// FONCTIONS SUPABASE
+// FONCTIONS SUPABASE (inchangées)
 // ============================================================
 async function sbGet(table, uid) {
   const r = await fetch(`${SB_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(uid)}&limit=1`, { headers: HDR });
@@ -670,7 +749,7 @@ async function sbGetMany(table, uid, limit = 30) {
 }
 
 // ============================================================
-// DONNÉES STATIQUES
+// DONNÉES STATIQUES (inchangées sauf les XP des quêtes forgées réduits)
 // ============================================================
 const LEVELS = [
   { min: 0, name: 'Initié' }, { min: 500, name: 'Apprenti' }, { min: 1200, name: 'Praticien' },
@@ -758,6 +837,7 @@ let S = {
 let LOG = [];
 let XP_HISTORY = [];
 let customQuests = [];
+let recipes = [];           // ← Nouvelle collection pour les recettes
 let starVal = 0;
 let chartXp = null, chartRadar = null;
 let syncTimer = null;
@@ -841,7 +921,6 @@ function getBoostedXP(xp, classId, isPillar = false) {
   return boosted;
 }
 
-// === FONCTION CORRIGÉE : Distribution de l'XP aux classes ===
 function distributeClassXP(xp, pid, isCustom = false) {
   let classId;
   if (isCustom) {
@@ -849,16 +928,72 @@ function distributeClassXP(xp, pid, isCustom = false) {
   } else {
     classId = getClassForPillar(pid);
   }
-  // Appliquer les bonus (1.2x pour piliers, 1.1x si classe boostée)
   const boostedXP = getBoostedXP(xp, classId, !isCustom);
   classXP[classId] = (classXP[classId] || 0) + boostedXP;
   weeklyClassXP[classId] = (weeklyClassXP[classId] || 0) + boostedXP;
   return boostedXP;
 }
 
+// ---- Fonctions pour les recettes ----
+function calculateRecipeXP(time, people) {
+  const base = Math.round(time / 5); // 1 XP toutes les 5 min
+  const bonus = 1 + (people - 1) * 0.2; // +20% par personne supplémentaire
+  return Math.max(1, Math.round(base * bonus));
+}
+
+function formatSteps(text) {
+  if (!text) return '';
+  const lines = text.split('\n').filter(line => line.trim() !== '');
+  return lines.map((line, i) => (i + 1) + '. ' + line.trim()).join('\n');
+}
+
 // ============================================================
-// FONCTIONS SUPABASE SPÉCIFIQUES
+// FONCTIONS SUPABASE SPÉCIFIQUES (ajout des recettes)
 // ============================================================
+async function saveRecipes() {
+  if (!UID) return;
+  try {
+    // On sauvegarde chaque recette individuellement (upsert)
+    for (const r of recipes) {
+      await sbUpsert('sys_recipes', {
+        user_id: UID,
+        id: r.id,
+        name: r.name,
+        time: r.time,
+        people: r.people,
+        steps: r.steps,
+        done: r.done || false,
+        total_xp: r.total_xp || 0,
+        created_at: r.created_at || new Date().toISOString()
+      });
+    }
+    // On supprime celles qui ne sont plus dans la liste (pour nettoyer)
+    const ids = recipes.map(r => r.id);
+    // On ne supprime pas ici pour éviter les conflits, on le fera en cas de suppression explicite.
+  } catch (e) { console.warn('saveRecipes:', e); }
+}
+
+async function loadRecipes() {
+  if (!UID) return;
+  try {
+    const data = await sbGetMany('sys_recipes', UID, 100);
+    if (Array.isArray(data)) {
+      recipes = data.map(r => ({
+        id: r.id,
+        name: r.name,
+        time: r.time || 30,
+        people: r.people || 2,
+        steps: r.steps || '',
+        done: r.done || false,
+        total_xp: r.total_xp || 0,
+        created_at: r.created_at || new Date().toISOString()
+      }));
+      // Trier par date de création (plus récent en premier)
+      recipes.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    }
+  } catch (e) { console.warn('loadRecipes:', e); }
+}
+
 async function saveClassData() {
   try {
     await sbUpsert('sys_classes', {
@@ -954,6 +1089,54 @@ async function loadCustomQuestsFromDB() {
 }
 
 // ============================================================
+// GESTION DES PASTILLES ORANGE
+// ============================================================
+function updateBadges() {
+  const forgeBadge = document.getElementById('forge-badge');
+  const recipeBadge = document.getElementById('recipe-badge');
+  const newForges = localStorage.getItem('newForgedQuest') === 'true';
+  const newRecipes = localStorage.getItem('newRecipe') === 'true';
+  forgeBadge.classList.toggle('show', newForges);
+  recipeBadge.classList.toggle('show', newRecipes);
+}
+
+function setNewForgedQuest() {
+  localStorage.setItem('newForgedQuest', 'true');
+  updateBadges();
+}
+
+function setNewRecipe() {
+  localStorage.setItem('newRecipe', 'true');
+  updateBadges();
+}
+
+function hideBadge(id) {
+  if (id === 'forge-badge') localStorage.setItem('newForgedQuest', 'false');
+  if (id === 'recipe-badge') localStorage.setItem('newRecipe', 'false');
+  updateBadges();
+}
+
+// ============================================================
+// ACCORDÉON
+// ============================================================
+function toggleAccordion(id) {
+  const body = document.getElementById(id);
+  if (body) {
+    body.classList.toggle('open');
+    body.style.display = body.classList.contains('open') ? 'block' : 'none';
+  }
+}
+
+function toggleSection(id) {
+  const el = document.getElementById(id);
+  if (el) {
+    const isOpen = el.style.display === 'block';
+    el.style.display = isOpen ? 'none' : 'block';
+    // Si on ouvre une section, on peut fermer l'autre (optionnel)
+  }
+}
+
+// ============================================================
 // INITIALISATION
 // ============================================================
 function setupUser() {
@@ -1001,6 +1184,7 @@ async function loadFromSupabase() {
 
     await loadClassData();
     await loadBilanHistory();
+    await loadRecipes();
 
     const savedWeekly = localStorage.getItem('sys12_weekly_xp');
     if (savedWeekly) {
@@ -1018,7 +1202,7 @@ async function loadFromSupabase() {
       } catch (e) {}
     }
 
-    // Récupérer les quêtes personnelles
+    // Quêtes forgées
     const dbQuests = await loadCustomQuestsFromDB();
     if (dbQuests && Array.isArray(dbQuests)) {
       customQuests = dbQuests;
@@ -1027,10 +1211,9 @@ async function loadFromSupabase() {
       customQuests = JSON.parse(localStorage.getItem('sys12_custom_quests') || '[]');
     }
 
-    // Récupérer la sidequest
+    // Sidequest
     const dbSq = await loadSidequestFromDB();
     const todayStr = todayKey();
-
     if (dbSq && dbSq.date === todayStr) {
       currentSidequest = dbSq;
       localStorage.setItem('sys12_sidequest', JSON.stringify(currentSidequest));
@@ -1047,16 +1230,19 @@ async function loadFromSupabase() {
       await saveSidequestToDB(currentSidequest);
     }
 
-    // === NOUVEAU : DÉVERROUILLAGE AUTOMATIQUE À MINUIT ===
-    // Si la dernière date validée est différente d'aujourd'hui, on déverrouille
+    // Déverrouillage auto à minuit
     if (S.last_day && S.last_day !== todayStr) {
       isDayLocked = false;
       updateValidationButton();
       toast("🔓 Nouveau jour ! La journée est déverrouillée.");
     } else {
-      // Sinon, on garde l'état existant
       isDayLocked = (S.last_day === todayStr && isDayLocked);
     }
+
+    // Initialiser les pastilles
+    if (!localStorage.getItem('newForgedQuest')) localStorage.setItem('newForgedQuest', 'false');
+    if (!localStorage.getItem('newRecipe')) localStorage.setItem('newRecipe', 'false');
+    updateBadges();
 
     setSyncState('ok');
   } catch (e) {
@@ -1071,6 +1257,7 @@ async function saveProgress() {
     await sbUpsert('sys_progress', { ...S, user_id: UID, updated_at: new Date().toISOString() });
     await saveClassData();
     await saveCustomQuestsToDB();
+    await saveRecipes();
     if (currentSidequest) {
       await saveSidequestToDB(currentSidequest);
     }
@@ -1141,10 +1328,13 @@ function updateHeader() {
   renderAvatar();
 }
 
+// === CORRECTION DU DOUBLE XP : on utilise uniquement le total cumulé des quêtes forgées ===
 function updateXPbars() {
   const maxXP = 5000;
   const pilliersXP = (S.p1_xp || 0) + (S.p2_xp || 0) + (S.p3_xp || 0) + (S.p4_xp || 0) + (S.p5_xp || 0);
-  const forgesXP = customQuests.reduce((sum, q) => sum + (q.total_xp || 0), 0) + (LOG.filter(l => l.quest_id && l.quest_id.startsWith('cq_')).reduce((sum, l) => sum + l.xp, 0));
+  // On additionne le total_xp de chaque quête forgée (cumulé) et les recettes
+  const forgesXP = customQuests.reduce((sum, q) => sum + (q.total_xp || 0), 0)
+                   + recipes.reduce((sum, r) => sum + (r.total_xp || 0), 0);
 
   document.getElementById('bar-global').style.width = Math.min(100, (S.total_xp / maxXP) * 100) + '%';
   document.getElementById('bar-global-val').textContent = S.total_xp + ' XP';
@@ -1157,14 +1347,20 @@ function updateXPbars() {
 }
 
 // ============================================================
-// QUÊTES PRÉ-DÉFINIES
+// QUÊTES PRÉ-DÉFINIES (avec emojis de classe)
 // ============================================================
 function renderQuetes() {
   const phase = getCurrentPhase();
 
+  function getClassEmoji(pid) {
+    const c = getClassForPillar(pid);
+    return CLASSES[c]?.icon || '🎒';
+  }
+
   function qHTML(q, isMin) {
     const done = !!checkedToday[q.id];
     const inPhase = q.phases.includes(phase.id);
+    const classEmoji = getClassEmoji(q.pid);
 
     let xp = q.xp;
     xp = Math.round(xp * 1.2);
@@ -1176,6 +1372,7 @@ function renderQuetes() {
 
     const phTag = !inPhase ? `<span class="tag tag-ph">Phase ${q.phases[0]}+</span>` : '';
     const minTag = isMin ? `<span class="tag tag-min">minimum</span>` : '';
+    const classTag = `<span class="tag" style="background:rgba(255,255,255,0.05);">${classEmoji}</span>`;
 
     const safeN = q.name.replace(/"/g, '&quot;');
     const safeD = q.desc.replace(/"/g, '&quot;');
@@ -1198,7 +1395,7 @@ function renderQuetes() {
       <div class="q-info">
         <div class="q-name">${q.name}</div>
         <div class="q-desc">${q.desc}</div>
-        <div class="q-tags">${minTag}${phTag}</div>
+        <div class="q-tags">${minTag}${phTag}${classTag}</div>
         ${coachBtn}
       </div>
       <div class="q-xp">+${displayedXp} XP</div>
@@ -1208,7 +1405,6 @@ function renderQuetes() {
   document.getElementById('quetes-opt').innerHTML = QUETES.opt.map(q => qHTML(q, false)).join('');
 }
 
-// === FONCTION CORRIGÉE : toggleQuete avec distribution aux classes ===
 async function toggleQuete(id) {
   if (isDayLocked) {
     toast("⚠️ Journée verrouillée. Utilise 'Modifier la journée' pour ajuster.");
@@ -1219,11 +1415,8 @@ async function toggleQuete(id) {
   if (!q) return;
   const today = todayKey();
 
-  // Calcul de l'XP de base
   let xp = q.xp;
-  // Bonus pilier (×1.2)
   xp = Math.round(xp * 1.2);
-  // Bonus de classe (×1.1 si boostée)
   const classId = getClassForPillar(q.pid);
   if (boostClass && classId === boostClass) {
     xp = Math.round(xp * 1.1);
@@ -1231,11 +1424,9 @@ async function toggleQuete(id) {
   const finalXp = xp;
 
   if (checkedToday[id]) {
-    // Décocher
     delete checkedToday[id];
     S.total_xp = Math.max(0, S.total_xp - finalXp);
     S[q.pid + '_xp'] = Math.max(0, (S[q.pid + '_xp'] || 0) - finalXp);
-    // Retirer l'XP de la classe correspondante
     const cId = getClassForPillar(q.pid);
     classXP[cId] = Math.max(0, (classXP[cId] || 0) - finalXp);
     weeklyClassXP[cId] = Math.max(0, (weeklyClassXP[cId] || 0) - finalXp);
@@ -1243,11 +1434,9 @@ async function toggleQuete(id) {
     sbDelete('sys_log', UID, id, today).catch(() => {});
     toast("↩️ Quête décochée — XP retirés");
   } else {
-    // Cocher
     checkedToday[id] = true;
     S.total_xp += finalXp;
     S[q.pid + '_xp'] = Math.min(MAX_PILLIER_XP, (S[q.pid + '_xp'] || 0) + finalXp);
-    // Ajouter l'XP à la classe correspondante
     const cId = getClassForPillar(q.pid);
     classXP[cId] = (classXP[cId] || 0) + finalXp;
     weeklyClassXP[cId] = (weeklyClassXP[cId] || 0) + finalXp;
@@ -1265,7 +1454,7 @@ async function toggleQuete(id) {
 }
 
 // ============================================================
-// SIDEQUEST
+// SIDEQUEST (inchangée)
 // ============================================================
 function initSidequest() {
   updateSidequestUI();
@@ -1318,7 +1507,6 @@ function updateSidequestUI() {
   }
 }
 
-// === FONCTION CORRIGÉE : toggleSidequest avec distribution aux classes ===
 async function toggleSidequest() {
   if (isDayLocked) {
     toast("⚠️ Journée verrouillée. Utilise 'Modifier la journée' pour ajuster.");
@@ -1414,7 +1602,7 @@ async function rerollSidequestIA() {
 }
 
 // ============================================================
-// QUÊTES FORGÉES (AVENTURIER)
+// QUÊTES FORGÉES (avec XP réduits : 5, 15, 30)
 // ============================================================
 function loadCustomQuests() {
   customQuests = JSON.parse(localStorage.getItem('sys12_custom_quests') || '[]');
@@ -1427,10 +1615,6 @@ function saveCustomQuests() {
   renderCustomQuests();
 }
 
-function renderCqSelectors() {
-  // Plus rien ici, on a supprimé le sélecteur de capacité
-}
-
 function ajouterQuetePerso() {
   const nameEl = document.getElementById('cq-name');
   const name = nameEl.value.trim();
@@ -1441,15 +1625,15 @@ function ajouterQuetePerso() {
   const diff = document.getElementById('cq-diff').value;
   const type = document.getElementById('cq-type').value;
 
-  let xp = 10;
-  if (diff === 'medium') xp = 25;
-  if (diff === 'hard') xp = 50;
+  let xp = 5;
+  if (diff === 'medium') xp = 15;
+  if (diff === 'hard') xp = 30;
 
-  // Plus de capacité, la quête forgée va uniquement dans Aventurier
   const nq = { id: 'cq_' + Date.now(), name: name, xp: xp, type: type, done: false, total_xp: 0 };
   customQuests.push(nq);
   nameEl.value = '';
   saveCustomQuests();
+  setNewForgedQuest();
   toast("⚔️ Quête forgée : '" + name + "' (🎒 Aventurier)");
 }
 
@@ -1490,7 +1674,7 @@ function openEditModal(id) {
   editQuestId = id;
   document.getElementById('edit-cq-id').value = id;
   document.getElementById('edit-cq-name').value = q.name;
-  document.getElementById('edit-cq-diff').value = q.xp === 10 ? 'easy' : q.xp === 25 ? 'medium' : 'hard';
+  document.getElementById('edit-cq-diff').value = q.xp === 5 ? 'easy' : q.xp === 15 ? 'medium' : 'hard';
   document.getElementById('edit-cq-type').value = q.type;
   document.getElementById('edit-modal').classList.add('show');
 }
@@ -1512,9 +1696,9 @@ function saveEditQuest() {
   }
 
   const diff = document.getElementById('edit-cq-diff').value;
-  let xp = 10;
-  if (diff === 'medium') xp = 25;
-  if (diff === 'hard') xp = 50;
+  let xp = 5;
+  if (diff === 'medium') xp = 15;
+  if (diff === 'hard') xp = 30;
 
   q.name = name;
   q.xp = xp;
@@ -1550,7 +1734,6 @@ function deleteCustomQuest(id) {
   updateHeader();
 }
 
-// === FONCTION CORRIGÉE : toggleCustomQuest (Aventurier uniquement) ===
 async function toggleCustomQuest(id) {
   if (isProcessing) {
     console.warn('toggleCustomQuest déjà en cours, ignore');
@@ -1612,7 +1795,117 @@ async function toggleCustomQuest(id) {
 }
 
 // ============================================================
-// VALIDATION DE JOURNÉE
+// RECETTES (NOUVEAU)
+// ============================================================
+function ajouterRecette() {
+  const name = document.getElementById('recipe-name').value.trim();
+  if (!name) {
+    toast("⚠️ Donne un nom à ta recette.");
+    return;
+  }
+  const time = parseInt(document.getElementById('recipe-time').value) || 30;
+  const people = parseInt(document.getElementById('recipe-people').value) || 2;
+  const steps = document.getElementById('recipe-steps').value.trim();
+
+  const r = {
+    id: 'rec_' + Date.now(),
+    name: name,
+    time: time,
+    people: people,
+    steps: steps,
+    done: false,
+    total_xp: 0,
+    created_at: new Date().toISOString()
+  };
+  recipes.unshift(r);
+  document.getElementById('recipe-name').value = '';
+  document.getElementById('recipe-time').value = '30';
+  document.getElementById('recipe-people').value = '2';
+  document.getElementById('recipe-steps').value = '';
+  saveRecipes();
+  setNewRecipe();
+  toast("🍳 Recette ajoutée : '" + name + "'");
+  renderRecipes();
+}
+
+function renderRecipes() {
+  const container = document.getElementById('recipes-list-container');
+  if (!recipes.length) {
+    container.innerHTML = '<div class="empty-state">Aucune recette pour le moment.</div>';
+    return;
+  }
+
+  container.innerHTML = recipes.map(r => {
+    const xp = r.total_xp || 0;
+    const done = r.done || false;
+    const formattedSteps = formatSteps(r.steps);
+
+    return `<div class="recipe-item${done ? ' done' : ''}" data-id="${r.id}">
+      <div class="check" onclick="event.stopPropagation();toggleRecipe('${r.id}')">${done ? '✓' : ''}</div>
+      <div class="recipe-info" onclick="event.stopPropagation();toggleRecipe('${r.id}')">
+        <div class="recipe-name">${r.name}</div>
+        <div class="recipe-meta">⏱️ ${r.time} min · 👥 ${r.people} pers</div>
+        <div class="recipe-steps${formattedSteps ? ' open' : ''}" onclick="event.stopPropagation();toggleRecipeSteps(this)">${formattedSteps}</div>
+      </div>
+      <div class="recipe-xp">+${xp} XP</div>
+    </div>`;
+  }).join('');
+}
+
+async function toggleRecipe(id) {
+  if (isDayLocked) {
+    toast("⚠️ Journée verrouillée. Utilise 'Modifier la journée' pour ajuster.");
+    return;
+  }
+  const r = recipes.find(x => x.id === id);
+  if (!r) return;
+  const today = todayKey();
+
+  // Calcul de l'XP selon la recette (basé sur le temps et le nombre de personnes)
+  const xp = calculateRecipeXP(r.time, r.people);
+
+  if (r.done) {
+    // Décocher
+    r.done = false;
+    S.total_xp = Math.max(0, S.total_xp - xp);
+    classXP.aventurier = Math.max(0, (classXP.aventurier || 0) - xp);
+    weeklyClassXP.aventurier = Math.max(0, (weeklyClassXP.aventurier || 0) - xp);
+    r.total_xp = Math.max(0, (r.total_xp || 0) - xp);
+    LOG = LOG.filter(l => !(l.quest_id === id && l.created_at && l.created_at.slice(0, 10) === today));
+    sbDelete('sys_log', UID, id, today).catch(() => {});
+    toast("↩️ Recette décochée — XP retirés");
+  } else {
+    // Cocher
+    r.done = true;
+    S.total_xp += xp;
+    classXP.aventurier = (classXP.aventurier || 0) + xp;
+    weeklyClassXP.aventurier = (weeklyClassXP.aventurier || 0) + xp;
+    r.total_xp = (r.total_xp || 0) + xp;
+    const entry = {
+      user_id: UID,
+      quest_id: id,
+      quest_name: '[Recette] ' + r.name,
+      xp: xp,
+      pillar_id: 'custom',
+      created_at: new Date().toISOString()
+    };
+    LOG.unshift(entry);
+    sbInsert('sys_log', entry).catch(() => {});
+    toast("✅ +" + xp + " XP pour la recette '" + r.name + "' (🍳 Aventurier)");
+  }
+  saveRecipes();
+  scheduleSave();
+  updateHeader();
+  renderRecipes();
+  renderAvatar();
+}
+
+function toggleRecipeSteps(el) {
+  el.classList.toggle('open');
+}
+
+// ============================================================
+// VALIDATION DE JOURNÉE (avec réinitialisation des recettes)
 // ============================================================
 async function validerJour() {
   const today = todayKey();
@@ -1634,11 +1927,16 @@ async function validerJour() {
     sbInsert('sys_xp_history', histEntry).catch(() => {});
   }
 
+  // Réinitialiser les quêtes forgées récurrentes et les recettes
   customQuests = customQuests.filter(q => !(q.type === 'oneshot' && q.done === true));
   customQuests.forEach(q => { if (q.type === 'recurrent') q.done = false; });
+  recipes.forEach(r => { r.done = false; });
+
   localStorage.setItem('sys12_custom_quests', JSON.stringify(customQuests));
   await saveCustomQuestsToDB();
+  await saveRecipes();
   renderCustomQuests();
+  renderRecipes();
 
   isDayLocked = true;
   updateValidationButton();
@@ -1673,7 +1971,7 @@ function updateValidationButton() {
 }
 
 // ============================================================
-// AFFICHAGE DES PILIERS
+// AFFICHAGE DES PILIERS (inchangé)
 // ============================================================
 function renderPiliers() {
   document.getElementById('piliers-list').innerHTML = PILLARS.map(p => {
@@ -1711,7 +2009,7 @@ function renderPiliers() {
 }
 
 // ============================================================
-// AVATAR / CLASSES
+// AVATAR / CLASSES (inchangé)
 // ============================================================
 function renderAvatar() {
   const banner = document.getElementById('aura-banner');
@@ -1786,7 +2084,7 @@ function renderAvatar() {
 }
 
 // ============================================================
-// STATISTIQUES - AVEC NOUVEAU RADAR (ÉCART RELATIF)
+// STATISTIQUES (inchangé sauf l'appel aux recettes pour le radar)
 // ============================================================
 function renderStats() {
   const today = todayKey();
@@ -1801,8 +2099,7 @@ function renderStats() {
   }
   document.getElementById('heatmap').innerHTML = hm;
 
-  // === NOUVEAU RADAR : ÉCART RELATIF ENTRE PILIERS ===
-  // On trouve le pilier avec le plus d'XP
+  // Radar : écart relatif
   const maxXP = Math.max(
     S.p1_xp || 0,
     S.p2_xp || 0,
@@ -1810,14 +2107,11 @@ function renderStats() {
     S.p4_xp || 0,
     S.p5_xp || 0
   );
-
-  // On calcule les valeurs en pourcentage (max = 100%)
   const rData = PILLARS.map(p => {
     const xp = S[p.id + '_xp'] || 0;
     return maxXP > 0 ? Math.round((xp / maxXP) * 100) : 0;
   });
 
-  // Radar
   const rCtx = document.getElementById('chart-radar').getContext('2d');
   const rLabels = PILLARS.map(p => p.icon + ' ' + p.name.split(' ')[0]);
   if (chartRadar) chartRadar.destroy();
@@ -1862,7 +2156,7 @@ function renderStats() {
     }
   });
 
-  // --- Graphique XP (inchangé) ---
+  // Graphique XP
   const xpCtx = document.getElementById('chart-xp').getContext('2d');
   const sorted = [...XP_HISTORY].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).slice(-20);
   const xpLabels = sorted.map(h => h.created_at ? h.created_at.slice(5, 10) : '');
@@ -1884,8 +2178,7 @@ function renderStats() {
     }
   });
 
-  // === CAPACITÉS : on affiche juste un compteur simple (sans sélecteur) ===
-  // On compte les quêtes par pilier (pour information)
+  // Capacités (compteurs par pilier)
   const capCounts = {};
   LOG.forEach(l => {
     if (l.pillar_id && l.pillar_id !== 'custom' && l.pillar_id !== 'review') {
@@ -1895,7 +2188,6 @@ function renderStats() {
       }
     }
   });
-
   document.getElementById('cap-grid').innerHTML = PILLARS.map(p => {
     const count = capCounts[p.name] || 0;
     const pct = Math.min(100, Math.round((count / 20) * 100));
@@ -1906,6 +2198,7 @@ function renderStats() {
     </div>`;
   }).join('');
 
+  // Jalons
   document.getElementById('milestones').innerHTML = MILESTONES.map(m => {
     const ok = m.check(S);
     return `<div class="ms-item${ok ? ' reached' : ''}">
@@ -1915,6 +2208,7 @@ function renderStats() {
     </div>`;
   }).join('');
 
+  // Journal
   const logEl = document.getElementById('log-list');
   if (!LOG.length) { logEl.innerHTML = '<div class="empty-state">Aucune action enregistrée</div>'; } else {
     logEl.innerHTML = LOG.slice(0, 15).map(l => `
@@ -1928,7 +2222,7 @@ function renderStats() {
 }
 
 // ============================================================
-// REVUE
+// REVUE (inchangée)
 // ============================================================
 function setStar(v) {
   starVal = v;
@@ -1963,7 +2257,7 @@ async function sauvegarderRevue() {
 }
 
 // ============================================================
-// NAVIGATION
+// NAVIGATION (avec mise à jour des listes)
 // ============================================================
 function goTab(id, btn) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -1979,11 +2273,19 @@ function goTab(id, btn) {
         customQuests = dbQuests;
         localStorage.setItem('sys12_custom_quests', JSON.stringify(customQuests));
       }
-      updateSidequestUI();
-      renderCustomQuests();
+      loadRecipes().then(() => {
+        updateSidequestUI();
+        renderCustomQuests();
+        renderRecipes();
+        updateBadges();
+      });
     }).catch(() => {
-      updateSidequestUI();
-      renderCustomQuests();
+      loadRecipes().then(() => {
+        updateSidequestUI();
+        renderCustomQuests();
+        renderRecipes();
+        updateBadges();
+      });
     });
   }
   if (id === 'today') renderQuetes();
@@ -1994,7 +2296,7 @@ function goTab(id, btn) {
 }
 
 // ============================================================
-// AUTRES FONCTIONS
+// AUTRES FONCTIONS (bilan, boost, etc.)
 // ============================================================
 function renderBilanHistory() {
   const container = document.getElementById('bilan-history');
@@ -2125,17 +2427,19 @@ function lancerBilanHebdo() {
 // ============================================================
 async function init() {
   await loadFromSupabase();
-  isDayLocked = (S.last_day === todayKey() && isDayLocked); // Garder l'état après chargement
+  isDayLocked = (S.last_day === todayKey() && isDayLocked);
   updateValidationButton();
   updateHeader();
   renderQuetes();
-  renderCqSelectors();
+  renderPiliers();
   initSidequest();
   loadCustomQuests();
+  renderRecipes();
   loadWelcomeMessage();
   renderAvatar();
   renderBilanHistory();
-  renderStats(); // Pour le radar
+  renderStats();
+  updateBadges();
 }
 
 if (!UID) {
