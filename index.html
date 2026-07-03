@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="favicon.jpg?v=3">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-/* ===== STYLES COMPLETS ===== */
+/* ===== STYLES COMPLETS (inchangés, ajout du style pour le pop-up) ===== */
 :root{--bg:#0e0e10;--card:#18181c;--card2:#222228;--border:rgba(255,255,255,0.07);--text:#f0f0f0;--muted:#777;--accent:#a78bfa;--accent2:#7c3aed;--green:#34d399;--amber:#fbbf24;--coral:#f87171;--blue:#60a5fa;--orange:#fb923c;--r:14px;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;font-size:15px;min-height:100dvh;padding-bottom:calc(76px + env(safe-area-inset-bottom));}
@@ -234,6 +234,18 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 .recipe-item .recipe-steps.open{display:block;}
 .recipe-item.done{opacity:0.4;}
 .recipe-item.done .recipe-name{text-decoration:line-through;}
+.rating-popup{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:400;display:none;align-items:center;justify-content:center;padding:20px;}
+.rating-popup.show{display:flex;}
+.rating-box{background:var(--card);border:0.5px solid var(--border);border-radius:16px;padding:24px;width:100%;max-width:380px;}
+.rating-box .rating-title{font-size:16px;font-weight:700;margin-bottom:16px;text-align:center;}
+.rating-box .rating-stars{display:flex;justify-content:center;gap:8px;margin-bottom:12px;}
+.rating-box .rating-stars .star{font-size:32px;cursor:pointer;opacity:0.3;transition:opacity .2s;}
+.rating-box .rating-stars .star.active{opacity:1;color:#fbbf24;}
+.rating-box .rating-sub{font-size:13px;color:var(--muted);text-align:center;margin-bottom:16px;}
+.rating-box .rating-actions{display:flex;gap:10px;}
+.rating-box .rating-actions button{flex:1;padding:10px;border-radius:10px;border:none;font-weight:600;cursor:pointer;font-family:inherit;}
+.rating-box .rating-actions .btn-confirm{background:var(--accent2);color:#fff;}
+.rating-box .rating-actions .btn-skip{background:rgba(255,255,255,0.06);color:var(--text);border:0.5px solid var(--border);}
 </style>
 </head>
 <body>
@@ -248,6 +260,25 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
     <div class="setup-hint">Même identifiant sur tous tes appareils. Lettres et chiffres uniquement.</div>
     <div class="setup-err" id="setup-err">Identifiant invalide. Lettres et chiffres uniquement.</div>
     <button class="btn-main" style="margin-top:0" onclick="setupUser()">Commencer →</button>
+  </div>
+</div>
+
+<!-- Pop-up de notation d'entraînement -->
+<div class="rating-popup" id="rating-popup">
+  <div class="rating-box">
+    <div class="rating-title">🏋️ Comment s'est passé ton entraînement ?</div>
+    <div class="rating-stars" id="rating-stars">
+      <span class="star" data-value="1">★</span>
+      <span class="star" data-value="2">★</span>
+      <span class="star" data-value="3">★</span>
+      <span class="star" data-value="4">★</span>
+      <span class="star" data-value="5">★</span>
+    </div>
+    <div class="rating-sub" id="rating-label">Clique sur une étoile pour noter la difficulté</div>
+    <div class="rating-actions">
+      <button class="btn-confirm" onclick="submitWorkoutRating()">💾 Envoyer</button>
+      <button class="btn-skip" onclick="skipWorkoutRating()">Passer</button>
+    </div>
   </div>
 </div>
 
@@ -549,6 +580,13 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
       </div>
     </div>
   </div>
+
+  <!-- Diagramme à barres (XP des classes) -->
+  <div class="chart-card">
+    <div class="chart-title">Répartition des XP par classe</div>
+    <canvas id="class-bar-chart" height="150"></canvas>
+  </div>
+
   <div class="avatar-card">
     <div class="avatar-title">⚡ Bénédiction Active</div>
     <div class="avatar-subtitle" id="benediction-desc">Aucune bénédiction active</div>
@@ -867,7 +905,7 @@ let customQuests = [];
 let recipes = [];
 let iaQuests = [];
 let starVal = 0;
-let chartXp = null, chartRadar = null;
+let chartXp = null, chartRadar = null, chartClassBar = null;
 let syncTimer = null;
 let isDayLocked = false;
 let classXP = { guerrier: 0, mage: 0, ombre: 0, aventurier: 0 };
@@ -882,6 +920,10 @@ let currentSidequest = null;
 let editQuestId = null;
 let isProcessing = false;
 let isGeneratingIA = false;
+
+// Notation d'entraînement
+let pendingWorkoutRating = null; // { category, xp, entry }
+let workoutRatingValue = 0;
 
 // ============================================================
 // FONCTIONS UTILITAIRES
@@ -976,8 +1018,30 @@ function formatSteps(text) {
 }
 
 // ============================================================
-// FONCTIONS SUPABASE SPÉCIFIQUES
+// FONCTIONS SUPABASE SPÉCIFIQUES (ajout des notations)
 // ============================================================
+async function saveWorkoutRating(rating) {
+  if (!UID) return;
+  try {
+    await sbInsert('sys_workout_ratings', {
+      user_id: UID,
+      date: rating.date || todayKey(),
+      category: rating.category,
+      difficulty: rating.difficulty,
+      enjoyment: rating.enjoyment || null,
+      created_at: new Date().toISOString()
+    });
+  } catch (e) { console.warn('saveWorkoutRating:', e); }
+}
+
+async function getLastWorkoutRatings(limit = 3) {
+  if (!UID) return [];
+  try {
+    const data = await sbGetMany('sys_workout_ratings', UID, limit);
+    return data || [];
+  } catch (e) { console.warn('getLastWorkoutRatings:', e); return []; }
+}
+
 async function saveClassData() {
   try {
     await sbUpsert('sys_classes', {
@@ -1232,12 +1296,10 @@ async function generateIAQuest() {
     return;
   }
   
-  // Détecter les classes faibles
   const weakest = detectWeakestClasses();
   let selectedClass = weakest[0];
   
   if (weakest.length > 1) {
-    // Plusieurs classes à égalité → prompt pour choisir
     const classOptions = weakest.map((c, i) => {
       const emoji = CLASSES[c]?.icon || '🎒';
       const name = CLASSES[c]?.name || c;
@@ -1257,7 +1319,6 @@ async function generateIAQuest() {
     }
   }
   
-  // Choisir la difficulté
   const diffChoice = prompt(
     "Choisis la difficulté :\n" +
     "1. Facile (+" + IA_DIFFICULTY.easy.xp + " XP)\n" +
@@ -1397,6 +1458,63 @@ function renderIAQuests() {
       <div class="q-xp">+${q.xpBonus} XP</div>
     </div>`;
   }).join('');
+}
+
+// ============================================================
+// FONCTIONS DE NOTATION D'ENTRAÎNEMENT
+// ============================================================
+function showWorkoutRatingPopup(category, xp, entry) {
+  pendingWorkoutRating = { category, xp, entry };
+  workoutRatingValue = 0;
+  document.getElementById('rating-popup').classList.add('show');
+  updateRatingStars();
+}
+
+function updateRatingStars() {
+  document.querySelectorAll('#rating-stars .star').forEach(el => {
+    const val = parseInt(el.dataset.value);
+    el.classList.toggle('active', val <= workoutRatingValue);
+  });
+  const label = document.getElementById('rating-label');
+  if (workoutRatingValue === 0) label.textContent = 'Clique sur une étoile pour noter la difficulté';
+  else if (workoutRatingValue <= 2) label.textContent = '😓 Trop difficile ?';
+  else if (workoutRatingValue === 3) label.textContent = '👍 Parfait, ni trop facile ni trop difficile';
+  else label.textContent = '😊 Trop facile ?';
+}
+
+document.addEventListener('click', function(e) {
+  const star = e.target.closest('#rating-stars .star');
+  if (star) {
+    workoutRatingValue = parseInt(star.dataset.value);
+    updateRatingStars();
+  }
+});
+
+async function submitWorkoutRating() {
+  if (workoutRatingValue === 0) {
+    toast("⚠️ Choisis une note avant d'envoyer.");
+    return;
+  }
+  if (!pendingWorkoutRating) return;
+  
+  await saveWorkoutRating({
+    date: todayKey(),
+    category: pendingWorkoutRating.category,
+    difficulty: workoutRatingValue,
+    enjoyment: null // on ne demande pas l'appréciation pour l'instant
+  });
+  
+  toast("✅ Notation enregistrée !");
+  document.getElementById('rating-popup').classList.remove('show');
+  pendingWorkoutRating = null;
+  workoutRatingValue = 0;
+}
+
+function skipWorkoutRating() {
+  document.getElementById('rating-popup').classList.remove('show');
+  pendingWorkoutRating = null;
+  workoutRatingValue = 0;
+  toast("⏩ Notation ignorée.");
 }
 
 // ============================================================
@@ -1590,7 +1708,6 @@ function updateHeader() {
   updateXPbars();
   renderAvatar();
   
-  // Mettre à jour le compteur IA
   const iaCount = getIAQuestsCount();
   const iaBtn = document.getElementById('generate-ia-btn');
   if (iaBtn) {
@@ -1712,6 +1829,7 @@ function renderQuetes() {
   document.getElementById('quetes-opt').innerHTML = QUETES.opt.map(q => qHTML(q, false)).join('');
 }
 
+// === MODIFICATION DE toggleQuete pour gérer le pop-up de notation q5 ===
 async function toggleQuete(id) {
   if (isDayLocked) {
     toast("⚠️ Journée verrouillée. Utilise 'Modifier la journée' pour ajuster.");
@@ -1731,6 +1849,7 @@ async function toggleQuete(id) {
   const finalXp = xp;
 
   if (checkedToday[id]) {
+    // Décocher
     delete checkedToday[id];
     S.total_xp = Math.max(0, S.total_xp - finalXp);
     S[q.pid + '_xp'] = Math.max(0, (S[q.pid + '_xp'] || 0) - finalXp);
@@ -1741,6 +1860,7 @@ async function toggleQuete(id) {
     sbDelete('sys_log', UID, id, today).catch(() => {});
     toast("↩️ Quête décochée — XP retirés");
   } else {
+    // Cocher
     checkedToday[id] = true;
     S.total_xp += finalXp;
     S[q.pid + '_xp'] = Math.min(MAX_PILLIER_XP, (S[q.pid + '_xp'] || 0) + finalXp);
@@ -1753,6 +1873,16 @@ async function toggleQuete(id) {
     if (LOG.length > 60) LOG.pop();
     sbInsert('sys_log', entry).catch(() => {});
     toast("✅ +" + finalXp + " XP pour '" + q.name + "'");
+
+    // Si c'est q5 (entraînement), on propose la notation
+    if (id === 'q5') {
+      const select = document.getElementById('workout-type');
+      const category = select ? select.value : 'auto';
+      // On attend un court instant pour que l'interface se mette à jour
+      setTimeout(() => {
+        showWorkoutRatingPopup(category, finalXp, entry);
+      }, 300);
+    }
   }
   scheduleSave();
   renderQuetes();
@@ -2352,9 +2482,71 @@ function renderPiliers() {
 }
 
 // ============================================================
-// AVATAR / CLASSES
+// AVATAR / CLASSES + DIAGRAMME À BARRES
 // ============================================================
+function renderClassBarChart() {
+  const canvas = document.getElementById('class-bar-chart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  // Préparer les données : XP réel par classe, tri décroissant
+  const data = [];
+  for (const [id, cls] of Object.entries(CLASSES)) {
+    const xp = classXP[id] || 0;
+    data.push({ id, name: cls.name, xp, color: cls.color, icon: cls.icon });
+  }
+  data.sort((a, b) => b.xp - a.xp);
+
+  const labels = data.map(d => d.icon + ' ' + d.name);
+  const values = data.map(d => d.xp);
+  const colors = data.map(d => d.color);
+
+  if (chartClassBar) chartClassBar.destroy();
+  chartClassBar = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: values,
+        backgroundColor: colors,
+        borderColor: colors.map(c => c + 'aa'),
+        borderWidth: 1,
+        borderRadius: 4,
+        barPercentage: 0.6,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return context.raw + ' XP';
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { color: '#777', font: { size: 10 } },
+          grid: { color: 'rgba(255,255,255,0.04)' }
+        },
+        x: {
+          ticks: { color: '#aaa', font: { size: 11 } },
+          grid: { display: false }
+        }
+      },
+      animation: {
+        duration: 500
+      }
+    }
+  });
+}
+
 function renderAvatar() {
+  // Aura
   const banner = document.getElementById('aura-banner');
   const icon = document.getElementById('aura-icon');
   const name = document.getElementById('aura-name');
@@ -2380,6 +2572,7 @@ function renderAvatar() {
     banner.className = 'aura-banner';
   }
 
+  // Classes
   for (const [id, cls] of Object.entries(CLASSES)) {
     const xp = classXP[id] || 0;
     const rank = getClassRank(xp);
@@ -2410,6 +2603,7 @@ function renderAvatar() {
     progressEl.textContent = xp_into + ' / ' + xp_needed + ' XP';
   }
 
+  // Bénédiction
   const benedictionEl = document.getElementById('benediction-desc');
   if (boostClass && boostClass !== null) {
     const cls = getClassFromId(boostClass);
@@ -2419,7 +2613,6 @@ function renderAvatar() {
   } else if (isStagnant) {
     benedictionEl.textContent = '⚠️ Aucune bénédiction active. Reprends l\'entraînement.';
   } else {
-    // Indiquer la classe la plus faible
     const scores = {
       guerrier: classXP.guerrier || 0,
       mage: classXP.mage || 0,
@@ -2435,6 +2628,9 @@ function renderAvatar() {
       benedictionEl.textContent = 'Aucune bénédiction active.';
     }
   }
+
+  // Diagramme à barres
+  renderClassBarChart();
 
   updateXPbars();
 }
@@ -2720,13 +2916,11 @@ function lancerBilanHebdo() {
     isStag = true;
     auraId = 'stagnant';
   } else {
-    // Déterminer l'aura avec les XP bruts
     const sorted = Object.entries(weeklyXP).sort((a, b) => b[1] - a[1]);
     const top1 = sorted[0][0];
     const top2 = sorted[1][0];
     const top3 = sorted[2] ? sorted[2][0] : null;
     
-    // Vérifier l'équilibre parfait (écart < 10% entre les 4)
     const values = Object.values(weeklyXP);
     const maxDiff = Math.max(...values) - Math.min(...values);
     const avg = totalXP / 4;
@@ -2734,10 +2928,8 @@ function lancerBilanHebdo() {
       isSouv = true;
       auraId = 'souverain';
     } else if (sorted[0][1] - sorted[1][1] > 50) {
-      // Dominance claire
       auraId = top1;
     } else {
-      // Combinaison des 3 premières classes
       const set = new Set([top1, top2, top3].filter(Boolean));
       if (set.has('guerrier') && set.has('mage') && set.has('ombre')) auraId = 'stratege';
       else if (set.has('guerrier') && set.has('mage') && set.has('aventurier')) auraId = 'vagabond';
@@ -2783,7 +2975,6 @@ function lancerBilanHebdo() {
     btn.disabled = true;
     toast("💤 Bilan : Le Stagnant. Retour au front !");
   } else {
-    // Classe la plus faible (XP brut)
     let minXP = Infinity;
     let weakest = null;
     for (const [cls, xp] of Object.entries(weeklyXP)) {
@@ -2806,6 +2997,98 @@ function lancerBilanHebdo() {
   renderBilanHistory();
   updateHeader();
   scheduleSave();
+}
+
+// ============================================================
+// MODIFICATION DE genererEntrainement POUR ADAPTER XP ET DIFFICULTÉ
+// ============================================================
+async function genererEntrainement(btn) {
+  const existingId = 'workout-generated';
+  const existing = document.getElementById(existingId);
+  if (existing) { existing.remove(); return; }
+
+  const selectEl = document.getElementById('workout-type');
+  const selectedDomain = selectEl ? selectEl.value : 'auto';
+
+  // Récupérer les dernières notations pour adapter la difficulté
+  const ratings = await getLastWorkoutRatings(3);
+  let avgDifficulty = 3; // valeur par défaut
+  if (ratings.length > 0) {
+    const sum = ratings.reduce((acc, r) => acc + (r.difficulty || 0), 0);
+    avgDifficulty = sum / ratings.length;
+  }
+
+  const card = document.createElement('div');
+  card.className = 'ai-card';
+  card.id = existingId;
+  card.style.marginTop = '6px';
+  card.style.border = '0.5px solid rgba(96,165,250,.3)';
+  card.style.background = 'linear-gradient(135deg,rgba(96,165,250,.12),rgba(14,14,16,.08))';
+  card.innerHTML = '<div class="ai-header"><span style="font-size:16px">🏋️</span><span class="ai-label" style="color:var(--blue)">Séance sur-mesure</span></div><div class="ai-body" id="txt-workout">Analyse du domaine choisi et calcul du protocole adaptatif...</div>';
+  btn.closest('.quest').after(card);
+
+  const historiquesRecents = LOG.slice(0, 10).map(l => l.quest_name).join(', ');
+
+  let domaineInstructions = "";
+  if (selectedDomain === "bodyweight") {
+    domaineInstructions = "L'entraînement DOIT obligatoirement être axé sur le POIDS DU CORPS / CALISTHÉNIE (en utilisant sa bonne base en pompes, tractions, ou des variantes complexes comme du tempo ou de la pliométrie).";
+  } else if (selectedDomain === "swim") {
+    domaineInstructions = "L'entraînement DOIT obligatoirement être un protocole de NATATION en piscine (séries en mètres, nages, allures, ou exercices techniques, adapté à sa capacité de faire 3km par session).";
+  } else if (selectedDomain === "run") {
+    domaineInstructions = "L'entraînement DOIT obligatoirement être de la COURSE À PIED / CARDIO EXTÉRIEUR (axé soit sur son point faible à améliorer : le foncier en zone 2, soit du fractionné/HIIT haute intensité).";
+  } else {
+    domaineInstructions = "Laisse libre cours à ton expertise de coach pour choisir le domaine (natation, course ou poids du corps) le plus pertinent selon son historique récent.";
+  }
+
+  // Intégrer la difficulté moyenne
+  let difficultyLevel = 'moyen';
+  if (avgDifficulty <= 2) difficultyLevel = 'facile';
+  else if (avgDifficulty >= 4) difficultyLevel = 'difficile';
+  // Si avgDifficulty = 3, on reste sur 'moyen'
+
+  const prompt = buildCtx() + `
+  En tant que coach sportif, génère un entraînement physique précis de 30 à 45 minutes pour Eliseo.
+  CONTRAINTE DE SÉLECTION : ${domaineInstructions}
+  
+  Prends également en compte son profil général et son historique récent d'actions: [${historiquesRecents}].
+  
+  Suggestion basée sur les notations précédentes : la difficulté perçue moyenne est de ${avgDifficulty.toFixed(1)}/5.
+  Propose un entraînement avec une difficulté ${difficultyLevel} (légèrement plus élevée si la moyenne est basse, et inversement).
+  
+  Format de réponse obligatoire (sois hyper concis, direct et condensé) :
+  1. Domaine et Objectif ciblé (ex: Natation - Vitesse explosive ou Calisthénie - Volume de force)
+  2. Échauffement rapide
+  3. Corps de séance : Exercices/Séries exactes, répétitions ou distances, temps de récupération très précis.
+  
+  Maximum 7 lignes. Pas de markdown, pas de listes à puces ou tirets (sauts de ligne simples).
+  Ajoute en début de réponse la difficulté proposée (1 à 5) entre parenthèses, ex: "(3/5)".
+  `;
+
+  const response = await callGemini(prompt);
+  
+  // Extraire la difficulté proposée (ex: "(4/5)")
+  let proposedDifficulty = 3;
+  const match = response.match(/\((\d)\/5\)/);
+  if (match) proposedDifficulty = parseInt(match[1]);
+
+  // Calculer l'XP de base de l'entraînement : on part de 70 (XP de q5) et on ajuste selon la difficulté
+  let baseXP = 70;
+  // Modulateur : si difficulté > 3, +15% par point, si < 3, -15% par point
+  let xpMultiplier = 1 + (proposedDifficulty - 3) * 0.15;
+  xpMultiplier = Math.max(0.8, Math.min(1.4, xpMultiplier));
+  let finalXP = Math.round(baseXP * xpMultiplier);
+  // Application du bonus pilier (×1.2) et du boost classe éventuel
+  finalXP = Math.round(finalXP * 1.2);
+  const classId = getClassForPillar('p4');
+  if (boostClass && classId === boostClass) {
+    finalXP = Math.round(finalXP * 1.1);
+  }
+
+  // Mettre à jour l'affichage pour montrer l'XP proposé
+  const bodyEl = document.getElementById('txt-workout');
+  if (bodyEl) {
+    bodyEl.textContent = response + '\n\n🏆 XP estimé : +' + finalXP + ' XP (difficulté ' + proposedDifficulty + '/5)';
+  }
 }
 
 // ============================================================
@@ -2836,7 +3119,49 @@ if (!UID) {
 }
 
 // ============================================================
-// IA / COACH
+// IA / COACH (ajout des notations dans buildCtx)
+// ============================================================
+function buildCtx() {
+  const ph = getCurrentPhase();
+  const ps = PILLARS.map(function(p) { return p.name.split(' ')[0] + ': ' + (S[p.id + '_xp'] || 0) + 'XP'; }).join(', ');
+  let dynamicCtx = 'Progression actuelle — Phase ' + ph.id + ' (' + ph.name + '), mois ' + S.current_month + '/12. XP total: ' + S.total_xp + '. Streak: ' + S.streak + ' jours consecutifs. Piliers: ' + ps + '.';
+
+  // Ajouter les notations d'entraînement si disponibles
+  // On les récupère de manière asynchrone, mais ici on ne peut pas faire async dans buildCtx.
+  // On va les charger au préalable dans une variable globale, ou on les intègre via une fonction séparée.
+  // Pour simplifier, on va les ajouter via une fonction que l'on appellera avant d'envoyer le prompt.
+  // On va plutôt modifier les fonctions qui appellent buildCtx (envoyerMessageCoach, generateIAQuest, etc.) pour y ajouter les notations.
+  return SYSTEM_CONTEXT + '\n\n' + dynamicCtx;
+}
+
+// On surcharge les fonctions qui utilisent buildCtx pour y ajouter les notations
+const originalBuildCtx = buildCtx;
+buildCtx = function() {
+  let ctx = originalBuildCtx();
+  // On ajoute les notations d'entraînement (3 dernières)
+  // On les récupère de manière synchrone depuis une variable globale
+  if (window._lastWorkoutRatings) {
+    ctx += '\n\nDernières notations d\'entraînement :\n';
+    window._lastWorkoutRatings.forEach(r => {
+      ctx += '- ' + r.date + ' : ' + r.category + ' – difficulté ' + r.difficulty + '/5\n';
+    });
+  }
+  return ctx;
+};
+
+// Rafraîchir les notations périodiquement
+async function refreshWorkoutRatings() {
+  if (UID) {
+    window._lastWorkoutRatings = await getLastWorkoutRatings(3);
+  }
+}
+// Appeler au chargement et après chaque notation
+setInterval(refreshWorkoutRatings, 60000); // toutes les minutes
+// Appeler immédiatement
+refreshWorkoutRatings();
+
+// ============================================================
+// IA / COACH (suite)
 // ============================================================
 const WORKER_URL = 'https://evolution-ai.eliseobuti.workers.dev';
 
@@ -2882,13 +3207,6 @@ PASSIONS: Piano, dessin (decompress), cinema (Wes Anderson, Jim Jarmusch, Jake G
 
 Reponds toujours en francais, de facon directe, concrete et adaptee au niveau actuel d'Eliseo. Pas de markdown.`;
 
-function buildCtx() {
-  const ph = getCurrentPhase();
-  const ps = PILLARS.map(function(p) { return p.name.split(' ')[0] + ': ' + (S[p.id + '_xp'] || 0) + 'XP'; }).join(', ');
-  const dynamicCtx = 'Progression actuelle — Phase ' + ph.id + ' (' + ph.name + '), mois ' + S.current_month + '/12. XP total: ' + S.total_xp + '. Streak: ' + S.streak + ' jours consecutifs. Piliers: ' + ps + '.';
-  return SYSTEM_CONTEXT + '\n\n' + dynamicCtx;
-}
-
 function loadWelcomeMessage() {
   if (!UID) return;
   const el = document.getElementById('ai-welcome');
@@ -2916,6 +3234,9 @@ async function envoyerMessageCoach() {
 
   chatBox.scrollTop = chatBox.scrollHeight;
   input.value = '';
+
+  // Rafraîchir les notations avant d'envoyer
+  await refreshWorkoutRatings();
 
   const prompt = buildCtx() + '\n\nVoici le message d\'Eliseo: "' + msg + '". Réponds de manière directe, analytique et motivante. Sans markdown.';
   const responseText = await callGemini(prompt);
@@ -2948,52 +3269,9 @@ async function coachQuete(btn) {
   if (bodyEl) bodyEl.textContent = await callGemini(prompt);
 }
 
-async function genererEntrainement(btn) {
-  const existingId = 'workout-generated';
-  const existing = document.getElementById(existingId);
-  if (existing) { existing.remove(); return; }
-
-  const selectEl = document.getElementById('workout-type');
-  const selectedDomain = selectEl ? selectEl.value : 'auto';
-
-  const card = document.createElement('div');
-  card.className = 'ai-card';
-  card.id = existingId;
-  card.style.marginTop = '6px';
-  card.style.border = '0.5px solid rgba(96,165,250,.3)';
-  card.style.background = 'linear-gradient(135deg,rgba(96,165,250,.12),rgba(14,14,16,.08))';
-  card.innerHTML = '<div class="ai-header"><span style="font-size:16px">🏋️</span><span class="ai-label" style="color:var(--blue)">Séance sur-mesure</span></div><div class="ai-body" id="txt-workout">Analyse du domaine choisi et calcul du protocole adaptatif...</div>';
-  btn.closest('.quest').after(card);
-
-  const historiquesRecents = LOG.slice(0, 10).map(l => l.quest_name).join(', ');
-
-  let domaineInstructions = "";
-  if (selectedDomain === "bodyweight") {
-    domaineInstructions = "L'entraînement DOIT obligatoirement être axé sur le POIDS DU CORPS / CALISTHÉNIE (en utilisant sa bonne base en pompes, tractions, ou des variantes complexes comme du tempo ou de la pliométrie).";
-  } else if (selectedDomain === "swim") {
-    domaineInstructions = "L'entraînement DOIT obligatoirement être un protocole de NATATION en piscine (séries en mètres, nages, allures, ou exercices techniques, adapté à sa capacité de faire 3km par session).";
-  } else if (selectedDomain === "run") {
-    domaineInstructions = "L'entraînement DOIT obligatoirement être de la COURSE À PIED / CARDIO EXTÉRIEUR (axé soit sur son point faible à améliorer : le foncier en zone 2, soit du fractionné/HIIT haute intensité).";
-  } else {
-    domaineInstructions = "Laisse libre cours à ton expertise de coach pour choisir le domaine (natation, course ou poids du corps) le plus pertinent selon son historique récent.";
-  }
-
-  const prompt = buildCtx() + `
-  En tant que coach sportif, génère un entraînement physique précis de 30 à 45 minutes pour Eliseo.
-  CONTRAINTE DE SÉLECTION : ${domaineInstructions}
-  
-  Prends également en compte son profil général et son historique récent d'actions: [${historiquesRecents}].
-  
-  Format de réponse obligatoire (sois hyper concis, direct et condensé) :
-  1. Domaine et Objectif ciblé (ex: Natation - Vitesse explosive ou Calisthénie - Volume de force)
-  2. Échauffement rapide
-  3. Corps de séance : Exercices/Séries exactes, répétitions ou distances, temps de récupération très précis.
-  
-  Maximum 7 lignes. Pas de markdown, pas de listes à puces ou tirets (sauts de ligne simples).`;
-
-  const bodyEl = document.getElementById('txt-workout');
-  if (bodyEl) bodyEl.textContent = await callGemini(prompt);
-}
+// ============================================================
+// GENERER ENTRAINEMENT (déjà modifié plus haut)
+// ============================================================
 
 async function genererBilanRevue(bien, resist, change, stars) {
   const el = document.getElementById('ai-bilan');
