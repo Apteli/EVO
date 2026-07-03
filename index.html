@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="favicon.jpg?v=3">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-/* ===== STYLES COMPLETS ===== */
+/* ===== STYLES (inchangés, sauf ajout pour les boutons +) ===== */
 :root{--bg:#0e0e10;--card:#18181c;--card2:#222228;--border:rgba(255,255,255,0.07);--text:#f0f0f0;--muted:#777;--accent:#a78bfa;--accent2:#7c3aed;--green:#34d399;--amber:#fbbf24;--coral:#f87171;--blue:#60a5fa;--orange:#fb923c;--r:14px;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;font-size:15px;min-height:100dvh;padding-bottom:calc(76px + env(safe-area-inset-bottom));}
@@ -73,7 +73,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .tag-min{background:rgba(167,139,250,.15);color:var(--accent);}
 .tag-ph{background:rgba(255,255,255,.07);color:var(--muted);}
 .tag-aventurier{background:rgba(34,197,94,.15);color:#22c55e;}
-.q-xp{font-size:13px;font-weight:700;color:var(--accent);flex-shrink:0;}
+.q-xp{font-size:13px;font-weight:700;color:var(--accent);flex-shrink:0;cursor:default;}
 .q-actions{display:flex;gap:4px;flex-shrink:0;}
 .q-actions button{background:rgba(255,255,255,0.06);border:0.5px solid var(--border);border-radius:6px;color:var(--muted);font-size:14px;padding:2px 6px;cursor:pointer;font-family:inherit;}
 .q-actions button:hover{background:rgba(255,255,255,0.12);}
@@ -246,11 +246,15 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 .rating-box .rating-actions button{flex:1;padding:10px;border-radius:10px;border:none;font-weight:600;cursor:pointer;font-family:inherit;}
 .rating-box .rating-actions .btn-confirm{background:var(--accent2);color:#fff;}
 .rating-box .rating-actions .btn-skip{background:rgba(255,255,255,0.06);color:var(--text);border:0.5px solid var(--border);}
-.time-input-group{display:flex;align-items:center;gap:6px;margin-top:4px;font-size:12px;}
-.time-input-group label{color:var(--muted);}
-.time-input-group input{width:60px;background:rgba(255,255,255,0.06);border:0.5px solid var(--border);border-radius:6px;padding:4px 6px;color:var(--text);font-size:12px;text-align:center;}
-.time-input-group span{color:var(--muted);font-size:11px;}
-.time-xp-display{color:var(--accent);font-weight:600;font-size:13px;}
+/* Nouveau style pour le bouton + et le champ extra time */
+.extra-time-toggle { display: inline-block; margin-left: 6px; cursor: pointer; color: var(--muted); font-size: 12px; transition: color 0.2s; user-select: none; }
+.extra-time-toggle:hover { color: var(--accent); }
+.extra-time-toggle .plus { font-weight: 700; font-size: 16px; }
+.extra-time-field { display: none; margin-top: 4px; padding: 4px 8px; background: rgba(255,255,255,0.03); border-radius: 6px; align-items: center; gap: 6px; flex-wrap: wrap; }
+.extra-time-field input { width: 60px; background: rgba(255,255,255,0.06); border: 0.5px solid var(--border); border-radius: 4px; padding: 2px 4px; color: var(--text); font-size: 12px; text-align: center; }
+.extra-time-field label { font-size: 11px; color: var(--muted); }
+.extra-time-field .extra-xp { color: var(--accent); font-weight: 600; font-size: 13px; }
+.extra-time-field.show { display: flex; }
 </style>
 </head>
 <body>
@@ -819,22 +823,39 @@ const PHASES = [
   { id: 2, months: [4, 5, 6, 7, 8], name: 'Intensification', desc: 'Intégration des satellites, armée comme labo', icon: '⚡', cls: 'ph2' },
   { id: 3, months: [9, 10, 11, 12], name: 'Consolidation', desc: 'Mesure, ajustement, extension du système', icon: '💎', cls: 'ph3' },
 ];
+
+// Durée de référence pour chaque quête (en minutes)
+const QUEST_DEFAULT_TIME = {
+  'q1': 5,
+  'q2': 10,
+  'q3': 15,
+  'q4': 45,
+  'q5': 30,
+  'q6': 15,
+  'q7': 30,
+  'q8': 5,
+  'q9': 30,
+  'q10': 15,
+  'q11': 5,
+  'q12': 10
+};
+
 const QUETES = {
   min: [
-    { id: 'q1', name: 'Respiration / cohérence cardiaque', desc: '5 min box breathing ou cohérence cardiaque', xp: 30, pid: 'p2', phases: [1, 2, 3], defaultTime: 5 },
-    { id: 'q2', name: 'Anki — cartes du jour', desc: '10 min, minimum 10 cartes (Étymologie médicale)', xp: 40, pid: 'p1', phases: [1, 2, 3], defaultTime: 10 },
-    { id: 'q3', name: 'Sémiologie factuelle & conscience spatiale', desc: '1 fait physique noté (posture/marche) + 1 scan spatial (sorties/distances)', xp: 20, pid: 'p3', phases: [1, 2, 3], defaultTime: 15 },
+    { id: 'q1', name: 'Respiration / cohérence cardiaque', desc: '5 min box breathing ou cohérence cardiaque', xp: 30, pid: 'p2', phases: [1, 2, 3] },
+    { id: 'q2', name: 'Anki — cartes du jour', desc: '10 min, minimum 10 cartes (Étymologie médicale)', xp: 40, pid: 'p1', phases: [1, 2, 3] },
+    { id: 'q3', name: 'Sémiologie factuelle & conscience spatiale', desc: '1 fait physique noté (posture/marche) + 1 scan spatial (sorties/distances)', xp: 20, pid: 'p3', phases: [1, 2, 3] },
   ],
   opt: [
-    { id: 'q4', name: 'Bloc cognitif profond', desc: '45 min lecture technique, calcul ou méthode Feynman', xp: 80, pid: 'p1', phases: [1, 2, 3], defaultTime: 45 },
-    { id: 'q5', name: 'Entraînement physique', desc: '30 min force, natation ou zone 2', xp: 70, pid: 'p4', phases: [1, 2, 3], defaultTime: 30 },
-    { id: 'q6', name: 'Wim Hof / douche froide', desc: 'Protocole respiration + exposition au froid', xp: 50, pid: 'p2', phases: [1, 2, 3], defaultTime: 15 },
-    { id: 'q7', name: 'Langue ou rhétorique', desc: '30 min Pimsleur, Assimil ou débat oral', xp: 60, pid: 'p5', phases: [2, 3], defaultTime: 30 },
-    { id: 'q8', name: 'Journal décisionnel', desc: '5 min — 1 décision analysée pour biais cognitifs', xp: 30, pid: 'p1', phases: [1, 2, 3], defaultTime: 5 },
-    { id: 'q9', name: 'Lecture 30 min', desc: 'Médecine, philo, neuro, stoïcisme...', xp: 40, pid: 'p1', phases: [1, 2, 3], defaultTime: 30 },
-    { id: 'q10', name: 'Échecs / jeu stratégique', desc: '15 min blitz ou puzzle — pensée multi-coups', xp: 35, pid: 'p5', phases: [2, 3], defaultTime: 15 },
-    { id: 'q11', name: "Dessin d'observation", desc: '5 min — percevoir les lignes et volumes réels avant de dessiner', xp: 25, pid: 'p3', phases: [3], defaultTime: 5 },
-    { id: 'q12', name: 'Calcul mental chronométré', desc: '10 min — vitesse et chunking', xp: 30, pid: 'p1', phases: [2, 3], defaultTime: 10 },
+    { id: 'q4', name: 'Bloc cognitif profond', desc: '45 min lecture technique, calcul ou méthode Feynman', xp: 80, pid: 'p1', phases: [1, 2, 3] },
+    { id: 'q5', name: 'Entraînement physique', desc: '30 min force, natation ou zone 2', xp: 70, pid: 'p4', phases: [1, 2, 3] },
+    { id: 'q6', name: 'Wim Hof / douche froide', desc: 'Protocole respiration + exposition au froid', xp: 50, pid: 'p2', phases: [1, 2, 3] },
+    { id: 'q7', name: 'Langue ou rhétorique', desc: '30 min Pimsleur, Assimil ou débat oral', xp: 60, pid: 'p5', phases: [2, 3] },
+    { id: 'q8', name: 'Journal décisionnel', desc: '5 min — 1 décision analysée pour biais cognitifs', xp: 30, pid: 'p1', phases: [1, 2, 3] },
+    { id: 'q9', name: 'Lecture 30 min', desc: 'Médecine, philo, neuro, stoïcisme...', xp: 40, pid: 'p1', phases: [1, 2, 3] },
+    { id: 'q10', name: 'Échecs / jeu stratégique', desc: '15 min blitz ou puzzle — pensée multi-coups', xp: 35, pid: 'p5', phases: [2, 3] },
+    { id: 'q11', name: "Dessin d'observation", desc: '5 min — percevoir les lignes et volumes réels avant de dessiner', xp: 25, pid: 'p3', phases: [3] },
+    { id: 'q12', name: 'Calcul mental chronométré', desc: '10 min — vitesse et chunking', xp: 30, pid: 'p1', phases: [2, 3] },
   ]
 };
 const PILLARS = [
@@ -925,6 +946,8 @@ let currentSidequest = null;
 let editQuestId = null;
 let isProcessing = false;
 let isGeneratingIA = false;
+
+// Notation d'entraînement
 let pendingWorkoutRating = null;
 let workoutRatingValue = 0;
 
@@ -1021,7 +1044,7 @@ function formatSteps(text) {
 }
 
 // ============================================================
-// FONCTIONS SUPABASE SPÉCIFIQUES
+// FONCTIONS SUPABASE SPÉCIFIQUES (inchangées)
 // ============================================================
 async function saveWorkoutRating(rating) {
   if (!UID) return;
@@ -1217,7 +1240,7 @@ async function loadIAQuestsFromDB() {
 }
 
 // ============================================================
-// FONCTIONS POUR LES QUÊTES IA
+// FONCTIONS POUR LES QUÊTES IA (inchangées)
 // ============================================================
 function detectWeakestClasses() {
   const scores = {
@@ -1464,7 +1487,7 @@ function renderIAQuests() {
 }
 
 // ============================================================
-// FONCTIONS DE NOTATION D'ENTRAÎNEMENT
+// FONCTIONS DE NOTATION D'ENTRAÎNEMENT (inchangées)
 // ============================================================
 function showWorkoutRatingPopup(category, xp, entry) {
   pendingWorkoutRating = { category, xp, entry };
@@ -1683,39 +1706,8 @@ function getLv(xp) {
 }
 
 // ============================================================
-// AFFICHAGE PRINCIPAL - updateXPbars AVEC CORRECTION DE LA BARRE AVENTURIER
+// AFFICHAGE PRINCIPAL
 // ============================================================
-function updateXPbars() {
-  const maxXP = 5000;
-  const pilliersXP = (S.p1_xp || 0) + (S.p2_xp || 0) + (S.p3_xp || 0) + (S.p4_xp || 0) + (S.p5_xp || 0);
-  
-  // Calcul de l'XP total pour la classe Aventurier (quêtes forgées + recettes + quêtes IA)
-  // On utilise total_xp qui est cumulé sur toutes les validations de la quête
-  const forgesXP = customQuests.reduce((sum, q) => sum + (q.total_xp || 0), 0)
-                   + recipes.reduce((sum, r) => sum + (r.total_xp || 0), 0)
-                   + iaQuests.filter(q => q.date === todayKey()).reduce((sum, q) => sum + (q.done ? q.xpBonus : 0), 0);
-  
-  // Pour les quêtes forgées, on vérifie que total_xp est bien sauvegardé
-  // Si certaines quêtes forgées ont été faites avant cette mise à jour, leur total_xp peut être 0.
-  // On va forcer une mise à jour en recalculant depuis LOG si nécessaire.
-  // Mais pour simplifier, on va ajouter les XP des quêtes forgées depuis LOG si total_xp est 0.
-  // Cependant, LOG contient chaque validation, donc on peut les additionner.
-  // On va faire une vérification : si forgesXP est 0 mais qu'il y a des quêtes forgées dans LOG, on les ajoute.
-  const customQuestsInLog = LOG.filter(l => l.quest_id && l.quest_id.startsWith('cq_'));
-  const logForgesXP = customQuestsInLog.reduce((sum, l) => sum + (l.xp || 0), 0);
-  // On prend le max entre le total_xp des quêtes et les XP du log (pour les anciennes quêtes)
-  const finalForgesXP = Math.max(forgesXP, logForgesXP);
-
-  document.getElementById('bar-global').style.width = Math.min(100, (S.total_xp / maxXP) * 100) + '%';
-  document.getElementById('bar-global-val').textContent = S.total_xp + ' XP';
-
-  document.getElementById('bar-pilliers').style.width = Math.min(100, (pilliersXP / maxXP) * 100) + '%';
-  document.getElementById('bar-pilliers-val').textContent = pilliersXP + ' XP';
-
-  document.getElementById('bar-forges').style.width = Math.min(100, (finalForgesXP / maxXP) * 100) + '%';
-  document.getElementById('bar-forges-val').textContent = finalForgesXP + ' XP';
-}
-
 function updateHeader() {
   const xp = S.total_xp, lv = getLv(xp), nl = Math.min(lv + 1, LEVELS.length - 1);
   const cur = LEVELS[lv].min, next = LEVELS[nl].min;
@@ -1750,12 +1742,99 @@ function updateHeader() {
   }
 }
 
+function updateXPbars() {
+  const maxXP = 5000;
+  const pilliersXP = (S.p1_xp || 0) + (S.p2_xp || 0) + (S.p3_xp || 0) + (S.p4_xp || 0) + (S.p5_xp || 0);
+  // Calcul de l'XP total pour la classe Aventurier (quêtes forgées + recettes + quêtes IA)
+  const forgesXP = customQuests.reduce((sum, q) => sum + (q.total_xp || 0), 0)
+                   + recipes.reduce((sum, r) => sum + (r.total_xp || 0), 0)
+                   + iaQuests.filter(q => q.date === todayKey()).reduce((sum, q) => sum + (q.done ? q.xpBonus : 0), 0);
+
+  document.getElementById('bar-global').style.width = Math.min(100, (S.total_xp / maxXP) * 100) + '%';
+  document.getElementById('bar-global-val').textContent = S.total_xp + ' XP';
+
+  document.getElementById('bar-pilliers').style.width = Math.min(100, (pilliersXP / maxXP) * 100) + '%';
+  document.getElementById('bar-pilliers-val').textContent = pilliersXP + ' XP';
+
+  document.getElementById('bar-forges').style.width = Math.min(100, (forgesXP / maxXP) * 100) + '%';
+  document.getElementById('bar-forges-val').textContent = forgesXP + ' XP';
+}
+
 // ============================================================
-// QUÊTES PRÉ-DÉFINIES - AVEC TEMPS ET XP PROPORTIONNELLE
+// QUÊTES PRÉ-DÉFINIES - NOUVEAU SYSTÈME DE TEMPS OPTIONNEL
 // ============================================================
+function getClassEmoji(pid) {
+  const c = getClassForPillar(pid);
+  return CLASSES[c]?.icon || '🎒';
+}
+
+function calculateBaseXP(q) {
+  let xp = q.xp;
+  xp = Math.round(xp * 1.2);
+  const classId = getClassForPillar(q.pid);
+  if (boostClass && classId === boostClass) {
+    xp = Math.round(xp * 1.1);
+  }
+  return xp;
+}
+
+function calculateXPWithExtraTime(q, extraMinutes) {
+  const defaultTime = QUEST_DEFAULT_TIME[q.id] || 30;
+  const totalTime = defaultTime + extraMinutes;
+  let xp = q.xp * (totalTime / defaultTime);
+  xp = Math.round(xp * 1.2);
+  const classId = getClassForPillar(q.pid);
+  if (boostClass && classId === boostClass) {
+    xp = Math.round(xp * 1.1);
+  }
+  return xp;
+}
+
+// Fonction pour basculer l'affichage du champ de temps supplémentaire
+function toggleExtraTime(qId) {
+  const field = document.getElementById('extra-time-field-' + qId);
+  if (!field) return;
+  field.classList.toggle('show');
+  if (field.classList.contains('show')) {
+    // Focus sur l'input
+    const input = field.querySelector('input');
+    if (input) {
+      input.focus();
+      input.value = 5; // valeur par défaut
+      updateExtraTimeDisplay(qId);
+    }
+  }
+}
+
+// Mise à jour en direct de l'XP affichée
+function updateExtraTimeDisplay(qId) {
+  const field = document.getElementById('extra-time-field-' + qId);
+  if (!field) return;
+  const input = field.querySelector('input');
+  const display = field.querySelector('.extra-xp');
+  if (!input || !display) return;
+  const extra = parseInt(input.value) || 0;
+  const all = [...QUETES.min, ...QUETES.opt];
+  const q = all.find(x => x.id === qId);
+  if (!q) return;
+  const xp = calculateXPWithExtraTime(q, extra);
+  display.textContent = '+' + xp + ' XP';
+  // Mettre à jour aussi l'XP totale affichée (mais on garde l'XP de base visible)
+  // On peut ajouter une indication : base + extra
+  const baseXP = calculateBaseXP(q);
+  const baseDisplay = document.getElementById('xp-base-' + qId);
+  if (baseDisplay) {
+    if (extra > 0) {
+      baseDisplay.textContent = '[' + baseXP + ' + ' + (xp - baseXP) + ']';
+    } else {
+      baseDisplay.textContent = '';
+    }
+  }
+}
+
 function renderQuetes() {
   const phase = getCurrentPhase();
-
+  
   // Rendre les quêtes IA en premier
   let iaContainer = document.getElementById('ia-quests-container');
   if (!iaContainer) {
@@ -1767,7 +1846,7 @@ function renderQuetes() {
     }
   }
   renderIAQuests();
-
+  
   // Bouton de génération IA
   const iaBtnContainer = document.getElementById('ia-btn-container');
   if (!iaBtnContainer) {
@@ -1797,15 +1876,8 @@ function renderQuetes() {
     const inPhase = q.phases.includes(phase.id);
     const classEmoji = getClassEmoji(q.pid);
 
-    // XP de base (sans ajustement de temps)
-    let baseXP = q.xp;
-    const defaultTime = q.defaultTime || 30;
-    // On affiche l'XP pour le temps par défaut
-    let adjustedXP = Math.round(baseXP * 1.2); // bonus pilier
-    const classId = getClassForPillar(q.pid);
-    if (boostClass && classId === boostClass) {
-      adjustedXP = Math.round(adjustedXP * 1.1);
-    }
+    const baseXP = calculateBaseXP(q);
+    const defaultTime = QUEST_DEFAULT_TIME[q.id] || 30;
 
     const phTag = !inPhase ? `<span class="tag tag-ph">Phase ${q.phases[0]}+</span>` : '';
     const minTag = isMin ? `<span class="tag tag-min">minimum</span>` : '';
@@ -1816,19 +1888,23 @@ function renderQuetes() {
 
     let coachBtn = inPhase ? `<button class="btn-coach" data-qid="${q.id}" data-qname="${safeN}" data-qdesc="${safeD}" onclick="event.stopPropagation();coachQuete(this)">💡 Coach</button>` : '';
 
-    // Ajout du champ de temps pour toutes les quêtes (si en phase)
-    let timeInput = '';
-    if (inPhase) {
-      const timeId = 'time-' + q.id;
-      const xpDisplayId = 'xp-display-' + q.id;
-      timeInput = `
-      <div class="time-input-group">
-        <label>⏱️</label>
-        <input type="number" id="${timeId}" value="${defaultTime}" min="1" max="999" step="5"
-               onchange="updateTimeXPDisplay('${q.id}', ${baseXP}, ${defaultTime}, '${q.pid}')">
-        <span>min</span>
-        <span class="time-xp-display" id="${xpDisplayId}">+${adjustedXP} XP</span>
-      </div>`;
+    // Affichage de l'XP avec option "+" pour le temps supplémentaire
+    let extraHtml = '';
+    if (inPhase && q.id in QUEST_DEFAULT_TIME) {
+      extraHtml = `
+        <div style="display:flex;align-items:center;gap:6px;margin-top:2px;flex-wrap:wrap;">
+          <span style="font-size:13px;font-weight:600;color:var(--accent);" id="xp-base-${q.id}"></span>
+          <span class="extra-time-toggle" onclick="event.stopPropagation();toggleExtraTime('${q.id}')" title="Ajouter du temps">
+            <span class="plus">+</span> <span style="font-size:11px;">temps</span>
+          </span>
+        </div>
+        <div class="extra-time-field" id="extra-time-field-${q.id}">
+          <input type="number" id="extra-time-input-${q.id}" value="5" min="1" max="300" step="5"
+                 oninput="updateExtraTimeDisplay('${q.id}')" onclick="event.stopPropagation();">
+          <label>min supplémentaires</label>
+          <span class="extra-xp" id="extra-xp-${q.id}"></span>
+        </div>
+      `;
     }
 
     return `<div class="quest${done ? ' done' : ''}${!inPhase ? ' locked' : ''}" onclick="toggleQuete('${q.id}')" data-qid="${q.id}">
@@ -1838,48 +1914,19 @@ function renderQuetes() {
         <div class="q-desc">${q.desc}</div>
         <div class="q-tags">${minTag}${phTag}${classTag}</div>
         ${coachBtn}
-        ${timeInput}
+        ${extraHtml}
       </div>
-      ${!timeInput ? `<div class="q-xp">+${adjustedXP} XP</div>` : ''}
+      <div class="q-xp">+${baseXP} XP</div>
     </div>`;
   }
 
   document.getElementById('quetes-min').innerHTML = QUETES.min.map(q => qHTML(q, true)).join('');
   document.getElementById('quetes-opt').innerHTML = QUETES.opt.map(q => qHTML(q, false)).join('');
-
-  // Mettre à jour l'affichage XP pour toutes les quêtes
-  // On le fait automatiquement via les événements onchange.
 }
 
-// Fonction pour mettre à jour l'XP affichée en direct pour une quête
-function updateTimeXPDisplay(questId, baseXP, defaultTime, pid) {
-  const timeInput = document.getElementById('time-' + questId);
-  const xpDisplay = document.getElementById('xp-display-' + questId);
-  if (!timeInput || !xpDisplay) return;
-  
-  const time = parseInt(timeInput.value) || defaultTime;
-  // Calcul de l'XP ajusté
-  let xp = Math.round(baseXP * (time / defaultTime));
-  // Bonus pilier ×1.2
-  xp = Math.round(xp * 1.2);
-  const classId = getClassForPillar(pid);
-  if (boostClass && classId === boostClass) {
-    xp = Math.round(xp * 1.1);
-  }
-  xpDisplay.textContent = '+' + xp + ' XP';
-}
-
-// Fonction pour obtenir le temps saisi pour une quête
-function getQuestTime(questId, defaultTime) {
-  const timeInput = document.getElementById('time-' + questId);
-  if (timeInput) {
-    const val = parseInt(timeInput.value);
-    if (!isNaN(val) && val > 0) return val;
-  }
-  return defaultTime;
-}
-
-// toggleQuete modifié pour prendre en compte le temps de chaque quête
+// ============================================================
+// TOGGLE QUETE MODIFIÉ POUR PRENDRE EN COMPTE LE TEMPS SUPPLÉMENTAIRE
+// ============================================================
 async function toggleQuete(id) {
   if (isDayLocked) {
     toast("⚠️ Journée verrouillée. Utilise 'Modifier la journée' pour ajuster.");
@@ -1890,18 +1937,24 @@ async function toggleQuete(id) {
   if (!q) return;
   const today = todayKey();
 
-  const defaultTime = q.defaultTime || 30;
-  const time = getQuestTime(id, defaultTime);
-  
-  // XP de base proportionnelle au temps
-  let xp = Math.round(q.xp * (time / defaultTime));
-  // Bonus pilier ×1.2
-  xp = Math.round(xp * 1.2);
-  const classId = getClassForPillar(q.pid);
-  if (boostClass && classId === boostClass) {
-    xp = Math.round(xp * 1.1);
+  // Récupérer le temps supplémentaire si le champ est affiché
+  let extraMinutes = 0;
+  const extraField = document.getElementById('extra-time-field-' + id);
+  if (extraField && extraField.classList.contains('show')) {
+    const input = document.getElementById('extra-time-input-' + id);
+    if (input) {
+      extraMinutes = parseInt(input.value) || 0;
+    }
   }
-  const finalXp = Math.max(1, xp);
+
+  // Calculer l'XP final
+  let xp;
+  if (extraMinutes > 0) {
+    xp = calculateXPWithExtraTime(q, extraMinutes);
+  } else {
+    xp = calculateBaseXP(q);
+  }
+  const finalXp = xp;
 
   if (checkedToday[id]) {
     // Décocher
@@ -1927,7 +1980,7 @@ async function toggleQuete(id) {
     LOG.unshift(entry);
     if (LOG.length > 60) LOG.pop();
     sbInsert('sys_log', entry).catch(() => {});
-    toast("✅ +" + finalXp + " XP pour '" + q.name + "'");
+    toast("✅ +" + finalXp + " XP pour '" + q.name + "'" + (extraMinutes > 0 ? " (+" + extraMinutes + " min)" : ""));
 
     // Si c'est q5, on propose la notation
     if (id === 'q5') {
@@ -1944,13 +1997,8 @@ async function toggleQuete(id) {
   renderPiliers();
 }
 
-function getClassEmoji(pid) {
-  const c = getClassForPillar(pid);
-  return CLASSES[c]?.icon || '🎒';
-}
-
 // ============================================================
-// SIDEQUEST
+// SIDEQUEST (inchangée)
 // ============================================================
 function initSidequest() {
   updateSidequestUI();
@@ -2098,7 +2146,7 @@ async function rerollSidequestIA() {
 }
 
 // ============================================================
-// QUÊTES FORGÉES
+// QUÊTES FORGÉES (inchangées)
 // ============================================================
 function loadCustomQuests() {
   customQuests = JSON.parse(localStorage.getItem('sys12_custom_quests') || '[]');
@@ -2328,7 +2376,7 @@ async function toggleCustomQuest(id) {
 }
 
 // ============================================================
-// RECETTES
+// RECETTES (inchangées)
 // ============================================================
 function ajouterRecette() {
   const name = document.getElementById('recipe-name').value.trim();
@@ -2592,14 +2640,7 @@ function renderClassBarChart() {
           grid: { color: 'rgba(255,255,255,0.04)' }
         },
         x: {
-          ticks: {
-            color: '#aaa',
-            font: { size: 11 },
-            // Correction de l'alignement des labels sous les barres
-            maxRotation: 0,
-            minRotation: 0,
-            autoSkip: false
-          },
+          ticks: { color: '#aaa', font: { size: 11, weight: 'bold' }, maxRotation: 0, autoSkip: false, padding: 4 },
           grid: { display: false }
         }
       },
@@ -2611,6 +2652,7 @@ function renderClassBarChart() {
 }
 
 function renderAvatar() {
+  // Aura
   const banner = document.getElementById('aura-banner');
   const icon = document.getElementById('aura-icon');
   const name = document.getElementById('aura-name');
@@ -2636,6 +2678,7 @@ function renderAvatar() {
     banner.className = 'aura-banner';
   }
 
+  // Classes
   for (const [id, cls] of Object.entries(CLASSES)) {
     const xp = classXP[id] || 0;
     const rank = getClassRank(xp);
@@ -2666,6 +2709,7 @@ function renderAvatar() {
     progressEl.textContent = xp_into + ' / ' + xp_needed + ' XP';
   }
 
+  // Bénédiction
   const benedictionEl = document.getElementById('benediction-desc');
   if (boostClass && boostClass !== null) {
     const cls = getClassFromId(boostClass);
@@ -2691,12 +2735,14 @@ function renderAvatar() {
     }
   }
 
+  // Diagramme à barres
   renderClassBarChart();
+
   updateXPbars();
 }
 
 // ============================================================
-// STATISTIQUES
+// STATISTIQUES (inchangé)
 // ============================================================
 function renderStats() {
   const today = todayKey();
@@ -3060,7 +3106,7 @@ function lancerBilanHebdo() {
 }
 
 // ============================================================
-// MODIFICATION DE genererEntrainement POUR ADAPTER XP ET DIFFICULTÉ
+// GENERER ENTRAINEMENT (avec adaptation de l'XP par l'IA)
 // ============================================================
 async function genererEntrainement(btn) {
   const existingId = 'workout-generated';
@@ -3171,29 +3217,8 @@ if (!UID) {
 }
 
 // ============================================================
-// IA / COACH
+// IA / COACH (avec notations dans le contexte)
 // ============================================================
-function buildCtx() {
-  const ph = getCurrentPhase();
-  const ps = PILLARS.map(function(p) { return p.name.split(' ')[0] + ': ' + (S[p.id + '_xp'] || 0) + 'XP'; }).join(', ');
-  let dynamicCtx = 'Progression actuelle — Phase ' + ph.id + ' (' + ph.name + '), mois ' + S.current_month + '/12. XP total: ' + S.total_xp + '. Streak: ' + S.streak + ' jours consecutifs. Piliers: ' + ps + '.';
-  if (window._lastWorkoutRatings) {
-    dynamicCtx += '\n\nDernières notations d\'entraînement :\n';
-    window._lastWorkoutRatings.forEach(r => {
-      dynamicCtx += '- ' + r.date + ' : ' + r.category + ' – difficulté ' + r.difficulty + '/5\n';
-    });
-  }
-  return SYSTEM_CONTEXT + '\n\n' + dynamicCtx;
-}
-
-async function refreshWorkoutRatings() {
-  if (UID) {
-    window._lastWorkoutRatings = await getLastWorkoutRatings(3);
-  }
-}
-setInterval(refreshWorkoutRatings, 60000);
-refreshWorkoutRatings();
-
 const WORKER_URL = 'https://evolution-ai.eliseobuti.workers.dev';
 
 function callGemini(prompt) {
@@ -3214,6 +3239,29 @@ function callGemini(prompt) {
       xhr.send(JSON.stringify({ prompt: prompt }));
     } catch (e) { resolve('Erreur: ' + e.message); }
   });
+}
+
+let _lastWorkoutRatings = [];
+
+async function refreshWorkoutRatings() {
+  if (UID) {
+    _lastWorkoutRatings = await getLastWorkoutRatings(3);
+  }
+}
+setInterval(refreshWorkoutRatings, 60000);
+refreshWorkoutRatings();
+
+function buildCtx() {
+  const ph = getCurrentPhase();
+  const ps = PILLARS.map(p => p.name.split(' ')[0] + ': ' + (S[p.id + '_xp'] || 0) + 'XP').join(', ');
+  let ctx = 'Progression actuelle — Phase ' + ph.id + ' (' + ph.name + '), mois ' + S.current_month + '/12. XP total: ' + S.total_xp + '. Streak: ' + S.streak + ' jours consecutifs. Piliers: ' + ps + '.';
+  if (_lastWorkoutRatings.length > 0) {
+    ctx += '\n\nDernières notations d\'entraînement :\n';
+    _lastWorkoutRatings.forEach(r => {
+      ctx += '- ' + r.date + ' : ' + r.category + ' – difficulté ' + r.difficulty + '/5\n';
+    });
+  }
+  return ctx;
 }
 
 const SYSTEM_CONTEXT = `Tu es le coach personnel d'Eliseo, 19 ans, etudiant suisse en annee sabbatique apres sa maturite gymnasiale (moyenne 5.0). Il envisage des etudes de medecine. Il a 4 mois d'armee en fevrier. Il voyage parfois.
@@ -3303,6 +3351,7 @@ async function genererBilanRevue(bien, resist, change, stars) {
   const txt = document.getElementById('ai-bilan-text');
   el.style.display = 'block';
   txt.textContent = 'Analyse de ta semaine...';
+  await refreshWorkoutRatings();
   const prompt = buildCtx() + ' Revue (' + stars + '/5). Ce qui a marche: "' + bien + '". Ce qui a resiste: "' + resist + '". Changement prevu: "' + change + '". Bilan: 1 point fort a consolider, 1 conseil sur le point de friction, 1 suggestion concrete pour la semaine prochaine. 5-6 lignes. Direct. Pas de markdown.';
   txt.textContent = await callGemini(prompt);
 }
