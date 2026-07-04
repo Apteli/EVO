@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="favicon.jpg?v=3">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-/* ===== STYLES (inchangés) ===== */
+/* ===== STYLES COMPLETS (inchangés, ajout du style pour le pop-up) ===== */
 :root{--bg:#0e0e10;--card:#18181c;--card2:#222228;--border:rgba(255,255,255,0.07);--text:#f0f0f0;--muted:#777;--accent:#a78bfa;--accent2:#7c3aed;--green:#34d399;--amber:#fbbf24;--coral:#f87171;--blue:#60a5fa;--orange:#fb923c;--r:14px;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;font-size:15px;min-height:100dvh;padding-bottom:calc(76px + env(safe-area-inset-bottom));}
@@ -73,7 +73,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .tag-min{background:rgba(167,139,250,.15);color:var(--accent);}
 .tag-ph{background:rgba(255,255,255,.07);color:var(--muted);}
 .tag-aventurier{background:rgba(34,197,94,.15);color:#22c55e;}
-.q-xp{font-size:13px;font-weight:700;color:var(--accent);flex-shrink:0;cursor:default;}
+.q-xp{font-size:13px;font-weight:700;color:var(--accent);flex-shrink:0;}
 .q-actions{display:flex;gap:4px;flex-shrink:0;}
 .q-actions button{background:rgba(255,255,255,0.06);border:0.5px solid var(--border);border-radius:6px;color:var(--muted);font-size:14px;padding:2px 6px;cursor:pointer;font-family:inherit;}
 .q-actions button:hover{background:rgba(255,255,255,0.12);}
@@ -246,20 +246,6 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 .rating-box .rating-actions button{flex:1;padding:10px;border-radius:10px;border:none;font-weight:600;cursor:pointer;font-family:inherit;}
 .rating-box .rating-actions .btn-confirm{background:var(--accent2);color:#fff;}
 .rating-box .rating-actions .btn-skip{background:rgba(255,255,255,0.06);color:var(--text);border:0.5px solid var(--border);}
-.extra-time-toggle { display: inline-block; margin-left: 6px; cursor: pointer; color: var(--muted); font-size: 12px; transition: color 0.2s; user-select: none; }
-.extra-time-toggle:hover { color: var(--accent); }
-.extra-time-toggle .plus { font-weight: 700; font-size: 16px; }
-.extra-time-field { display: none; margin-top: 4px; padding: 4px 8px; background: rgba(255,255,255,0.03); border-radius: 6px; align-items: center; gap: 6px; flex-wrap: wrap; }
-.extra-time-field input { width: 60px; background: rgba(255,255,255,0.06); border: 0.5px solid var(--border); border-radius: 4px; padding: 2px 4px; color: var(--text); font-size: 12px; text-align: center; }
-.extra-time-field label { font-size: 11px; color: var(--muted); }
-.extra-time-field .extra-xp { color: var(--accent); font-weight: 600; font-size: 13px; }
-.extra-time-field.show { display: flex; }
-
-.log-container { max-height: 150px; overflow-y: auto; margin-top: 8px; border-top: 0.5px solid var(--border); padding-top: 8px; }
-.log-container.collapsed { max-height: 150px; overflow-y: hidden; }
-.log-container.expanded { max-height: none; }
-.log-toggle-btn { background: none; border: none; color: var(--muted); font-size: 12px; cursor: pointer; padding: 4px 8px; margin-top: 8px; font-family: inherit; }
-.log-toggle-btn:hover { color: var(--text); }
 </style>
 </head>
 <body>
@@ -633,7 +619,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 
 <script>
 // ============================================================
-// CONFIGURATION ET CONSTANTES (inchangées)
+// CONFIGURATION
 // ============================================================
 const SB_URL = 'https://nlicstxewcrzjliyslkm.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5saWNzdHhld2NyempsaXlzbGttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1ODg1NzUsImV4cCI6MjA5ODE2NDU3NX0.CTHaV_iM50Q_sA1l8_5rVL7b4nU8XonYRcds8Z702GI';
@@ -646,6 +632,7 @@ const HDR = {
 
 const MAX_PILLIER_XP = 100000;
 
+// --- Paliers des piliers ---
 const PILLAR_RANKS = [
   { level: 1, xp: 0, title: 'Apprenti' },
   { level: 2, xp: 600, title: 'Praticien' },
@@ -674,6 +661,7 @@ const PILLAR_RANKS = [
   { level: 25, xp: 62000, title: 'Éternel' },
 ];
 
+// --- Paliers des classes ---
 const CLASS_RANKS = [
   { level: 1, xp: 0, title: 'Apprenti' },
   { level: 2, xp: 100, title: 'Initié' },
@@ -702,6 +690,7 @@ const CLASS_RANKS = [
   { level: 25, xp: 30000, title: '★ Infini' },
 ];
 
+// --- Configuration des Auras ---
 const AURA_CONFIG = {
   'guerrier': { name: 'Guerrier', icon: '⚔️', color: '#ef4444', cssClass: 'guerrier' },
   'mage': { name: 'Mage', icon: '🔮', color: '#3b82f6', cssClass: 'mage' },
@@ -715,7 +704,7 @@ const AURA_CONFIG = {
   'stagnant': { name: 'Le Stagnant', icon: '💤', color: '#6b7280', cssClass: 'stagnant' }
 };
 
-// === Fonctions piliers et classes (inchangées) ===
+// --- Fonctions piliers ---
 function getPillarRank(xp) {
   let rank = PILLAR_RANKS[0];
   for (const r of PILLAR_RANKS) {
@@ -751,6 +740,7 @@ function getPillarProgress(xp) {
   return { pct, xp_into, xp_needed, nextLevel: next.level, nextTitle: next.title };
 }
 
+// --- Fonctions classes ---
 function getClassRank(xp) {
   let rank = CLASS_RANKS[0];
   for (const r of CLASS_RANKS) {
@@ -787,7 +777,7 @@ function getClassProgress(xp) {
 }
 
 // ============================================================
-// FONCTIONS SUPABASE (inchangées)
+// FONCTIONS SUPABASE
 // ============================================================
 async function sbGet(table, uid) {
   const r = await fetch(`${SB_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(uid)}&limit=1`, { headers: HDR });
@@ -813,7 +803,7 @@ async function sbGetMany(table, uid, limit = 30) {
 }
 
 // ============================================================
-// DONNÉES STATIQUES (inchangées)
+// DONNÉES STATIQUES
 // ============================================================
 const LEVELS = [
   { min: 0, name: 'Initié' }, { min: 500, name: 'Apprenti' }, { min: 1200, name: 'Praticien' },
@@ -824,22 +814,6 @@ const PHASES = [
   { id: 2, months: [4, 5, 6, 7, 8], name: 'Intensification', desc: 'Intégration des satellites, armée comme labo', icon: '⚡', cls: 'ph2' },
   { id: 3, months: [9, 10, 11, 12], name: 'Consolidation', desc: 'Mesure, ajustement, extension du système', icon: '💎', cls: 'ph3' },
 ];
-
-const QUEST_DEFAULT_TIME = {
-  'q1': 5,
-  'q2': 10,
-  'q3': 15,
-  'q4': 45,
-  'q5': 30,
-  'q6': 15,
-  'q7': 30,
-  'q8': 5,
-  'q9': 30,
-  'q10': 15,
-  'q11': 5,
-  'q12': 10
-};
-
 const QUETES = {
   min: [
     { id: 'q1', name: 'Respiration / cohérence cardiaque', desc: '5 min box breathing ou cohérence cardiaque', xp: 30, pid: 'p2', phases: [1, 2, 3] },
@@ -905,7 +879,7 @@ const BANQUE_SIDEQUESTS = [
 ];
 
 // ============================================================
-// CONSTANTES IA
+// CONSTANTES POUR LES QUÊTES IA
 // ============================================================
 const IA_DIFFICULTY = {
   easy: { label: 'Facile', xp: 20, emoji: '🟢' },
@@ -946,11 +920,13 @@ let currentSidequest = null;
 let editQuestId = null;
 let isProcessing = false;
 let isGeneratingIA = false;
-let pendingWorkoutRating = null;
+
+// Notation d'entraînement
+let pendingWorkoutRating = null; // { category, xp, entry }
 let workoutRatingValue = 0;
 
 // ============================================================
-// FONCTIONS UTILITAIRES (inchangées)
+// FONCTIONS UTILITAIRES
 // ============================================================
 function toast(msg) {
   const el = document.getElementById('toast');
@@ -963,9 +939,11 @@ function toast(msg) {
 function getClassForPillar(pid) {
   return PILIER_TO_CLASSE[pid] || 'aventurier';
 }
+
 function getClassFromId(id) {
   return CLASSES[id] || null;
 }
+
 function getDominantClass(xpMap) {
   let max = 0;
   let dominant = null;
@@ -990,6 +968,7 @@ function getDominantClass(xpMap) {
   if (isBalanced && total > 0) return 'souverain';
   return dominant;
 }
+
 function getWeakestClass(xpMap) {
   let min = Infinity;
   let weakest = null;
@@ -1001,24 +980,37 @@ function getWeakestClass(xpMap) {
   }
   return weakest;
 }
+
 function getBoostedXP(xp, classId, isPillar = false) {
   let boosted = xp;
-  if (isPillar) boosted = Math.round(boosted * 1.2);
-  if (boostClass && classId === boostClass) boosted = Math.round(boosted * 1.1);
+  if (isPillar) {
+    boosted = Math.round(boosted * 1.2);
+  }
+  if (boostClass && classId === boostClass) {
+    boosted = Math.round(boosted * 1.1);
+  }
   return boosted;
 }
+
 function distributeClassXP(xp, pid, isCustom = false) {
-  let classId = isCustom ? 'aventurier' : getClassForPillar(pid);
+  let classId;
+  if (isCustom) {
+    classId = 'aventurier';
+  } else {
+    classId = getClassForPillar(pid);
+  }
   const boostedXP = getBoostedXP(xp, classId, !isCustom);
   classXP[classId] = (classXP[classId] || 0) + boostedXP;
   weeklyClassXP[classId] = (weeklyClassXP[classId] || 0) + boostedXP;
   return boostedXP;
 }
+
 function calculateRecipeXP(time, people) {
   const base = Math.round(time / 5);
   const bonus = 1 + (people - 1) * 0.2;
   return Math.max(1, Math.round(base * bonus));
 }
+
 function formatSteps(text) {
   if (!text) return '';
   const lines = text.split('\n').filter(line => line.trim() !== '');
@@ -1026,7 +1018,7 @@ function formatSteps(text) {
 }
 
 // ============================================================
-// FONCTIONS SUPABASE SPÉCIFIQUES (inchangées)
+// FONCTIONS SUPABASE SPÉCIFIQUES (ajout des notations)
 // ============================================================
 async function saveWorkoutRating(rating) {
   if (!UID) return;
@@ -1041,6 +1033,7 @@ async function saveWorkoutRating(rating) {
     });
   } catch (e) { console.warn('saveWorkoutRating:', e); }
 }
+
 async function getLastWorkoutRatings(limit = 3) {
   if (!UID) return [];
   try {
@@ -1048,6 +1041,7 @@ async function getLastWorkoutRatings(limit = 3) {
     return data || [];
   } catch (e) { console.warn('getLastWorkoutRatings:', e); return []; }
 }
+
 async function saveClassData() {
   try {
     await sbUpsert('sys_classes', {
@@ -1060,6 +1054,7 @@ async function saveClassData() {
     });
   } catch (e) { console.warn('saveClassData:', e); }
 }
+
 async function loadClassData() {
   try {
     const data = await sbGet('sys_classes', UID);
@@ -1071,6 +1066,7 @@ async function loadClassData() {
     }
   } catch (e) { console.warn('loadClassData:', e); }
 }
+
 async function loadBilanHistory() {
   try {
     const data = await sbGetMany('sys_bilans', UID, 10);
@@ -1079,11 +1075,13 @@ async function loadBilanHistory() {
     }
   } catch (e) { console.warn('loadBilanHistory:', e); }
 }
+
 async function saveBilan(bilan) {
   try {
     await sbInsert('sys_bilans', { ...bilan, user_id: UID, created_at: new Date().toISOString() });
   } catch (e) { console.warn('saveBilan:', e); }
 }
+
 async function saveSidequestToDB(sq) {
   if (!UID) return;
   try {
@@ -1098,6 +1096,7 @@ async function saveSidequestToDB(sq) {
     });
   } catch (e) { console.warn('saveSidequestToDB:', e); }
 }
+
 async function loadSidequestFromDB() {
   if (!UID) return null;
   try {
@@ -1114,6 +1113,7 @@ async function loadSidequestFromDB() {
   } catch (e) { console.warn('loadSidequestFromDB:', e); }
   return null;
 }
+
 async function saveCustomQuestsToDB() {
   if (!UID) return;
   try {
@@ -1124,6 +1124,7 @@ async function saveCustomQuestsToDB() {
     });
   } catch (e) { console.warn('saveCustomQuestsToDB:', e); }
 }
+
 async function loadCustomQuestsFromDB() {
   if (!UID) return null;
   try {
@@ -1134,6 +1135,7 @@ async function loadCustomQuestsFromDB() {
   } catch (e) { console.warn('loadCustomQuestsFromDB:', e); }
   return null;
 }
+
 async function saveRecipes() {
   if (!UID) return;
   try {
@@ -1152,6 +1154,7 @@ async function saveRecipes() {
     }
   } catch (e) { console.warn('saveRecipes:', e); }
 }
+
 async function loadRecipes() {
   if (!UID) return;
   try {
@@ -1171,6 +1174,7 @@ async function loadRecipes() {
     }
   } catch (e) { console.warn('loadRecipes:', e); }
 }
+
 async function saveIAQuestToDB(q) {
   if (!UID) return;
   try {
@@ -1188,6 +1192,7 @@ async function saveIAQuestToDB(q) {
     });
   } catch (e) { console.warn('saveIAQuestToDB:', e); }
 }
+
 async function loadIAQuestsFromDB() {
   if (!UID) return;
   try {
@@ -1209,7 +1214,7 @@ async function loadIAQuestsFromDB() {
 }
 
 // ============================================================
-// FONCTIONS POUR LES QUÊTES IA (inchangées)
+// FONCTIONS POUR LES QUÊTES IA
 // ============================================================
 function detectWeakestClasses() {
   const scores = {
@@ -1222,14 +1227,22 @@ function detectWeakestClasses() {
   const weakest = Object.keys(scores).filter(key => scores[key] === minScore);
   return weakest;
 }
+
 function getIAQuestsCount() {
   const today = todayKey();
   return iaQuests.filter(q => q.date === today).length;
 }
+
+function getIAQuestsForToday() {
+  const today = todayKey();
+  return iaQuests.filter(q => q.date === today);
+}
+
 function generateFallbackIAQuest(classId, difficulty) {
   const difficultyData = IA_DIFFICULTY[difficulty];
   const xpBase = difficultyData.xp;
   const xpBonus = Math.round(xpBase * IA_BONUS_MULTIPLIER);
+  
   const fallbackQuests = {
     guerrier: [
       'Fais 20 pompes et 20 squats en 5 minutes chrono.',
@@ -1252,8 +1265,10 @@ function generateFallbackIAQuest(classId, difficulty) {
       'Explore un lieu que tu ne connais pas dans ton quartier.'
     ]
   };
+  
   const texts = fallbackQuests[classId] || fallbackQuests.aventurier;
   const text = texts[Math.floor(Math.random() * texts.length)];
+  
   return {
     id: 'ia_' + Date.now(),
     date: todayKey(),
@@ -1266,25 +1281,31 @@ function generateFallbackIAQuest(classId, difficulty) {
     created_at: new Date().toISOString()
   };
 }
+
 async function generateIAQuest() {
   if (isGeneratingIA) {
     toast("⏳ Une quête est déjà en cours de génération...");
     return;
   }
+  
   const today = todayKey();
   const count = getIAQuestsCount();
+  
   if (count >= IA_MAX_PER_DAY) {
     toast("⚠️ Limite de " + IA_MAX_PER_DAY + " quêtes IA atteinte pour aujourd'hui.");
     return;
   }
+  
   const weakest = detectWeakestClasses();
   let selectedClass = weakest[0];
+  
   if (weakest.length > 1) {
     const classOptions = weakest.map((c, i) => {
       const emoji = CLASSES[c]?.icon || '🎒';
       const name = CLASSES[c]?.name || c;
       return (i + 1) + '. ' + emoji + ' ' + name;
     }).join('\n');
+    
     const choice = prompt(
       "Plusieurs classes sont à égalité. Choisis la classe à cibler :\n" + classOptions,
       "1"
@@ -1297,6 +1318,7 @@ async function generateIAQuest() {
       return;
     }
   }
+  
   const diffChoice = prompt(
     "Choisis la difficulté :\n" +
     "1. Facile (+" + IA_DIFFICULTY.easy.xp + " XP)\n" +
@@ -1306,11 +1328,14 @@ async function generateIAQuest() {
   );
   const diffMap = { '1': 'easy', '2': 'medium', '3': 'hard' };
   const difficulty = diffMap[diffChoice] || 'medium';
+  
   isGeneratingIA = true;
   toast("🤖 Génération de la quête IA en cours...");
+  
   try {
     const classDisplay = CLASSES[selectedClass]?.name || selectedClass;
     const difficultyLabel = IA_DIFFICULTY[difficulty].label;
+    
     const prompt = buildCtx() + `
     Génère une quête courte (15-30 minutes) pour améliorer la classe **${classDisplay}**.
     
@@ -1322,9 +1347,12 @@ async function generateIAQuest() {
     Format de réponse (2 lignes max) : un titre court et une description précise.
     Pas de markdown, pas de tirets, pas de listes.
     `;
+    
     const response = await callGemini(prompt);
+    
     const xpBase = IA_DIFFICULTY[difficulty].xp;
     const xpBonus = Math.round(xpBase * IA_BONUS_MULTIPLIER);
+    
     const newQuest = {
       id: 'ia_' + Date.now(),
       date: today,
@@ -1336,14 +1364,18 @@ async function generateIAQuest() {
       done: false,
       created_at: new Date().toISOString()
     };
+    
     iaQuests.push(newQuest);
     await saveIAQuestToDB(newQuest);
+    
     toast("✅ Quête IA générée ! (" + difficultyLabel + " - +" + xpBonus + " XP)");
     renderIAQuests();
     renderQuetes();
+    
   } catch (e) {
     console.error('generateIAQuest error:', e);
     toast("⚠️ Erreur lors de la génération. Utilisation d'une quête de secours.");
+    
     const fallback = generateFallbackIAQuest(selectedClass, difficulty);
     iaQuests.push(fallback);
     await saveIAQuestToDB(fallback);
@@ -1353,6 +1385,7 @@ async function generateIAQuest() {
     isGeneratingIA = false;
   }
 }
+
 async function toggleIAQuest(id) {
   if (isDayLocked) {
     toast("⚠️ Journée verrouillée. Utilise 'Modifier la journée' pour ajuster.");
@@ -1361,6 +1394,7 @@ async function toggleIAQuest(id) {
   const q = iaQuests.find(x => x.id === id);
   if (!q) return;
   const today = todayKey();
+  
   if (q.done) {
     q.done = false;
     S.total_xp = Math.max(0, S.total_xp - q.xpBonus);
@@ -1386,25 +1420,31 @@ async function toggleIAQuest(id) {
     sbInsert('sys_log', entry).catch(() => {});
     toast("✅ +" + q.xpBonus + " XP pour la quête IA !");
   }
+  
   await saveIAQuestToDB(q);
   scheduleSave();
   renderIAQuests();
   renderQuetes();
   updateHeader();
 }
+
 function renderIAQuests() {
   const container = document.getElementById('ia-quests-container');
   if (!container) return;
+  
   const today = todayKey();
   const todayQuests = iaQuests.filter(q => q.date === today);
+  
   if (!todayQuests.length) {
     container.innerHTML = '';
     return;
   }
+  
   container.innerHTML = todayQuests.map(q => {
     const classEmoji = CLASSES[q.classId]?.icon || '🎒';
     const difficultyLabel = IA_DIFFICULTY[q.difficulty]?.label || 'Moyen';
     const done = q.done || false;
+    
     return `<div class="quest${done ? ' done' : ''}" onclick="toggleIAQuest('${q.id}')">
       <div class="check">${done ? '✓' : ''}</div>
       <div class="q-info">
@@ -1421,7 +1461,7 @@ function renderIAQuests() {
 }
 
 // ============================================================
-// FONCTIONS DE NOTATION D'ENTRAÎNEMENT (inchangées)
+// FONCTIONS DE NOTATION D'ENTRAÎNEMENT
 // ============================================================
 function showWorkoutRatingPopup(category, xp, entry) {
   pendingWorkoutRating = { category, xp, entry };
@@ -1429,6 +1469,7 @@ function showWorkoutRatingPopup(category, xp, entry) {
   document.getElementById('rating-popup').classList.add('show');
   updateRatingStars();
 }
+
 function updateRatingStars() {
   document.querySelectorAll('#rating-stars .star').forEach(el => {
     const val = parseInt(el.dataset.value);
@@ -1440,6 +1481,7 @@ function updateRatingStars() {
   else if (workoutRatingValue === 3) label.textContent = '👍 Parfait, ni trop facile ni trop difficile';
   else label.textContent = '😊 Trop facile ?';
 }
+
 document.addEventListener('click', function(e) {
   const star = e.target.closest('#rating-stars .star');
   if (star) {
@@ -1447,23 +1489,27 @@ document.addEventListener('click', function(e) {
     updateRatingStars();
   }
 });
+
 async function submitWorkoutRating() {
   if (workoutRatingValue === 0) {
     toast("⚠️ Choisis une note avant d'envoyer.");
     return;
   }
   if (!pendingWorkoutRating) return;
+  
   await saveWorkoutRating({
     date: todayKey(),
     category: pendingWorkoutRating.category,
     difficulty: workoutRatingValue,
-    enjoyment: null
+    enjoyment: null // on ne demande pas l'appréciation pour l'instant
   });
+  
   toast("✅ Notation enregistrée !");
   document.getElementById('rating-popup').classList.remove('show');
   pendingWorkoutRating = null;
   workoutRatingValue = 0;
 }
+
 function skipWorkoutRating() {
   document.getElementById('rating-popup').classList.remove('show');
   pendingWorkoutRating = null;
@@ -1484,10 +1530,12 @@ function setupUser() {
   document.getElementById('setup-overlay').style.display = 'none';
   init();
 }
+
 function setSyncState(st) {
   const dot = document.getElementById('sync-dot');
   dot.className = 'sync-dot' + (st === 'syncing' ? ' syncing' : st === 'error' ? ' error' : '');
 }
+
 async function loadFromSupabase() {
   setSyncState('syncing');
   try {
@@ -1506,6 +1554,7 @@ async function loadFromSupabase() {
     }
     if (Array.isArray(logRaw)) LOG = logRaw;
     if (Array.isArray(histRaw)) XP_HISTORY = histRaw;
+
     const today = todayKey();
     checkedToday = {};
     LOG.forEach(l => {
@@ -1513,10 +1562,12 @@ async function loadFromSupabase() {
         checkedToday[l.quest_id] = true;
       }
     });
+
     await loadClassData();
     await loadBilanHistory();
     await loadRecipes();
     await loadIAQuestsFromDB();
+
     const savedWeekly = localStorage.getItem('sys12_weekly_xp');
     if (savedWeekly) {
       try { weeklyClassXP = JSON.parse(savedWeekly); } catch (e) {}
@@ -1532,6 +1583,7 @@ async function loadFromSupabase() {
         lastBilanDate = auraData.lastBilanDate || null;
       } catch (e) {}
     }
+
     const dbQuests = await loadCustomQuestsFromDB();
     if (dbQuests && Array.isArray(dbQuests)) {
       customQuests = dbQuests;
@@ -1539,6 +1591,7 @@ async function loadFromSupabase() {
     } else {
       customQuests = JSON.parse(localStorage.getItem('sys12_custom_quests') || '[]');
     }
+
     const dbSq = await loadSidequestFromDB();
     const todayStr = todayKey();
     if (dbSq && dbSq.date === todayStr) {
@@ -1556,6 +1609,7 @@ async function loadFromSupabase() {
       localStorage.setItem('sys12_sidequest', JSON.stringify(currentSidequest));
       await saveSidequestToDB(currentSidequest);
     }
+
     if (S.last_day && S.last_day !== todayStr) {
       isDayLocked = false;
       updateValidationButton();
@@ -1563,15 +1617,18 @@ async function loadFromSupabase() {
     } else {
       isDayLocked = (S.last_day === todayStr && isDayLocked);
     }
+
     if (!localStorage.getItem('newForgedQuest')) localStorage.setItem('newForgedQuest', 'false');
     if (!localStorage.getItem('newRecipe')) localStorage.setItem('newRecipe', 'false');
     updateBadges();
+
     setSyncState('ok');
   } catch (e) {
     setSyncState('error');
     console.error('loadFromSupabase:', e);
   }
 }
+
 async function saveProgress() {
   setSyncState('syncing');
   try {
@@ -1603,15 +1660,19 @@ async function saveProgress() {
     console.error('saveProgress:', e);
   }
 }
+
 function scheduleSave() {
   clearTimeout(syncTimer);
   syncTimer = setTimeout(saveProgress, 1500);
 }
+
 function todayKey() { return new Date().toISOString().slice(0, 10); }
+
 function getCurrentPhase() {
   const m = S.current_month || 1;
   return PHASES.find(p => p.months.includes(m)) || PHASES[0];
 }
+
 function getLv(xp) {
   let l = 0;
   for (let i = 0; i < LEVELS.length; i++) { if (xp >= LEVELS[i].min) l = i; }
@@ -1640,10 +1701,13 @@ function updateHeader() {
   banner.querySelector('.phase-name').textContent = 'Phase ' + ph.id + ' — ' + ph.name;
   banner.querySelector('.phase-desc').textContent = ph.desc;
   document.getElementById('phase-prog').textContent = 'Mois ' + S.current_month;
+
   const missed = S.last_day && (new Date() - new Date(S.last_day)) / 86400000 > 3;
   document.getElementById('alert').classList.toggle('show', !!missed && S.days_total > 0);
+
   updateXPbars();
   renderAvatar();
+  
   const iaCount = getIAQuestsCount();
   const iaBtn = document.getElementById('generate-ia-btn');
   if (iaBtn) {
@@ -1652,112 +1716,36 @@ function updateHeader() {
   }
 }
 
-// === CORRECTION DE updateXPbars : barre Aventurier basée sur LOG ===
 function updateXPbars() {
   const maxXP = 5000;
   const pilliersXP = (S.p1_xp || 0) + (S.p2_xp || 0) + (S.p3_xp || 0) + (S.p4_xp || 0) + (S.p5_xp || 0);
-  // Calcul de l'XP pour la barre Aventurier (🎒) à partir de LOG
-  let forgesXP = 0;
-  // On filtre les entrées LOG qui ont le flag "custom" ou les quêtes IA
-  // Les quêtes IA ont leur XP dans q.xpBonus, mais on les retrouve aussi dans LOG avec pillar_id='custom'
-  // On filtre les entrées de LOG qui ont pillar_id === 'custom' (quêtes forgées et IA)
-  for (const l of LOG) {
-    if (l.pillar_id === 'custom') {
-      forgesXP += l.xp;
-    }
-  }
-  // On ajoute aussi les XP des recettes (qui ont pillar_id = 'custom' également)
-  // Mais les recettes sont déjà dans LOG si elles ont été cochées, donc on les a déjà.
-  // Pour être sûr, on ajoute aussi les recettes depuis la variable recipes (si elles sont done)
-  for (const r of recipes) {
-    if (r.done) {
-      forgesXP += r.total_xp; // ou on peut calculer à partir de LOG, mais on les a déjà
-    }
-  }
-  // On s'assure qu'on n'a pas de double compte ; on peut aussi ne pas ajouter recipes ici
-  // car elles sont déjà dans LOG. On garde juste le LOG pour éviter les doublons.
-  // On va recalculer forgesXP uniquement à partir de LOG.
-  forgesXP = 0;
-  for (const l of LOG) {
-    if (l.pillar_id === 'custom' || l.quest_id && (l.quest_id.startsWith('cq_') || l.quest_id.startsWith('ia_'))) {
-      forgesXP += l.xp;
-    }
-  }
-  // Ajouter les recettes (qui ont pillar_id='custom' aussi) -> déjà inclus.
-  // Mais les recettes ont souvent un quest_id comme 'rec_' + timestamp, on les inclut aussi.
+  const forgesXP = customQuests.reduce((sum, q) => sum + (q.total_xp || 0), 0)
+                   + recipes.reduce((sum, r) => sum + (r.total_xp || 0), 0)
+                   + iaQuests.filter(q => q.date === todayKey()).reduce((sum, q) => sum + (q.done ? q.xpBonus : 0), 0);
 
   document.getElementById('bar-global').style.width = Math.min(100, (S.total_xp / maxXP) * 100) + '%';
   document.getElementById('bar-global-val').textContent = S.total_xp + ' XP';
+
   document.getElementById('bar-pilliers').style.width = Math.min(100, (pilliersXP / maxXP) * 100) + '%';
   document.getElementById('bar-pilliers-val').textContent = pilliersXP + ' XP';
+
   document.getElementById('bar-forges').style.width = Math.min(100, (forgesXP / maxXP) * 100) + '%';
   document.getElementById('bar-forges-val').textContent = forgesXP + ' XP';
 }
 
 // ============================================================
-// QUÊTES PRÉ-DÉFINIES AVEC TEMPS OPTIONNEL
+// QUÊTES PRÉ-DÉFINIES
 // ============================================================
 function getClassEmoji(pid) {
   const c = getClassForPillar(pid);
   return CLASSES[c]?.icon || '🎒';
 }
-function calculateBaseXP(q) {
-  let xp = q.xp;
-  xp = Math.round(xp * 1.2);
-  const classId = getClassForPillar(q.pid);
-  if (boostClass && classId === boostClass) {
-    xp = Math.round(xp * 1.1);
-  }
-  return xp;
-}
-function calculateXPWithExtraTime(q, extraMinutes) {
-  const defaultTime = QUEST_DEFAULT_TIME[q.id] || 30;
-  const totalTime = defaultTime + extraMinutes;
-  let xp = q.xp * (totalTime / defaultTime);
-  xp = Math.round(xp * 1.2);
-  const classId = getClassForPillar(q.pid);
-  if (boostClass && classId === boostClass) {
-    xp = Math.round(xp * 1.1);
-  }
-  return xp;
-}
-function toggleExtraTime(qId) {
-  const field = document.getElementById('extra-time-field-' + qId);
-  if (!field) return;
-  field.classList.toggle('show');
-  if (field.classList.contains('show')) {
-    const input = field.querySelector('input');
-    if (input) {
-      input.focus();
-      input.value = 5;
-      updateExtraTimeDisplay(qId);
-    }
-  }
-}
-function updateExtraTimeDisplay(qId) {
-  const field = document.getElementById('extra-time-field-' + qId);
-  if (!field) return;
-  const input = field.querySelector('input');
-  const display = field.querySelector('.extra-xp');
-  if (!input || !display) return;
-  const extra = parseInt(input.value) || 0;
-  const all = [...QUETES.min, ...QUETES.opt];
-  const q = all.find(x => x.id === qId);
-  if (!q) return;
-  const xp = calculateXPWithExtraTime(q, extra);
-  display.textContent = '+' + xp + ' XP';
-  const baseXP = calculateBaseXP(q);
-  const baseDisplay = document.getElementById('xp-base-' + qId);
-  if (baseDisplay) {
-    if (extra > 0) {
-      baseDisplay.textContent = '[' + baseXP + ' + ' + (xp - baseXP) + ']';
-    } else {
-      baseDisplay.textContent = '';
-    }
-  }
-}
+
 function renderQuetes() {
   const phase = getCurrentPhase();
+  
+  // Rendre les quêtes IA en premier
+  const optContainer = document.getElementById('quetes-opt');
   let iaContainer = document.getElementById('ia-quests-container');
   if (!iaContainer) {
     iaContainer = document.createElement('div');
@@ -1768,6 +1756,8 @@ function renderQuetes() {
     }
   }
   renderIAQuests();
+  
+  // Bouton de génération IA
   const iaBtnContainer = document.getElementById('ia-btn-container');
   if (!iaBtnContainer) {
     const btnContainer = document.createElement('div');
@@ -1790,49 +1780,56 @@ function renderQuetes() {
     iaBtn.textContent = '🤖 Générer une quête IA (' + count + '/' + IA_MAX_PER_DAY + ')';
     iaBtn.disabled = (count >= IA_MAX_PER_DAY);
   }
+
   function qHTML(q, isMin) {
     const done = !!checkedToday[q.id];
     const inPhase = q.phases.includes(phase.id);
     const classEmoji = getClassEmoji(q.pid);
-    const baseXP = calculateBaseXP(q);
+
+    let xp = q.xp;
+    xp = Math.round(xp * 1.2);
+    const classId = getClassForPillar(q.pid);
+    if (boostClass && classId === boostClass) {
+      xp = Math.round(xp * 1.1);
+    }
+    const displayedXp = xp;
+
     const phTag = !inPhase ? `<span class="tag tag-ph">Phase ${q.phases[0]}+</span>` : '';
     const minTag = isMin ? `<span class="tag tag-min">minimum</span>` : '';
     const classTag = `<span class="tag" style="background:rgba(255,255,255,0.05);">${classEmoji}</span>`;
+
     const safeN = q.name.replace(/"/g, '&quot;');
     const safeD = q.desc.replace(/"/g, '&quot;');
+
     let coachBtn = inPhase ? `<button class="btn-coach" data-qid="${q.id}" data-qname="${safeN}" data-qdesc="${safeD}" onclick="event.stopPropagation();coachQuete(this)">💡 Coach</button>` : '';
-    let extraHtml = '';
-    if (inPhase && q.id in QUEST_DEFAULT_TIME) {
-      extraHtml = `
-        <div style="display:flex;align-items:center;gap:6px;margin-top:2px;flex-wrap:wrap;">
-          <span style="font-size:13px;font-weight:600;color:var(--accent);" id="xp-base-${q.id}"></span>
-          <span class="extra-time-toggle" onclick="event.stopPropagation();toggleExtraTime('${q.id}')" title="Ajouter du temps">
-            <span class="plus">+</span> <span style="font-size:11px;">temps</span>
-          </span>
-        </div>
-        <div class="extra-time-field" id="extra-time-field-${q.id}">
-          <input type="number" id="extra-time-input-${q.id}" value="5" min="1" max="300" step="5"
-                 oninput="updateExtraTimeDisplay('${q.id}')" onclick="event.stopPropagation();">
-          <label>min supplémentaires</label>
-          <span class="extra-xp" id="extra-xp-${q.id}"></span>
-        </div>
-      `;
+
+    if (q.id === 'q5' && inPhase) {
+      coachBtn += `
+      <select class="coach-select" id="workout-type" onclick="event.stopPropagation();">
+        <option value="bodyweight">🧱 Poids du corps</option>
+        <option value="swim">🏊 Natation</option>
+        <option value="run">🏃 Course à pied</option>
+        <option value="auto">🎲 Choix du coach</option>
+      </select>
+      <button class="btn-coach" style="background:rgba(96,165,250,.1);border-color:rgba(96,165,250,.3);color:var(--blue);margin-left:4px;" onclick="event.stopPropagation();genererEntrainement(this)">🏋️ Générer</button>`;
     }
-    return `<div class="quest${done ? ' done' : ''}${!inPhase ? ' locked' : ''}" onclick="toggleQuete('${q.id}')" data-qid="${q.id}">
+
+    return `<div class="quest${done ? ' done' : ''}${!inPhase ? ' locked' : ''}" onclick="toggleQuete('${q.id}')">
       <div class="check">${done ? '✓' : ''}</div>
       <div class="q-info">
         <div class="q-name">${q.name}</div>
         <div class="q-desc">${q.desc}</div>
         <div class="q-tags">${minTag}${phTag}${classTag}</div>
         ${coachBtn}
-        ${extraHtml}
       </div>
-      <div class="q-xp">+${baseXP} XP</div>
+      <div class="q-xp">+${displayedXp} XP</div>
     </div>`;
   }
   document.getElementById('quetes-min').innerHTML = QUETES.min.map(q => qHTML(q, true)).join('');
   document.getElementById('quetes-opt').innerHTML = QUETES.opt.map(q => qHTML(q, false)).join('');
 }
+
+// === MODIFICATION DE toggleQuete pour gérer le pop-up de notation q5 ===
 async function toggleQuete(id) {
   if (isDayLocked) {
     toast("⚠️ Journée verrouillée. Utilise 'Modifier la journée' pour ajuster.");
@@ -1842,22 +1839,17 @@ async function toggleQuete(id) {
   const q = all.find(x => x.id === id);
   if (!q) return;
   const today = todayKey();
-  let extraMinutes = 0;
-  const extraField = document.getElementById('extra-time-field-' + id);
-  if (extraField && extraField.classList.contains('show')) {
-    const input = document.getElementById('extra-time-input-' + id);
-    if (input) {
-      extraMinutes = parseInt(input.value) || 0;
-    }
-  }
-  let xp;
-  if (extraMinutes > 0) {
-    xp = calculateXPWithExtraTime(q, extraMinutes);
-  } else {
-    xp = calculateBaseXP(q);
+
+  let xp = q.xp;
+  xp = Math.round(xp * 1.2);
+  const classId = getClassForPillar(q.pid);
+  if (boostClass && classId === boostClass) {
+    xp = Math.round(xp * 1.1);
   }
   const finalXp = xp;
+
   if (checkedToday[id]) {
+    // Décocher
     delete checkedToday[id];
     S.total_xp = Math.max(0, S.total_xp - finalXp);
     S[q.pid + '_xp'] = Math.max(0, (S[q.pid + '_xp'] || 0) - finalXp);
@@ -1868,20 +1860,25 @@ async function toggleQuete(id) {
     sbDelete('sys_log', UID, id, today).catch(() => {});
     toast("↩️ Quête décochée — XP retirés");
   } else {
+    // Cocher
     checkedToday[id] = true;
     S.total_xp += finalXp;
     S[q.pid + '_xp'] = Math.min(MAX_PILLIER_XP, (S[q.pid + '_xp'] || 0) + finalXp);
     const cId = getClassForPillar(q.pid);
     classXP[cId] = (classXP[cId] || 0) + finalXp;
     weeklyClassXP[cId] = (weeklyClassXP[cId] || 0) + finalXp;
+
     const entry = { user_id: UID, quest_id: id, quest_name: q.name, xp: finalXp, pillar_id: q.pid, created_at: new Date().toISOString() };
     LOG.unshift(entry);
     if (LOG.length > 60) LOG.pop();
     sbInsert('sys_log', entry).catch(() => {});
-    toast("✅ +" + finalXp + " XP pour '" + q.name + "'" + (extraMinutes > 0 ? " (+" + extraMinutes + " min)" : ""));
+    toast("✅ +" + finalXp + " XP pour '" + q.name + "'");
+
+    // Si c'est q5 (entraînement), on propose la notation
     if (id === 'q5') {
       const select = document.getElementById('workout-type');
       const category = select ? select.value : 'auto';
+      // On attend un court instant pour que l'interface se mette à jour
       setTimeout(() => {
         showWorkoutRatingPopup(category, finalXp, entry);
       }, 300);
@@ -1894,11 +1891,12 @@ async function toggleQuete(id) {
 }
 
 // ============================================================
-// SIDEQUEST (inchangée, mais on ajoute l'XP dans LOG avec pillar_id='custom' ? Non, déjà géré par toggleSidequest)
+// SIDEQUEST
 // ============================================================
 function initSidequest() {
   updateSidequestUI();
 }
+
 function updateSidequestUI() {
   if (!currentSidequest) {
     const local = localStorage.getItem('sys12_sidequest');
@@ -1923,9 +1921,11 @@ function updateSidequestUI() {
       saveSidequestToDB(currentSidequest);
     }
   }
+
   const item = document.getElementById('sidequest-item');
   const chk = document.getElementById('sq-check');
   document.getElementById('sidequest-text').textContent = currentSidequest.text;
+
   let baseXp = 30;
   baseXp = Math.round(baseXp * 1.2);
   const classId = getClassForPillar(currentSidequest.pid);
@@ -1934,6 +1934,7 @@ function updateSidequestUI() {
   }
   const finalXp = baseXp;
   document.getElementById('sq-xp-display').textContent = '+' + finalXp + ' XP';
+
   if (currentSidequest.done) {
     item.classList.add('done');
     chk.textContent = '✓';
@@ -1942,6 +1943,7 @@ function updateSidequestUI() {
     chk.textContent = '';
   }
 }
+
 async function toggleSidequest() {
   if (isDayLocked) {
     toast("⚠️ Journée verrouillée. Utilise 'Modifier la journée' pour ajuster.");
@@ -1957,6 +1959,7 @@ async function toggleSidequest() {
     updateSidequestUI();
     return;
   }
+
   let baseXp = 30;
   baseXp = Math.round(baseXp * 1.2);
   const classId = getClassForPillar(currentSidequest.pid);
@@ -1964,6 +1967,7 @@ async function toggleSidequest() {
     baseXp = Math.round(baseXp * 1.1);
   }
   const finalXp = baseXp;
+
   if (currentSidequest.done) {
     currentSidequest.done = false;
     S.total_xp = Math.max(0, S.total_xp - finalXp);
@@ -1997,12 +2001,14 @@ async function toggleSidequest() {
     sbInsert('sys_log', entry).catch(() => {});
     toast("✅ +" + finalXp + " XP pour la sidequest !");
   }
+
   localStorage.setItem('sys12_sidequest', JSON.stringify(currentSidequest));
   await saveSidequestToDB(currentSidequest);
   updateSidequestUI();
   scheduleSave();
   updateHeader();
 }
+
 async function rerollSidequestIA() {
   if (isDayLocked) {
     toast("⚠️ Journée verrouillée.");
@@ -2011,8 +2017,10 @@ async function rerollSidequestIA() {
   const btn = document.getElementById('btn-reroll');
   btn.textContent = "Création en cours par l'IA...";
   btn.disabled = true;
+
   const prompt = buildCtx() + "\n\nGénère une 'sidequest' (quête secondaire) utile, concrète et rapide (max 15 min) pour Eliseo aujourd'hui. Thème recommandé : sors-le de sa zone de confort, fais-le pratiquer un brise-glace de sociabilité, de l'observation humaine ou un exercice d'assurance tactique. Donne uniquement l'énoncé direct en 2 lignes max. Sans markdown.";
   const res = await callGemini(prompt);
+
   const today = todayKey();
   currentSidequest = {
     date: today,
@@ -2024,23 +2032,26 @@ async function rerollSidequestIA() {
   localStorage.setItem('sys12_sidequest', JSON.stringify(currentSidequest));
   await saveSidequestToDB(currentSidequest);
   updateSidequestUI();
+
   btn.textContent = "🎲 Relancer via le Coach (IA)";
   btn.disabled = false;
   toast("🔄 Nouvelle sidequest générée par l'IA !");
 }
 
 // ============================================================
-// QUÊTES FORGÉES (inchangées)
+// QUÊTES FORGÉES
 // ============================================================
 function loadCustomQuests() {
   customQuests = JSON.parse(localStorage.getItem('sys12_custom_quests') || '[]');
   renderCustomQuests();
 }
+
 function saveCustomQuests() {
   localStorage.setItem('sys12_custom_quests', JSON.stringify(customQuests));
   saveCustomQuestsToDB();
   renderCustomQuests();
 }
+
 function updateBadges() {
   const forgeBadge = document.getElementById('forge-badge');
   const recipeBadge = document.getElementById('recipe-badge');
@@ -2049,19 +2060,23 @@ function updateBadges() {
   if (forgeBadge) forgeBadge.classList.toggle('show', newForges);
   if (recipeBadge) recipeBadge.classList.toggle('show', newRecipes);
 }
+
 function setNewForgedQuest() {
   localStorage.setItem('newForgedQuest', 'true');
   updateBadges();
 }
+
 function setNewRecipe() {
   localStorage.setItem('newRecipe', 'true');
   updateBadges();
 }
+
 function hideBadge(id) {
   if (id === 'forge-badge') localStorage.setItem('newForgedQuest', 'false');
   if (id === 'recipe-badge') localStorage.setItem('newRecipe', 'false');
   updateBadges();
 }
+
 function toggleAccordion(id) {
   const body = document.getElementById(id);
   if (body) {
@@ -2069,12 +2084,14 @@ function toggleAccordion(id) {
     body.style.display = body.classList.contains('open') ? 'block' : 'none';
   }
 }
+
 function toggleSection(id) {
   const el = document.getElementById(id);
   if (el) {
     el.style.display = el.style.display === 'block' ? 'none' : 'block';
   }
 }
+
 function ajouterQuetePerso() {
   const nameEl = document.getElementById('cq-name');
   const name = nameEl.value.trim();
@@ -2084,9 +2101,11 @@ function ajouterQuetePerso() {
   }
   const diff = document.getElementById('cq-diff').value;
   const type = document.getElementById('cq-type').value;
+
   let xp = 5;
   if (diff === 'medium') xp = 15;
   if (diff === 'hard') xp = 30;
+
   const nq = { id: 'cq_' + Date.now(), name: name, xp: xp, type: type, done: false, total_xp: 0 };
   customQuests.push(nq);
   nameEl.value = '';
@@ -2094,12 +2113,14 @@ function ajouterQuetePerso() {
   setNewForgedQuest();
   toast("⚔️ Quête forgée : '" + name + "' (🎒 Aventurier)");
 }
+
 function renderCustomQuests() {
   const listEl = document.getElementById('custom-quests-list');
   if (!customQuests.length) {
     listEl.innerHTML = '<div class="empty-state">Aucune quête forgée pour le moment.</div>';
     return;
   }
+
   listEl.innerHTML = customQuests.map(q => {
     let xp = q.xp;
     if (boostClass && 'aventurier' === boostClass) {
@@ -2108,6 +2129,7 @@ function renderCustomQuests() {
     const finalXp = xp;
     const typeTag = `<span class="tag tag-ph">${q.type === 'oneshot' ? 'One-shot' : 'Récurrente'}</span>`;
     const aventurierTag = `<span class="tag tag-aventurier">🎒 Aventurier</span>`;
+
     return `<div class="quest${q.done ? ' done' : ''}" style="position:relative;" data-quest-id="${q.id}">
       <div class="check" onclick="event.stopPropagation();event.preventDefault();toggleCustomQuest('${q.id}')">${q.done ? '✓' : ''}</div>
       <div class="q-info" onclick="event.stopPropagation();event.preventDefault();toggleCustomQuest('${q.id}')">
@@ -2122,6 +2144,7 @@ function renderCustomQuests() {
     </div>`;
   }).join('');
 }
+
 function openEditModal(id) {
   const q = customQuests.find(x => x.id === id);
   if (!q) return;
@@ -2132,34 +2155,42 @@ function openEditModal(id) {
   document.getElementById('edit-cq-type').value = q.type;
   document.getElementById('edit-modal').classList.add('show');
 }
+
 function closeEditModal() {
   document.getElementById('edit-modal').classList.remove('show');
   editQuestId = null;
 }
+
 function saveEditQuest() {
   const id = document.getElementById('edit-cq-id').value;
   const q = customQuests.find(x => x.id === id);
   if (!q) return;
+
   const name = document.getElementById('edit-cq-name').value.trim();
   if (!name) {
     toast("⚠️ Le nom ne peut pas être vide.");
     return;
   }
+
   const diff = document.getElementById('edit-cq-diff').value;
   let xp = 5;
   if (diff === 'medium') xp = 15;
   if (diff === 'hard') xp = 30;
+
   q.name = name;
   q.xp = xp;
   q.type = document.getElementById('edit-cq-type').value;
+
   saveCustomQuests();
   closeEditModal();
   toast("✅ Quête modifiée !");
 }
+
 function deleteCustomQuest(id) {
   if (!confirm("Supprimer cette quête définitivement ?")) return;
   const q = customQuests.find(x => x.id === id);
   if (!q) return;
+
   if (q.done) {
     const today = todayKey();
     let xp = q.xp;
@@ -2173,14 +2204,17 @@ function deleteCustomQuest(id) {
     LOG = LOG.filter(l => !(l.quest_id === id && l.created_at && l.created_at.slice(0, 10) === today));
     sbDelete('sys_log', UID, id, today).catch(() => {});
   }
+
   customQuests = customQuests.filter(x => x.id !== id);
   saveCustomQuests();
   toast("🗑️ Quête supprimée.");
   updateHeader();
 }
+
 async function toggleCustomQuest(id) {
   if (isProcessing) return;
   isProcessing = true;
+
   try {
     if (isDayLocked) {
       toast("⚠️ Journée verrouillée.");
@@ -2189,11 +2223,13 @@ async function toggleCustomQuest(id) {
     const q = customQuests.find(x => x.id === id);
     if (!q) return;
     const today = todayKey();
+
     let xp = q.xp;
     if (boostClass && 'aventurier' === boostClass) {
       xp = Math.round(xp * 1.1);
     }
     const finalXp = xp;
+
     if (q.done) {
       q.done = false;
       S.total_xp = Math.max(0, S.total_xp - finalXp);
@@ -2233,7 +2269,7 @@ async function toggleCustomQuest(id) {
 }
 
 // ============================================================
-// RECETTES (inchangées)
+// RECETTES
 // ============================================================
 function ajouterRecette() {
   const name = document.getElementById('recipe-name').value.trim();
@@ -2244,6 +2280,7 @@ function ajouterRecette() {
   const time = parseInt(document.getElementById('recipe-time').value) || 30;
   const people = parseInt(document.getElementById('recipe-people').value) || 2;
   const steps = document.getElementById('recipe-steps').value.trim();
+
   const r = {
     id: 'rec_' + Date.now(),
     name: name,
@@ -2264,16 +2301,19 @@ function ajouterRecette() {
   toast("🍳 Recette ajoutée : '" + name + "'");
   renderRecipes();
 }
+
 function renderRecipes() {
   const container = document.getElementById('recipes-list-container');
   if (!recipes.length) {
     container.innerHTML = '<div class="empty-state">Aucune recette pour le moment.</div>';
     return;
   }
+
   container.innerHTML = recipes.map(r => {
     const xp = r.total_xp || 0;
     const done = r.done || false;
     const formattedSteps = formatSteps(r.steps);
+
     return `<div class="recipe-item${done ? ' done' : ''}" data-id="${r.id}">
       <div class="check" onclick="event.stopPropagation();toggleRecipe('${r.id}')">${done ? '✓' : ''}</div>
       <div class="recipe-info" onclick="event.stopPropagation();toggleRecipe('${r.id}')">
@@ -2285,6 +2325,7 @@ function renderRecipes() {
     </div>`;
   }).join('');
 }
+
 async function toggleRecipe(id) {
   if (isDayLocked) {
     toast("⚠️ Journée verrouillée. Utilise 'Modifier la journée' pour ajuster.");
@@ -2293,7 +2334,9 @@ async function toggleRecipe(id) {
   const r = recipes.find(x => x.id === id);
   if (!r) return;
   const today = todayKey();
+
   const xp = calculateRecipeXP(r.time, r.people);
+
   if (r.done) {
     r.done = false;
     S.total_xp = Math.max(0, S.total_xp - xp);
@@ -2327,6 +2370,7 @@ async function toggleRecipe(id) {
   renderRecipes();
   renderAvatar();
 }
+
 function toggleRecipeSteps(el) {
   el.classList.toggle('open');
 }
@@ -2340,6 +2384,7 @@ async function validerJour() {
     toast("⚠️ Journée déjà verrouillée.");
     return;
   }
+
   if (S.last_day !== today) {
     if (S.last_day) {
       const diff = (new Date(today) - new Date(S.last_day)) / 86400000;
@@ -2352,10 +2397,12 @@ async function validerJour() {
     if (XP_HISTORY.length > 60) XP_HISTORY.pop();
     sbInsert('sys_xp_history', histEntry).catch(() => {});
   }
+
   customQuests = customQuests.filter(q => !(q.type === 'oneshot' && q.done === true));
   customQuests.forEach(q => { if (q.type === 'recurrent') q.done = false; });
   recipes.forEach(r => { r.done = false; });
   iaQuests.forEach(q => { if (q.date === today) q.done = false; });
+
   localStorage.setItem('sys12_custom_quests', JSON.stringify(customQuests));
   await saveCustomQuestsToDB();
   await saveRecipes();
@@ -2363,6 +2410,7 @@ async function validerJour() {
   renderCustomQuests();
   renderRecipes();
   renderIAQuests();
+
   isDayLocked = true;
   updateValidationButton();
   scheduleSave();
@@ -2370,6 +2418,7 @@ async function validerJour() {
   toast("🔒 Journée validée !");
   goTab('stats', document.querySelectorAll('.tab-btn')[3]);
 }
+
 function modifierJour() {
   if (!isDayLocked) {
     toast("⚠️ La journée n'est pas verrouillée.");
@@ -2379,6 +2428,7 @@ function modifierJour() {
   updateValidationButton();
   toast("✏️ Journée déverrouillée — tu peux ajuster tes quêtes.");
 }
+
 function updateValidationButton() {
   const btn = document.getElementById('btn-valider');
   if (!btn) return;
@@ -2408,6 +2458,7 @@ function renderPiliers() {
     const xp_needed = progress.xp_needed;
     const nextLevel = progress.nextLevel;
     const nextTitle = progress.nextTitle;
+
     return `<div class="pillar">
       <div class="pillar-top">
         <div class="pillar-icon" style="background:${p.color}22">${p.icon}</div>
@@ -2431,21 +2482,25 @@ function renderPiliers() {
 }
 
 // ============================================================
-// AVATAR / CLASSES + DIAGRAMME À BARRES (correction alignement)
+// AVATAR / CLASSES + DIAGRAMME À BARRES
 // ============================================================
 function renderClassBarChart() {
   const canvas = document.getElementById('class-bar-chart');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
+
+  // Préparer les données : XP réel par classe, tri décroissant
   const data = [];
   for (const [id, cls] of Object.entries(CLASSES)) {
     const xp = classXP[id] || 0;
     data.push({ id, name: cls.name, xp, color: cls.color, icon: cls.icon });
   }
   data.sort((a, b) => b.xp - a.xp);
+
   const labels = data.map(d => d.icon + ' ' + d.name);
   const values = data.map(d => d.xp);
   const colors = data.map(d => d.color);
+
   if (chartClassBar) chartClassBar.destroy();
   chartClassBar = new Chart(ctx, {
     type: 'bar',
@@ -2479,13 +2534,7 @@ function renderClassBarChart() {
           grid: { color: 'rgba(255,255,255,0.04)' }
         },
         x: {
-          ticks: {
-            color: '#aaa',
-            font: { size: 11, weight: 'bold' },
-            maxRotation: 0,
-            autoSkip: false,
-            padding: 4
-          },
+          ticks: { color: '#aaa', font: { size: 11 } },
           grid: { display: false }
         }
       },
@@ -2502,6 +2551,7 @@ function renderAvatar() {
   const icon = document.getElementById('aura-icon');
   const name = document.getElementById('aura-name');
   const desc = document.getElementById('aura-desc');
+
   if (currentAura) {
     icon.textContent = currentAura.icon || '⚔️';
     name.textContent = currentAura.name || 'Aventurier';
@@ -2521,6 +2571,7 @@ function renderAvatar() {
     desc.textContent = 'Effectue ton premier bilan hebdomadaire';
     banner.className = 'aura-banner';
   }
+
   // Classes
   for (const [id, cls] of Object.entries(CLASSES)) {
     const xp = classXP[id] || 0;
@@ -2531,11 +2582,13 @@ function renderAvatar() {
     const pct = progress.pct;
     const xp_into = progress.xp_into;
     const xp_needed = progress.xp_needed;
+
     const el = document.getElementById('class-' + id);
     const levelEl = document.getElementById(id + '-level');
     const titleEl = document.getElementById(id + '-title');
     const bar = document.getElementById(id + '-bar');
     const progressEl = document.getElementById(id + '-progress');
+
     el.className = 'class-item';
     if (currentAura && currentAura.cssClass === id && currentAura.cssClass !== 'souverain' && currentAura.cssClass !== 'stagnant') {
       el.classList.add('highlight');
@@ -2543,11 +2596,14 @@ function renderAvatar() {
     if (boostClass === id && boostClass !== null) {
       el.classList.add('weak');
     }
+
     levelEl.textContent = 'Niv. ' + level;
     titleEl.textContent = title;
     bar.style.width = pct + '%';
     progressEl.textContent = xp_into + ' / ' + xp_needed + ' XP';
   }
+
+  // Bénédiction
   const benedictionEl = document.getElementById('benediction-desc');
   if (boostClass && boostClass !== null) {
     const cls = getClassFromId(boostClass);
@@ -2572,12 +2628,15 @@ function renderAvatar() {
       benedictionEl.textContent = 'Aucune bénédiction active.';
     }
   }
+
+  // Diagramme à barres
   renderClassBarChart();
+
   updateXPbars();
 }
 
 // ============================================================
-// STATISTIQUES - avec journal déroulant
+// STATISTIQUES
 // ============================================================
 function renderStats() {
   const today = todayKey();
@@ -2592,7 +2651,6 @@ function renderStats() {
   }
   document.getElementById('heatmap').innerHTML = hm;
 
-  // Radar (écart relatif)
   const maxXP = Math.max(
     S.p1_xp || 0,
     S.p2_xp || 0,
@@ -2604,6 +2662,7 @@ function renderStats() {
     const xp = S[p.id + '_xp'] || 0;
     return maxXP > 0 ? Math.round((xp / maxXP) * 100) : 0;
   });
+
   const rCtx = document.getElementById('chart-radar').getContext('2d');
   const rLabels = PILLARS.map(p => p.icon + ' ' + p.name.split(' ')[0]);
   if (chartRadar) chartRadar.destroy();
@@ -2648,7 +2707,6 @@ function renderStats() {
     }
   });
 
-  // Graphique XP
   const xpCtx = document.getElementById('chart-xp').getContext('2d');
   const sorted = [...XP_HISTORY].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).slice(-20);
   const xpLabels = sorted.map(h => h.created_at ? h.created_at.slice(5, 10) : '');
@@ -2670,7 +2728,6 @@ function renderStats() {
     }
   });
 
-  // Capacités
   const capCounts = {};
   LOG.forEach(l => {
     if (l.pillar_id && l.pillar_id !== 'custom' && l.pillar_id !== 'review') {
@@ -2690,7 +2747,6 @@ function renderStats() {
     </div>`;
   }).join('');
 
-  // Jalons
   document.getElementById('milestones').innerHTML = MILESTONES.map(m => {
     const ok = m.check(S);
     return `<div class="ms-item${ok ? ' reached' : ''}">
@@ -2700,59 +2756,26 @@ function renderStats() {
     </div>`;
   }).join('');
 
-  // Journal des actions - version déroulante
-  const logContainer = document.getElementById('log-list');
-  if (!LOG.length) {
-    logContainer.innerHTML = '<div class="empty-state">Aucune action enregistrée</div>';
-  } else {
-    // On affiche les 5 premières lignes, le reste est caché avec un bouton
-    const allEntries = LOG.slice(0, 20).map(l => `
-      <div class="log-entry">
-        <div class="log-dot" style="background:${PCOLS[l.pillar_id] || '#888'}"></div>
-        <div class="log-text">${l.quest_name}</div>
-        <span class="log-xp">+${l.xp}</span>
-        <span class="log-time">${l.created_at ? l.created_at.slice(11, 16) : ''}</span>
-      </div>
-    `).join('');
-
-    // On crée un conteneur avec hauteur max et bouton toggle
-    let html = `<div class="log-container collapsed" id="log-inner">
-      ${allEntries}
-    </div>
-    <button class="log-toggle-btn" id="log-toggle-btn" onclick="toggleLog()">Voir plus</button>`;
-    logContainer.innerHTML = html;
-    // Initialiser l'état
-    if (LOG.length <= 5) {
-      document.getElementById('log-toggle-btn').style.display = 'none';
-    } else {
-      document.getElementById('log-inner').classList.add('collapsed');
-    }
-  }
-}
-
-// Fonction pour basculer l'affichage du journal
-function toggleLog() {
-  const container = document.getElementById('log-inner');
-  const btn = document.getElementById('log-toggle-btn');
-  if (!container || !btn) return;
-  if (container.classList.contains('collapsed')) {
-    container.classList.remove('collapsed');
-    container.classList.add('expanded');
-    btn.textContent = 'Voir moins';
-  } else {
-    container.classList.add('collapsed');
-    container.classList.remove('expanded');
-    btn.textContent = 'Voir plus';
+  const logEl = document.getElementById('log-list');
+  if (!LOG.length) { logEl.innerHTML = '<div class="empty-state">Aucune action enregistrée</div>'; } else {
+    logEl.innerHTML = LOG.slice(0, 15).map(l => `
+    <div class="log-entry">
+      <div class="log-dot" style="background:${PCOLS[l.pillar_id] || '#888'}"></div>
+      <div class="log-text">${l.quest_name}</div>
+      <span class="log-xp">+${l.xp}</span>
+      <span class="log-time">${l.created_at ? l.created_at.slice(11, 16) : ''}</span>
+    </div>`).join('');
   }
 }
 
 // ============================================================
-// REVUE, NAVIGATION, BILAN, ETC. (inchangés)
+// REVUE
 // ============================================================
 function setStar(v) {
   starVal = v;
   document.querySelectorAll('.star').forEach((s, i) => s.classList.toggle('on', i < v));
 }
+
 async function sauvegarderRevue() {
   const rev = {
     user_id: UID,
@@ -2779,11 +2802,16 @@ async function sauvegarderRevue() {
   genererBilanRevue(_bien, _resist, _change, _stars);
   toast("📝 Revue sauvegardée ! +100 XP");
 }
+
+// ============================================================
+// NAVIGATION
+// ============================================================
 function goTab(id, btn) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-' + id).classList.add('active');
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
+
   if (id === 'stats') renderStats();
   if (id === 'piliers') renderPiliers();
   if (id === 'book') {
@@ -2819,6 +2847,10 @@ function goTab(id, btn) {
     renderBilanHistory();
   }
 }
+
+// ============================================================
+// BILAN HEBDOMADAIRE
+// ============================================================
 function renderBilanHistory() {
   const container = document.getElementById('bilan-history');
   if (!bilanHistory.length) {
@@ -2834,6 +2866,7 @@ function renderBilanHistory() {
     </div>`;
   }).join('');
 }
+
 function renderBoostOptions() {
   const container = document.getElementById('choose-boost');
   container.innerHTML = '';
@@ -2850,6 +2883,7 @@ function renderBoostOptions() {
     container.appendChild(btn);
   }
 }
+
 function confirmerBoost() {
   const container = document.getElementById('choose-boost');
   const selected = container.dataset.selected;
@@ -2864,16 +2898,20 @@ function confirmerBoost() {
   scheduleSave();
   toast("✅ Bénédiction appliquée au " + CLASSES[selected].name);
 }
+
 function lancerBilanHebdo() {
   const btn = document.getElementById('btn-bilan-hebdo');
   btn.disabled = true;
   btn.textContent = 'Calcul en cours...';
+
   const weeklyXP = { ...weeklyClassXP };
   const totalXP = Object.values(weeklyXP).reduce((a, b) => a + b, 0);
+
   let auraId = 'stagnant';
   let aura = null;
   let isSouv = false;
   let isStag = false;
+
   if (totalXP === 0) {
     isStag = true;
     auraId = 'stagnant';
@@ -2882,6 +2920,7 @@ function lancerBilanHebdo() {
     const top1 = sorted[0][0];
     const top2 = sorted[1][0];
     const top3 = sorted[2] ? sorted[2][0] : null;
+    
     const values = Object.values(weeklyXP);
     const maxDiff = Math.max(...values) - Math.min(...values);
     const avg = totalXP / 4;
@@ -2899,9 +2938,11 @@ function lancerBilanHebdo() {
       else auraId = top1;
     }
   }
+
   aura = AURA_CONFIG[auraId] || AURA_CONFIG['aventurier'];
   isSouverain = isSouv;
   isStagnant = isStag;
+
   const bilan = {
     week_start: new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10),
     week_end: new Date().toISOString().slice(0, 10),
@@ -2916,8 +2957,10 @@ function lancerBilanHebdo() {
   };
   saveBilan(bilan);
   bilanHistory.unshift(bilan);
+
   currentAura = aura;
   lastBilanDate = new Date().toISOString().slice(0, 10);
+
   if (isSouv) {
     boostSelectionPending = true;
     document.getElementById('choose-boost-container').style.display = 'block';
@@ -2947,7 +2990,9 @@ function lancerBilanHebdo() {
     const cls = getClassFromId(weakest);
     toast("📊 Bilan terminé ! " + (cls ? cls.name : '') + " reçoit +10% la semaine prochaine.");
   }
+
   weeklyClassXP = { guerrier: 0, mage: 0, ombre: 0, aventurier: 0 };
+
   renderAvatar();
   renderBilanHistory();
   updateHeader();
@@ -2955,20 +3000,24 @@ function lancerBilanHebdo() {
 }
 
 // ============================================================
-// GENERER ENTRAINEMENT (inchangé)
+// MODIFICATION DE genererEntrainement POUR ADAPTER XP ET DIFFICULTÉ
 // ============================================================
 async function genererEntrainement(btn) {
   const existingId = 'workout-generated';
   const existing = document.getElementById(existingId);
   if (existing) { existing.remove(); return; }
+
   const selectEl = document.getElementById('workout-type');
   const selectedDomain = selectEl ? selectEl.value : 'auto';
+
+  // Récupérer les dernières notations pour adapter la difficulté
   const ratings = await getLastWorkoutRatings(3);
-  let avgDifficulty = 3;
+  let avgDifficulty = 3; // valeur par défaut
   if (ratings.length > 0) {
     const sum = ratings.reduce((acc, r) => acc + (r.difficulty || 0), 0);
     avgDifficulty = sum / ratings.length;
   }
+
   const card = document.createElement('div');
   card.className = 'ai-card';
   card.id = existingId;
@@ -2977,7 +3026,9 @@ async function genererEntrainement(btn) {
   card.style.background = 'linear-gradient(135deg,rgba(96,165,250,.12),rgba(14,14,16,.08))';
   card.innerHTML = '<div class="ai-header"><span style="font-size:16px">🏋️</span><span class="ai-label" style="color:var(--blue)">Séance sur-mesure</span></div><div class="ai-body" id="txt-workout">Analyse du domaine choisi et calcul du protocole adaptatif...</div>';
   btn.closest('.quest').after(card);
+
   const historiquesRecents = LOG.slice(0, 10).map(l => l.quest_name).join(', ');
+
   let domaineInstructions = "";
   if (selectedDomain === "bodyweight") {
     domaineInstructions = "L'entraînement DOIT obligatoirement être axé sur le POIDS DU CORPS / CALISTHÉNIE (en utilisant sa bonne base en pompes, tractions, ou des variantes complexes comme du tempo ou de la pliométrie).";
@@ -2988,35 +3039,52 @@ async function genererEntrainement(btn) {
   } else {
     domaineInstructions = "Laisse libre cours à ton expertise de coach pour choisir le domaine (natation, course ou poids du corps) le plus pertinent selon son historique récent.";
   }
+
+  // Intégrer la difficulté moyenne
   let difficultyLevel = 'moyen';
   if (avgDifficulty <= 2) difficultyLevel = 'facile';
   else if (avgDifficulty >= 4) difficultyLevel = 'difficile';
+  // Si avgDifficulty = 3, on reste sur 'moyen'
+
   const prompt = buildCtx() + `
   En tant que coach sportif, génère un entraînement physique précis de 30 à 45 minutes pour Eliseo.
   CONTRAINTE DE SÉLECTION : ${domaineInstructions}
+  
   Prends également en compte son profil général et son historique récent d'actions: [${historiquesRecents}].
+  
   Suggestion basée sur les notations précédentes : la difficulté perçue moyenne est de ${avgDifficulty.toFixed(1)}/5.
   Propose un entraînement avec une difficulté ${difficultyLevel} (légèrement plus élevée si la moyenne est basse, et inversement).
+  
   Format de réponse obligatoire (sois hyper concis, direct et condensé) :
   1. Domaine et Objectif ciblé (ex: Natation - Vitesse explosive ou Calisthénie - Volume de force)
   2. Échauffement rapide
   3. Corps de séance : Exercices/Séries exactes, répétitions ou distances, temps de récupération très précis.
+  
   Maximum 7 lignes. Pas de markdown, pas de listes à puces ou tirets (sauts de ligne simples).
   Ajoute en début de réponse la difficulté proposée (1 à 5) entre parenthèses, ex: "(3/5)".
   `;
+
   const response = await callGemini(prompt);
+  
+  // Extraire la difficulté proposée (ex: "(4/5)")
   let proposedDifficulty = 3;
   const match = response.match(/\((\d)\/5\)/);
   if (match) proposedDifficulty = parseInt(match[1]);
+
+  // Calculer l'XP de base de l'entraînement : on part de 70 (XP de q5) et on ajuste selon la difficulté
   let baseXP = 70;
+  // Modulateur : si difficulté > 3, +15% par point, si < 3, -15% par point
   let xpMultiplier = 1 + (proposedDifficulty - 3) * 0.15;
   xpMultiplier = Math.max(0.8, Math.min(1.4, xpMultiplier));
   let finalXP = Math.round(baseXP * xpMultiplier);
+  // Application du bonus pilier (×1.2) et du boost classe éventuel
   finalXP = Math.round(finalXP * 1.2);
   const classId = getClassForPillar('p4');
   if (boostClass && classId === boostClass) {
     finalXP = Math.round(finalXP * 1.1);
   }
+
+  // Mettre à jour l'affichage pour montrer l'XP proposé
   const bodyEl = document.getElementById('txt-workout');
   if (bodyEl) {
     bodyEl.textContent = response + '\n\n🏆 XP estimé : +' + finalXP + ' XP (difficulté ' + proposedDifficulty + '/5)';
@@ -3043,6 +3111,7 @@ async function init() {
   renderStats();
   updateBadges();
 }
+
 if (!UID) {
   document.getElementById('setup-overlay').style.display = 'flex';
 } else {
@@ -3050,9 +3119,52 @@ if (!UID) {
 }
 
 // ============================================================
-// IA / COACH (avec notations dans le contexte)
+// IA / COACH (ajout des notations dans buildCtx)
+// ============================================================
+function buildCtx() {
+  const ph = getCurrentPhase();
+  const ps = PILLARS.map(function(p) { return p.name.split(' ')[0] + ': ' + (S[p.id + '_xp'] || 0) + 'XP'; }).join(', ');
+  let dynamicCtx = 'Progression actuelle — Phase ' + ph.id + ' (' + ph.name + '), mois ' + S.current_month + '/12. XP total: ' + S.total_xp + '. Streak: ' + S.streak + ' jours consecutifs. Piliers: ' + ps + '.';
+
+  // Ajouter les notations d'entraînement si disponibles
+  // On les récupère de manière asynchrone, mais ici on ne peut pas faire async dans buildCtx.
+  // On va les charger au préalable dans une variable globale, ou on les intègre via une fonction séparée.
+  // Pour simplifier, on va les ajouter via une fonction que l'on appellera avant d'envoyer le prompt.
+  // On va plutôt modifier les fonctions qui appellent buildCtx (envoyerMessageCoach, generateIAQuest, etc.) pour y ajouter les notations.
+  return SYSTEM_CONTEXT + '\n\n' + dynamicCtx;
+}
+
+// On surcharge les fonctions qui utilisent buildCtx pour y ajouter les notations
+const originalBuildCtx = buildCtx;
+buildCtx = function() {
+  let ctx = originalBuildCtx();
+  // On ajoute les notations d'entraînement (3 dernières)
+  // On les récupère de manière synchrone depuis une variable globale
+  if (window._lastWorkoutRatings) {
+    ctx += '\n\nDernières notations d\'entraînement :\n';
+    window._lastWorkoutRatings.forEach(r => {
+      ctx += '- ' + r.date + ' : ' + r.category + ' – difficulté ' + r.difficulty + '/5\n';
+    });
+  }
+  return ctx;
+};
+
+// Rafraîchir les notations périodiquement
+async function refreshWorkoutRatings() {
+  if (UID) {
+    window._lastWorkoutRatings = await getLastWorkoutRatings(3);
+  }
+}
+// Appeler au chargement et après chaque notation
+setInterval(refreshWorkoutRatings, 60000); // toutes les minutes
+// Appeler immédiatement
+refreshWorkoutRatings();
+
+// ============================================================
+// IA / COACH (suite)
 // ============================================================
 const WORKER_URL = 'https://evolution-ai.eliseobuti.workers.dev';
+
 function callGemini(prompt) {
   return new Promise(function(resolve) {
     try {
@@ -3072,26 +3184,7 @@ function callGemini(prompt) {
     } catch (e) { resolve('Erreur: ' + e.message); }
   });
 }
-let _lastWorkoutRatings = [];
-async function refreshWorkoutRatings() {
-  if (UID) {
-    _lastWorkoutRatings = await getLastWorkoutRatings(3);
-  }
-}
-setInterval(refreshWorkoutRatings, 60000);
-refreshWorkoutRatings();
-function buildCtx() {
-  const ph = getCurrentPhase();
-  const ps = PILLARS.map(p => p.name.split(' ')[0] + ': ' + (S[p.id + '_xp'] || 0) + 'XP').join(', ');
-  let ctx = 'Progression actuelle — Phase ' + ph.id + ' (' + ph.name + '), mois ' + S.current_month + '/12. XP total: ' + S.total_xp + '. Streak: ' + S.streak + ' jours consecutifs. Piliers: ' + ps + '.';
-  if (_lastWorkoutRatings.length > 0) {
-    ctx += '\n\nDernières notations d\'entraînement :\n';
-    _lastWorkoutRatings.forEach(r => {
-      ctx += '- ' + r.date + ' : ' + r.category + ' – difficulté ' + r.difficulty + '/5\n';
-    });
-  }
-  return ctx;
-}
+
 const SYSTEM_CONTEXT = `Tu es le coach personnel d'Eliseo, 19 ans, etudiant suisse en annee sabbatique apres sa maturite gymnasiale (moyenne 5.0). Il envisage des etudes de medecine. Il a 4 mois d'armee en fevrier. Il voyage parfois.
 
 PROFIL PHYSIQUE: Nageur regulier (2x/semaine, 1h15, ~3km/session). Bonne base physique (pompes, tractions faciles). Cardio ameliorable.
@@ -3113,6 +3206,7 @@ PHILOSOPHIE: Pratique deliberee > repetition passive. Stress + recuperation = cr
 PASSIONS: Piano, dessin (decompress), cinema (Wes Anderson, Jim Jarmusch, Jake Gyllenhaal), mode streetwear/vintage/gorpcore, vie sociale.
 
 Reponds toujours en francais, de facon directe, concrete et adaptee au niveau actuel d'Eliseo. Pas de markdown.`;
+
 function loadWelcomeMessage() {
   if (!UID) return;
   const el = document.getElementById('ai-welcome');
@@ -3120,28 +3214,37 @@ function loadWelcomeMessage() {
   el.style.display = 'block';
   txt.textContent = "Bonjour Eliseo ! Ton protocole d'observation factuelle et tes paquets d'étymologie sur Anki sont configurés pour optimiser ta préparation clinique et militaire. Prêt à passer à l'action ?";
 }
+
 async function envoyerMessageCoach() {
   const input = document.getElementById('coach-free-input');
   const chatBox = document.getElementById('coach-chat-messages');
   const msg = input.value.trim();
   if (!msg) return;
+
   chatBox.style.display = 'flex';
   const userEl = document.createElement('div');
   userEl.className = 'chat-msg user';
   userEl.textContent = '👉 Toi : ' + msg;
   chatBox.appendChild(userEl);
+
   const coachEl = document.createElement('div');
   coachEl.className = 'chat-msg coach';
   coachEl.textContent = '🤖 Coach : Réflexion...';
   chatBox.appendChild(coachEl);
+
   chatBox.scrollTop = chatBox.scrollHeight;
   input.value = '';
+
+  // Rafraîchir les notations avant d'envoyer
   await refreshWorkoutRatings();
+
   const prompt = buildCtx() + '\n\nVoici le message d\'Eliseo: "' + msg + '". Réponds de manière directe, analytique et motivante. Sans markdown.';
   const responseText = await callGemini(prompt);
+
   coachEl.textContent = '🤖 Coach : ' + responseText;
   chatBox.scrollTop = chatBox.scrollHeight;
 }
+
 async function coachQuete(btn) {
   const qId = btn.getAttribute('data-qid');
   const qName = btn.getAttribute('data-qname');
@@ -3155,20 +3258,26 @@ async function coachQuete(btn) {
   card.style.marginTop = '6px';
   card.innerHTML = '<div class="ai-header"><span style="font-size:16px">💡</span><span class="ai-label">Conseils</span></div><div class="ai-body" id="txt-' + qId + '">Chargement...</div>';
   btn.closest('.quest').after(card);
+
   let consigneSpecifique = "";
   if (qId === 'q3') {
     consigneSpecifique = " Interdiction absolue de parler de détection de mensonges, de psychologie, d'intentions ou de micro-expressions. Donne uniquement des exercices de repérage de faits anatomiques/mécaniques (asymétries, démarche, posture) et de tactique spatiale (calcul de distances à l'oeil nu, angles morts, repérage des sorties) utiles pour l'armée et la clinique.";
   }
+
   const prompt = buildCtx() + ' Quete: "' + qName + '" (' + qDesc + ').' + consigneSpecifique + ' Donne 3 conseils pratiques et concrets pour bien realiser cette quete aujourd hui. 4 lignes max. Pas de markdown ni tirets.';
   const bodyEl = document.getElementById('txt-' + qId);
   if (bodyEl) bodyEl.textContent = await callGemini(prompt);
 }
+
+// ============================================================
+// GENERER ENTRAINEMENT (déjà modifié plus haut)
+// ============================================================
+
 async function genererBilanRevue(bien, resist, change, stars) {
   const el = document.getElementById('ai-bilan');
   const txt = document.getElementById('ai-bilan-text');
   el.style.display = 'block';
   txt.textContent = 'Analyse de ta semaine...';
-  await refreshWorkoutRatings();
   const prompt = buildCtx() + ' Revue (' + stars + '/5). Ce qui a marche: "' + bien + '". Ce qui a resiste: "' + resist + '". Changement prevu: "' + change + '". Bilan: 1 point fort a consolider, 1 conseil sur le point de friction, 1 suggestion concrete pour la semaine prochaine. 5-6 lignes. Direct. Pas de markdown.';
   txt.textContent = await callGemini(prompt);
 }
