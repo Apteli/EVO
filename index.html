@@ -1652,33 +1652,40 @@ function updateHeader() {
   }
 }
 
-// === CORRECTION : barre Aventurier (🎒) exclut les quêtes IA ===
+// === CORRECTION DE updateXPbars : barre Aventurier basée sur LOG ===
 function updateXPbars() {
   const maxXP = 5000;
   const pilliersXP = (S.p1_xp || 0) + (S.p2_xp || 0) + (S.p3_xp || 0) + (S.p4_xp || 0) + (S.p5_xp || 0);
-  
-  // Calcul de l'XP pour la barre Aventurier (🎒) :
-  // On additionne les XP des quêtes forgées (manuelles) et des recettes.
-  // On exclut les quêtes IA (qui ont quest_id commençant par 'ia_').
+  // Calcul de l'XP pour la barre Aventurier (🎒) à partir de LOG
   let forgesXP = 0;
+  // On filtre les entrées LOG qui ont le flag "custom" ou les quêtes IA
+  // Les quêtes IA ont leur XP dans q.xpBonus, mais on les retrouve aussi dans LOG avec pillar_id='custom'
+  // On filtre les entrées de LOG qui ont pillar_id === 'custom' (quêtes forgées et IA)
   for (const l of LOG) {
-    // On inclut les entrées avec pillar_id === 'custom' ET qui ne sont pas des quêtes IA
-    if (l.pillar_id === 'custom' && l.quest_id && !l.quest_id.startsWith('ia_')) {
+    if (l.pillar_id === 'custom') {
       forgesXP += l.xp;
     }
-    // On inclut aussi les quêtes forgées manuelles qui pourraient avoir un autre pillar_id (normalement 'custom')
-    // et les recettes (également 'custom')
   }
-  // Ajouter les recettes qui auraient pu être cochées mais dont l'entrée LOG n'a pas été conservée (normalement si)
-  // Mais elles sont déjà dans LOG via toggleRecipe.
-  
-  // On ajoute aussi les XP des recettes qui sont actuellement done mais pas encore dans LOG ? Normalement LOG les contient.
-  // Pour être sûr, on ajoute les recettes qui ont un total_xp > 0 et qui sont done, mais on les a déjà dans LOG.
-  // On vérifie qu'il n'y a pas de double compte.
-  
-  // Pour éviter les doublons, on ne compte que les LOG.
-  // On fait un filtre supplémentaire : on exclut les quêtes IA même si leur pillar_id est 'custom'.
-  
+  // On ajoute aussi les XP des recettes (qui ont pillar_id = 'custom' également)
+  // Mais les recettes sont déjà dans LOG si elles ont été cochées, donc on les a déjà.
+  // Pour être sûr, on ajoute aussi les recettes depuis la variable recipes (si elles sont done)
+  for (const r of recipes) {
+    if (r.done) {
+      forgesXP += r.total_xp; // ou on peut calculer à partir de LOG, mais on les a déjà
+    }
+  }
+  // On s'assure qu'on n'a pas de double compte ; on peut aussi ne pas ajouter recipes ici
+  // car elles sont déjà dans LOG. On garde juste le LOG pour éviter les doublons.
+  // On va recalculer forgesXP uniquement à partir de LOG.
+  forgesXP = 0;
+  for (const l of LOG) {
+    if (l.pillar_id === 'custom' || l.quest_id && (l.quest_id.startsWith('cq_') || l.quest_id.startsWith('ia_'))) {
+      forgesXP += l.xp;
+    }
+  }
+  // Ajouter les recettes (qui ont pillar_id='custom' aussi) -> déjà inclus.
+  // Mais les recettes ont souvent un quest_id comme 'rec_' + timestamp, on les inclut aussi.
+
   document.getElementById('bar-global').style.width = Math.min(100, (S.total_xp / maxXP) * 100) + '%';
   document.getElementById('bar-global-val').textContent = S.total_xp + ' XP';
   document.getElementById('bar-pilliers').style.width = Math.min(100, (pilliersXP / maxXP) * 100) + '%';
@@ -1688,7 +1695,7 @@ function updateXPbars() {
 }
 
 // ============================================================
-// QUÊTES PRÉ-DÉFINIES AVEC TEMPS OPTIONNEL (correction arrondi)
+// QUÊTES PRÉ-DÉFINIES AVEC TEMPS OPTIONNEL
 // ============================================================
 function getClassEmoji(pid) {
   const c = getClassForPillar(pid);
@@ -1706,15 +1713,13 @@ function calculateBaseXP(q) {
 function calculateXPWithExtraTime(q, extraMinutes) {
   const defaultTime = QUEST_DEFAULT_TIME[q.id] || 30;
   const totalTime = defaultTime + extraMinutes;
-  // XP de base sans bonus : on calcule le taux par minute
   let xp = q.xp * (totalTime / defaultTime);
-  // Appliquer les bonus
   xp = Math.round(xp * 1.2);
   const classId = getClassForPillar(q.pid);
   if (boostClass && classId === boostClass) {
     xp = Math.round(xp * 1.1);
   }
-  return Math.round(xp); // arrondi final
+  return xp;
 }
 function toggleExtraTime(qId) {
   const field = document.getElementById('extra-time-field-' + qId);
@@ -1889,7 +1894,7 @@ async function toggleQuete(id) {
 }
 
 // ============================================================
-// SIDEQUEST (inchangée)
+// SIDEQUEST (inchangée, mais on ajoute l'XP dans LOG avec pillar_id='custom' ? Non, déjà géré par toggleSidequest)
 // ============================================================
 function initSidequest() {
   updateSidequestUI();
@@ -2479,9 +2484,7 @@ function renderClassBarChart() {
             font: { size: 11, weight: 'bold' },
             maxRotation: 0,
             autoSkip: false,
-            padding: 6,
-            // centrer le label sous la barre
-            offset: true
+            padding: 4
           },
           grid: { display: false }
         }
@@ -2574,7 +2577,7 @@ function renderAvatar() {
 }
 
 // ============================================================
-// STATISTIQUES - avec journal déroulant (inchangé)
+// STATISTIQUES - avec journal déroulant
 // ============================================================
 function renderStats() {
   const today = todayKey();
@@ -2589,6 +2592,7 @@ function renderStats() {
   }
   document.getElementById('heatmap').innerHTML = hm;
 
+  // Radar (écart relatif)
   const maxXP = Math.max(
     S.p1_xp || 0,
     S.p2_xp || 0,
@@ -2644,6 +2648,7 @@ function renderStats() {
     }
   });
 
+  // Graphique XP
   const xpCtx = document.getElementById('chart-xp').getContext('2d');
   const sorted = [...XP_HISTORY].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).slice(-20);
   const xpLabels = sorted.map(h => h.created_at ? h.created_at.slice(5, 10) : '');
@@ -2665,6 +2670,7 @@ function renderStats() {
     }
   });
 
+  // Capacités
   const capCounts = {};
   LOG.forEach(l => {
     if (l.pillar_id && l.pillar_id !== 'custom' && l.pillar_id !== 'review') {
@@ -2684,6 +2690,7 @@ function renderStats() {
     </div>`;
   }).join('');
 
+  // Jalons
   document.getElementById('milestones').innerHTML = MILESTONES.map(m => {
     const ok = m.check(S);
     return `<div class="ms-item${ok ? ' reached' : ''}">
@@ -2693,11 +2700,12 @@ function renderStats() {
     </div>`;
   }).join('');
 
-  // Journal des actions - version déroulante (inchangée)
+  // Journal des actions - version déroulante
   const logContainer = document.getElementById('log-list');
   if (!LOG.length) {
     logContainer.innerHTML = '<div class="empty-state">Aucune action enregistrée</div>';
   } else {
+    // On affiche les 5 premières lignes, le reste est caché avec un bouton
     const allEntries = LOG.slice(0, 20).map(l => `
       <div class="log-entry">
         <div class="log-dot" style="background:${PCOLS[l.pillar_id] || '#888'}"></div>
@@ -2706,11 +2714,14 @@ function renderStats() {
         <span class="log-time">${l.created_at ? l.created_at.slice(11, 16) : ''}</span>
       </div>
     `).join('');
+
+    // On crée un conteneur avec hauteur max et bouton toggle
     let html = `<div class="log-container collapsed" id="log-inner">
       ${allEntries}
     </div>
     <button class="log-toggle-btn" id="log-toggle-btn" onclick="toggleLog()">Voir plus</button>`;
     logContainer.innerHTML = html;
+    // Initialiser l'état
     if (LOG.length <= 5) {
       document.getElementById('log-toggle-btn').style.display = 'none';
     } else {
@@ -2718,6 +2729,8 @@ function renderStats() {
     }
   }
 }
+
+// Fonction pour basculer l'affichage du journal
 function toggleLog() {
   const container = document.getElementById('log-inner');
   const btn = document.getElementById('log-toggle-btn');
