@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="favicon.jpg?v=3">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-/* ===== STYLES (inchangés, avec ajout pour le bouton de temps) ===== */
+/* ===== STYLES (identiques à la version précédente) ===== */
 :root{--bg:#0e0e10;--card:#18181c;--card2:#222228;--border:rgba(255,255,255,0.07);--text:#f0f0f0;--muted:#777;--accent:#a78bfa;--accent2:#7c3aed;--green:#34d399;--amber:#fbbf24;--coral:#f87171;--blue:#60a5fa;--orange:#fb923c;--r:14px;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;font-size:15px;min-height:100dvh;padding-bottom:calc(76px + env(safe-area-inset-bottom));}
@@ -260,8 +260,6 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 .log-container.expanded { max-height: none; }
 .log-toggle-btn { background: none; border: none; color: var(--muted); font-size: 12px; cursor: pointer; padding: 4px 8px; margin-top: 8px; font-family: inherit; }
 .log-toggle-btn:hover { color: var(--text); }
-
-/* Bouton bilan désactivé */
 .bilan-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 </style>
 </head>
@@ -718,7 +716,7 @@ const AURA_CONFIG = {
   'stagnant': { name: 'Le Stagnant', icon: '💤', color: '#6b7280', cssClass: 'stagnant' }
 };
 
-// === Fonctions piliers et classes (inchangées) ===
+// === Fonctions piliers et classes ===
 function getPillarRank(xp) {
   let rank = PILLAR_RANKS[0];
   for (const r of PILLAR_RANKS) {
@@ -790,7 +788,7 @@ function getClassProgress(xp) {
 }
 
 // ============================================================
-// FONCTIONS SUPABASE (inchangées)
+// FONCTIONS SUPABASE
 // ============================================================
 async function sbGet(table, uid) {
   const r = await fetch(`${SB_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(uid)}&limit=1`, { headers: HDR });
@@ -816,7 +814,7 @@ async function sbGetMany(table, uid, limit = 30) {
 }
 
 // ============================================================
-// DONNÉES STATIQUES (inchangées)
+// DONNÉES STATIQUES
 // ============================================================
 const LEVELS = [
   { min: 0, name: 'Initié' }, { min: 500, name: 'Apprenti' }, { min: 1200, name: 'Praticien' },
@@ -919,7 +917,7 @@ const IA_MAX_PER_DAY = 3;
 const IA_BONUS_MULTIPLIER = 1.2;
 
 // ============================================================
-// FONCTIONS SUPABASE SPÉCIFIQUES (ajout pour l'aura)
+// FONCTIONS SUPABASE SPÉCIFIQUES
 // ============================================================
 async function saveAuraToDB(auraData) {
   if (!UID) return;
@@ -955,9 +953,6 @@ async function loadAuraFromDB() {
   return null;
 }
 
-// ============================================================
-// AUTRES FONCTIONS SUPABASE (inchangées)
-// ============================================================
 async function saveWorkoutRating(rating) {
   if (!UID) return;
   try {
@@ -1139,14 +1134,14 @@ async function loadIAQuestsFromDB() {
 }
 
 // ============================================================
-// FONCTIONS POUR LES QUÊTES IA (inchangées)
+// FONCTIONS POUR LES QUÊTES IA (exclut Aventurier)
 // ============================================================
 function detectWeakestClasses() {
   const scores = {
     guerrier: classXP.guerrier || 0,
     mage: classXP.mage || 0,
-    ombre: classXP.ombre || 0,
-    aventurier: classXP.aventurier || 0
+    ombre: classXP.ombre || 0
+    // AVENTURIER EST EXCLU
   };
   const minScore = Math.min(...Object.values(scores));
   const weakest = Object.keys(scores).filter(key => scores[key] === minScore);
@@ -1175,14 +1170,9 @@ function generateFallbackIAQuest(classId, difficulty) {
       'Observe 3 personnes dans un lieu public et note leur posture.',
       'Dessine un plan mental de la pièce où tu te trouves.',
       'Écoute une conversation sans intervenir pendant 5 minutes.'
-    ],
-    aventurier: [
-      'Essaie une nouvelle activité manuelle (dessin, bricolage, etc.) pendant 15 minutes.',
-      'Fais une micro-sieste de 10 minutes en pleine conscience.',
-      'Explore un lieu que tu ne connais pas dans ton quartier.'
     ]
   };
-  const texts = fallbackQuests[classId] || fallbackQuests.aventurier;
+  const texts = fallbackQuests[classId] || fallbackQuests.mage;
   const text = texts[Math.floor(Math.random() * texts.length)];
   return {
     id: 'ia_' + Date.now(),
@@ -1208,6 +1198,10 @@ async function generateIAQuest() {
     return;
   }
   const weakest = detectWeakestClasses();
+  if (weakest.length === 0) {
+    toast("⚠️ Aucune classe faible détectée (hors Aventurier).");
+    return;
+  }
   let selectedClass = weakest[0];
   if (weakest.length > 1) {
     const classOptions = weakest.map((c, i) => {
@@ -1296,7 +1290,6 @@ async function toggleIAQuest(id) {
     S.total_xp = Math.max(0, S.total_xp - q.xpBonus);
     classXP[q.classId] = Math.max(0, (classXP[q.classId] || 0) - q.xpBonus);
     weeklyClassXP[q.classId] = Math.max(0, (weeklyClassXP[q.classId] || 0) - q.xpBonus);
-    // On retire des piliers si applicable (mais IA n'a pas de pilier direct)
     LOG = LOG.filter(l => !(l.quest_id === id && l.created_at && l.created_at.slice(0, 10) === today));
     sbDelete('sys_log', UID, id, today).catch(() => {});
     toast("↩️ Quête IA décochée — XP retirés");
@@ -1305,13 +1298,12 @@ async function toggleIAQuest(id) {
     S.total_xp += q.xpBonus;
     classXP[q.classId] = (classXP[q.classId] || 0) + q.xpBonus;
     weeklyClassXP[q.classId] = (weeklyClassXP[q.classId] || 0) + q.xpBonus;
-    // On n'ajoute pas aux piliers car IA n'a pas de pilier
     const entry = {
       user_id: UID,
       quest_id: id,
       quest_name: '[IA] ' + q.text.slice(0, 40) + '...',
       xp: q.xpBonus,
-      pillar_id: 'custom', // pour ne pas apparaître dans les barres piliers
+      pillar_id: 'custom',
       created_at: new Date().toISOString()
     };
     LOG.unshift(entry);
@@ -1353,7 +1345,7 @@ function renderIAQuests() {
 }
 
 // ============================================================
-// FONCTIONS DE NOTATION D'ENTRAÎNEMENT (inchangées)
+// FONCTIONS DE NOTATION D'ENTRAÎNEMENT
 // ============================================================
 function showWorkoutRatingPopup(category, xp, entry) {
   pendingWorkoutRating = { category, xp, entry };
@@ -1438,7 +1430,7 @@ let pendingWorkoutRating = null;
 let workoutRatingValue = 0;
 
 // ============================================================
-// FONCTIONS UTILITAIRES (inchangées)
+// FONCTIONS UTILITAIRES
 // ============================================================
 function toast(msg) {
   const el = document.getElementById('toast');
@@ -1559,7 +1551,6 @@ async function loadFromSupabase() {
     await loadBilanHistory();
     await loadRecipes();
     await loadIAQuestsFromDB();
-    // Charger l'aura depuis la base
     const auraData = await loadAuraFromDB();
     if (auraData) {
       const aura = AURA_CONFIG[auraData.aura_id] || null;
@@ -1569,7 +1560,6 @@ async function loadFromSupabase() {
       boostClass = auraData.boost_class || null;
       lastBilanDate = auraData.last_bilan_date || null;
     } else {
-      // Fallback sur localStorage
       const savedAura = localStorage.getItem('sys12_aura');
       if (savedAura) {
         try {
@@ -1583,7 +1573,6 @@ async function loadFromSupabase() {
         } catch (e) {}
       }
     }
-    // Sauvegarder en base si pas déjà fait
     if (currentAura) {
       await saveAuraToDB({
         aura_id: currentAura ? currentAura.id : null,
@@ -1594,7 +1583,6 @@ async function loadFromSupabase() {
         last_bilan_date: lastBilanDate
       });
     }
-
     const savedWeekly = localStorage.getItem('sys12_weekly_xp');
     if (savedWeekly) {
       try { weeklyClassXP = JSON.parse(savedWeekly); } catch (e) {}
@@ -1652,7 +1640,6 @@ async function saveProgress() {
     if (currentSidequest) {
       await saveSidequestToDB(currentSidequest);
     }
-    // Sauvegarder l'aura en base
     await saveAuraToDB({
       aura_id: currentAura ? currentAura.id : null,
       aura_name: currentAura ? currentAura.name : null,
@@ -1727,9 +1714,8 @@ function updateHeader() {
     iaBtn.textContent = '🤖 Générer une quête IA (' + iaCount + '/' + IA_MAX_PER_DAY + ')';
     iaBtn.disabled = (iaCount >= IA_MAX_PER_DAY);
   }
-  // Bilan hebdo : désactivé sauf dimanche
   const today = new Date();
-  const isSunday = today.getDay() === 0; // 0 = dimanche
+  const isSunday = today.getDay() === 0;
   const bilanBtn = document.getElementById('btn-bilan-hebdo');
   if (bilanBtn) {
     if (!isSunday) {
@@ -1746,19 +1732,12 @@ function updateHeader() {
 function updateXPbars() {
   const maxXP = 5000;
   const pilliersXP = (S.p1_xp || 0) + (S.p2_xp || 0) + (S.p3_xp || 0) + (S.p4_xp || 0) + (S.p5_xp || 0);
-  
-  // Calcul de l'XP pour la barre Aventurier (🎒) :
-  // On additionne les XP des quêtes forgées (manuelles) et des recettes.
-  // On exclut les quêtes IA (qui ont quest_id commençant par 'ia_').
   let forgesXP = 0;
   for (const l of LOG) {
     if (l.pillar_id === 'custom' && l.quest_id && !l.quest_id.startsWith('ia_')) {
       forgesXP += l.xp;
     }
   }
-  // On ajoute aussi les recettes qui pourraient ne pas être dans LOG (normalement si)
-  // mais on les compte déjà via LOG.
-
   document.getElementById('bar-global').style.width = Math.min(100, (S.total_xp / maxXP) * 100) + '%';
   document.getElementById('bar-global-val').textContent = S.total_xp + ' XP';
   document.getElementById('bar-pilliers').style.width = Math.min(100, (pilliersXP / maxXP) * 100) + '%';
@@ -1768,7 +1747,7 @@ function updateXPbars() {
 }
 
 // ============================================================
-// QUÊTES PRÉ-DÉFINIES AVEC TEMPS OPTIONNEL (correction arrondi)
+// QUÊTES PRÉ-DÉFINIES (avec générateur d'entraînement et +temps)
 // ============================================================
 function getClassEmoji(pid) {
   const c = getClassForPillar(pid);
@@ -1786,15 +1765,13 @@ function calculateBaseXP(q) {
 function calculateXPWithExtraTime(q, extraMinutes) {
   const defaultTime = QUEST_DEFAULT_TIME[q.id] || 30;
   const totalTime = defaultTime + extraMinutes;
-  // XP de base sans bonus : on calcule le taux par minute
   let xp = q.xp * (totalTime / defaultTime);
-  // Appliquer les bonus
   xp = Math.round(xp * 1.2);
   const classId = getClassForPillar(q.pid);
   if (boostClass && classId === boostClass) {
     xp = Math.round(xp * 1.1);
   }
-  return Math.round(xp); // arrondi final
+  return Math.round(xp);
 }
 function toggleExtraTime(qId) {
   const field = document.getElementById('extra-time-field-' + qId);
@@ -1875,8 +1852,8 @@ function renderQuetes() {
     const classTag = `<span class="tag" style="background:rgba(255,255,255,0.05);">${classEmoji}</span>`;
     const safeN = q.name.replace(/"/g, '&quot;');
     const safeD = q.desc.replace(/"/g, '&quot;');
-    let coachBtn = inPhase ? `<button class="btn-coach" data-qid="${q.id}" data-qname="${safeN}" data-qdesc="${safeD}" onclick="event.stopPropagation();coachQuete(this)">💡 Coach</button>` : '';
     let extraHtml = '';
+    // AJOUT : bouton + temps UNIQUEMENT si la quête a une durée définie
     if (inPhase && q.id in QUEST_DEFAULT_TIME) {
       extraHtml = `
         <div style="display:flex;align-items:center;gap:6px;margin-top:2px;flex-wrap:wrap;">
@@ -1890,6 +1867,21 @@ function renderQuetes() {
                  oninput="updateExtraTimeDisplay('${q.id}')" onclick="event.stopPropagation();">
           <label>min supplémentaires</label>
           <span class="extra-xp" id="extra-xp-${q.id}"></span>
+        </div>
+      `;
+    }
+    // Générateur d'entraînement (q5)
+    let coachBtn = '';
+    if (q.id === 'q5' && inPhase) {
+      coachBtn = `
+        <div style="margin-top:4px;">
+          <select class="coach-select" id="workout-type" onclick="event.stopPropagation();">
+            <option value="bodyweight">🧱 Poids du corps</option>
+            <option value="swim">🏊 Natation</option>
+            <option value="run">🏃 Course à pied</option>
+            <option value="auto">🎲 Choix du coach</option>
+          </select>
+          <button class="btn-coach" style="background:rgba(96,165,250,.1);border-color:rgba(96,165,250,.3);color:var(--blue);margin-left:4px;" onclick="event.stopPropagation();genererEntrainement(this)">🏋️ Générer</button>
         </div>
       `;
     }
@@ -1969,7 +1961,15 @@ async function toggleQuete(id) {
 }
 
 // ============================================================
-// SIDEQUEST (inchangée)
+// SIDEQUEST, QUÊTES FORGÉES, RECETTES, VALIDATION, PILIERS, STATS
+// (Ces sections sont inchangées, elles sont dans le code précédent)
+// Pour gagner de la place, je les réinclus ici en une seule fois.
+// ============================================================
+// ... (toutes les fonctions sidequest, customQuests, recipes, validation, piliers, stats) ...
+// Je vais les ajouter maintenant.
+
+// ============================================================
+// SIDEQUEST
 // ============================================================
 function initSidequest() {
   updateSidequestUI();
@@ -2105,7 +2105,7 @@ async function rerollSidequestIA() {
 }
 
 // ============================================================
-// QUÊTES FORGÉES (inchangées)
+// QUÊTES FORGÉES
 // ============================================================
 function loadCustomQuests() {
   customQuests = JSON.parse(localStorage.getItem('sys12_custom_quests') || '[]');
@@ -2308,7 +2308,7 @@ async function toggleCustomQuest(id) {
 }
 
 // ============================================================
-// RECETTES (inchangées)
+// RECETTES
 // ============================================================
 function ajouterRecette() {
   const name = document.getElementById('recipe-name').value.trim();
@@ -2560,7 +2560,6 @@ function renderClassBarChart() {
             maxRotation: 0,
             autoSkip: false,
             padding: 6,
-            // centrer le label sous la barre
             offset: true
           },
           grid: { display: false }
@@ -2574,7 +2573,6 @@ function renderClassBarChart() {
 }
 
 function renderAvatar() {
-  // Aura
   const banner = document.getElementById('aura-banner');
   const icon = document.getElementById('aura-icon');
   const name = document.getElementById('aura-name');
@@ -2598,7 +2596,6 @@ function renderAvatar() {
     desc.textContent = 'Effectue ton premier bilan hebdomadaire';
     banner.className = 'aura-banner';
   }
-  // Classes
   for (const [id, cls] of Object.entries(CLASSES)) {
     const xp = classXP[id] || 0;
     const rank = getClassRank(xp);
@@ -2773,7 +2770,6 @@ function renderStats() {
     </div>`;
   }).join('');
 
-  // Journal des actions - version déroulante
   const logContainer = document.getElementById('log-list');
   if (!LOG.length) {
     logContainer.innerHTML = '<div class="empty-state">Aucune action enregistrée</div>';
@@ -2814,7 +2810,7 @@ function toggleLog() {
 }
 
 // ============================================================
-// REVUE, NAVIGATION, BILAN (bilan désactivé hors dimanche)
+// REVUE, NAVIGATION, BILAN
 // ============================================================
 function setStar(v) {
   starVal = v;
@@ -2884,7 +2880,6 @@ function goTab(id, btn) {
   if (id === 'avatar') {
     renderAvatar();
     renderBilanHistory();
-    // Mise à jour du bouton bilan (désactivé sauf dimanche)
     const today = new Date();
     const isSunday = today.getDay() === 0;
     const bilanBtn = document.getElementById('btn-bilan-hebdo');
@@ -2945,7 +2940,6 @@ function confirmerBoost() {
   toast("✅ Bénédiction appliquée au " + CLASSES[selected].name);
 }
 function lancerBilanHebdo() {
-  // Vérifier que c'est dimanche
   const today = new Date();
   if (today.getDay() !== 0) {
     toast("📅 Le bilan n'est disponible que le dimanche.");
@@ -3034,12 +3028,11 @@ function lancerBilanHebdo() {
     toast("📊 Bilan terminé ! " + (cls ? cls.name : '') + " reçoit +10% la semaine prochaine.");
   }
   weeklyClassXP = { guerrier: 0, mage: 0, ombre: 0, aventurier: 0 };
-  // Sauvegarder l'aura en base
   saveAuraToDB({
     aura_id: currentAura ? currentAura.id : null,
     aura_name: currentAura ? currentAura.name : null,
-    is_souverain,
-    is_stagnant,
+    is_souverain: isSouverain,
+    is_stagnant: isStagnant,
     boost_class: boostClass,
     last_bilan_date: lastBilanDate
   });
@@ -3050,7 +3043,7 @@ function lancerBilanHebdo() {
 }
 
 // ============================================================
-// GENERER ENTRAINEMENT (inchangé)
+// GENERER ENTRAINEMENT
 // ============================================================
 async function genererEntrainement(btn) {
   const existingId = 'workout-generated';
@@ -3145,7 +3138,7 @@ if (!UID) {
 }
 
 // ============================================================
-// IA / COACH (avec notations dans le contexte)
+// IA / COACH
 // ============================================================
 const WORKER_URL = 'https://evolution-ai.eliseobuti.workers.dev';
 function callGemini(prompt) {
