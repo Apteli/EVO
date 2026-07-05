@@ -1771,9 +1771,22 @@ function updateHeader() {
   const isSunday = today.getDay() === 0;
   const bilanBtn = document.getElementById('btn-bilan-hebdo');
   if (bilanBtn) {
+    // Vérifier si le bilan a déjà été fait cette semaine
+    let bilanDejaFait = false;
+    if (lastBilanDate) {
+      const lastBilan = new Date(lastBilanDate);
+      const startOfWeek = new Date(today);
+      startOfWeek.setDate(today.getDate() - today.getDay());
+      if (lastBilan >= startOfWeek) {
+        bilanDejaFait = true;
+      }
+    }
     if (!isSunday) {
       bilanBtn.disabled = true;
       bilanBtn.textContent = '📊 Bilan disponible uniquement le dimanche';
+    } else if (bilanDejaFait) {
+      bilanBtn.disabled = true;
+      bilanBtn.textContent = '📊 Bilan effectué';
     } else {
       bilanBtn.disabled = false;
       bilanBtn.textContent = '📊 Lancer le Bilan Hebdomadaire';
@@ -2604,13 +2617,15 @@ function renderClassBarChart() {
         x: {
           ticks: {
             color: '#aaa',
-            font: { size: 11, weight: 'bold' },
+            font: { size: 10, weight: 'bold' },
             maxRotation: 0,
             autoSkip: false,
             padding: 6,
-            offset: true
+            offset: true,
+            align: 'center'
           },
-          grid: { display: false }
+          grid: { display: false },
+          offset: true
         }
       },
       animation: {
@@ -2932,9 +2947,21 @@ function goTab(id, btn) {
     const isSunday = today.getDay() === 0;
     const bilanBtn = document.getElementById('btn-bilan-hebdo');
     if (bilanBtn) {
+      let bilanDejaFait = false;
+      if (lastBilanDate) {
+        const lastBilan = new Date(lastBilanDate);
+        const startOfWeek = new Date(today);
+        startOfWeek.setDate(today.getDate() - today.getDay());
+        if (lastBilan >= startOfWeek) {
+          bilanDejaFait = true;
+        }
+      }
       if (!isSunday) {
         bilanBtn.disabled = true;
         bilanBtn.textContent = '📊 Bilan disponible uniquement le dimanche';
+      } else if (bilanDejaFait) {
+        bilanBtn.disabled = true;
+        bilanBtn.textContent = '📊 Bilan effectué';
       } else {
         bilanBtn.disabled = false;
         bilanBtn.textContent = '📊 Lancer le Bilan Hebdomadaire';
@@ -2993,27 +3020,42 @@ function lancerBilanHebdo() {
     toast("📅 Le bilan n'est disponible que le dimanche.");
     return;
   }
+  // Vérifier si déjà fait cette semaine
+  if (lastBilanDate) {
+    const lastBilan = new Date(lastBilanDate);
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - today.getDay());
+    if (lastBilan >= startOfWeek) {
+      toast("✅ Bilan déjà effectué cette semaine.");
+      document.getElementById('btn-bilan-hebdo').disabled = true;
+      document.getElementById('btn-bilan-hebdo').textContent = '📊 Bilan effectué';
+      return;
+    }
+  }
+
   const btn = document.getElementById('btn-bilan-hebdo');
   btn.disabled = true;
   btn.textContent = 'Calcul en cours...';
-  const weeklyXP = { ...weeklyClassXP };
-  const totalXP = Object.values(weeklyXP).reduce((a, b) => a + b, 0);
+
+  // Utiliser classXP (total) au lieu de weeklyClassXP
+  const totalXP = Object.values(classXP).reduce((a, b) => a + b, 0);
   let auraId = 'stagnant';
   let aura = null;
   let isSouv = false;
   let isStag = false;
+
   if (totalXP === 0) {
     isStag = true;
     auraId = 'stagnant';
   } else {
-    const sorted = Object.entries(weeklyXP).sort((a, b) => b[1] - a[1]);
+    const sorted = Object.entries(classXP).sort((a, b) => b[1] - a[1]);
     const top1 = sorted[0][0];
     const top2 = sorted[1][0];
     const top3 = sorted[2] ? sorted[2][0] : null;
-    const values = Object.values(weeklyXP);
+    const values = Object.values(classXP);
     const maxDiff = Math.max(...values) - Math.min(...values);
     const avg = totalXP / 4;
-    if (maxDiff <= 10 && Object.values(weeklyXP).every(x => x >= avg * 0.8)) {
+    if (maxDiff <= 10 && Object.values(classXP).every(x => x >= avg * 0.8)) {
       isSouv = true;
       auraId = 'souverain';
     } else if (sorted[0][1] - sorted[1][1] > 50) {
@@ -3030,15 +3072,16 @@ function lancerBilanHebdo() {
   aura = AURA_CONFIG[auraId] || AURA_CONFIG['aventurier'];
   isSouverain = isSouv;
   isStagnant = isStag;
+
   const bilan = {
     week_start: new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10),
     week_end: new Date().toISOString().slice(0, 10),
     aura_id: auraId,
     aura_name: aura ? aura.name : 'Inconnu',
-    guerrier_xp: weeklyXP.guerrier || 0,
-    mage_xp: weeklyXP.mage || 0,
-    ombre_xp: weeklyXP.ombre || 0,
-    aventurier_xp: weeklyXP.aventurier || 0,
+    guerrier_xp: classXP.guerrier || 0,
+    mage_xp: classXP.mage || 0,
+    ombre_xp: classXP.ombre || 0,
+    aventurier_xp: classXP.aventurier || 0,
     is_souverain: isSouv,
     is_stagnant: isStag
   };
@@ -3046,6 +3089,7 @@ function lancerBilanHebdo() {
   bilanHistory.unshift(bilan);
   currentAura = aura;
   lastBilanDate = new Date().toISOString().slice(0, 10);
+
   if (isSouv) {
     boostSelectionPending = true;
     document.getElementById('choose-boost-container').style.display = 'block';
@@ -3060,9 +3104,10 @@ function lancerBilanHebdo() {
     btn.disabled = true;
     toast("💤 Bilan : Le Stagnant. Retour au front !");
   } else {
+    // Classe la plus faible en XP total pour le boost
     let minXP = Infinity;
     let weakest = null;
-    for (const [cls, xp] of Object.entries(weeklyXP)) {
+    for (const [cls, xp] of Object.entries(classXP)) {
       if (xp < minXP) {
         minXP = xp;
         weakest = cls;
@@ -3075,7 +3120,10 @@ function lancerBilanHebdo() {
     const cls = getClassFromId(weakest);
     toast("📊 Bilan terminé ! " + (cls ? cls.name : '') + " reçoit +10% la semaine prochaine.");
   }
+
+  // Réinitialiser les XP hebdomadaires pour le suivi, mais on garde classXP
   weeklyClassXP = { guerrier: 0, mage: 0, ombre: 0, aventurier: 0 };
+
   saveAuraToDB({
     aura_id: currentAura ? currentAura.id : null,
     aura_name: currentAura ? currentAura.name : null,
@@ -3084,6 +3132,7 @@ function lancerBilanHebdo() {
     boost_class: boostClass,
     last_bilan_date: lastBilanDate
   });
+
   renderAvatar();
   renderBilanHistory();
   updateHeader();
