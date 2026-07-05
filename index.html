@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="favicon.jpg?v=3">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-/* ===== STYLES (identiques à la version précédente) ===== */
+/* ===== STYLES ===== */
 :root{--bg:#0e0e10;--card:#18181c;--card2:#222228;--border:rgba(255,255,255,0.07);--text:#f0f0f0;--muted:#777;--accent:#a78bfa;--accent2:#7c3aed;--green:#34d399;--amber:#fbbf24;--coral:#f87171;--blue:#60a5fa;--orange:#fb923c;--r:14px;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;font-size:15px;min-height:100dvh;padding-bottom:calc(76px + env(safe-area-inset-bottom));}
@@ -716,6 +716,12 @@ const AURA_CONFIG = {
   'stagnant': { name: 'Le Stagnant', icon: '💤', color: '#6b7280', cssClass: 'stagnant' }
 };
 
+const CLASS_TO_PILLAR = {
+  'guerrier': 'p4',
+  'mage': 'p1',
+  'ombre': 'p3'
+};
+
 // === Fonctions piliers et classes ===
 function getPillarRank(xp) {
   let rank = PILLAR_RANKS[0];
@@ -1113,6 +1119,12 @@ async function saveIAQuestToDB(q) {
     });
   } catch (e) { console.warn('saveIAQuestToDB:', e); }
 }
+async function deleteIAQuestFromDB(id) {
+  if (!UID) return;
+  try {
+    await sbDelete('sys_ia_quests', UID, id, null);
+  } catch (e) { console.warn('deleteIAQuestFromDB:', e); }
+}
 async function loadIAQuestsFromDB() {
   if (!UID) return;
   try {
@@ -1134,14 +1146,13 @@ async function loadIAQuestsFromDB() {
 }
 
 // ============================================================
-// FONCTIONS POUR LES QUÊTES IA (exclut Aventurier)
+// FONCTIONS POUR LES QUÊTES IA
 // ============================================================
 function detectWeakestClasses() {
   const scores = {
     guerrier: classXP.guerrier || 0,
     mage: classXP.mage || 0,
     ombre: classXP.ombre || 0
-    // AVENTURIER EST EXCLU
   };
   const minScore = Math.min(...Object.values(scores));
   const weakest = Object.keys(scores).filter(key => scores[key] === minScore);
@@ -1277,6 +1288,31 @@ async function generateIAQuest() {
     isGeneratingIA = false;
   }
 }
+
+async function deleteIAQuest(id) {
+  if (!confirm("Supprimer cette quête IA définitivement ?")) return;
+  const q = iaQuests.find(x => x.id === id);
+  if (!q) return;
+  if (q.done) {
+    const today = todayKey();
+    S.total_xp = Math.max(0, S.total_xp - q.xpBonus);
+    classXP[q.classId] = Math.max(0, (classXP[q.classId] || 0) - q.xpBonus);
+    weeklyClassXP[q.classId] = Math.max(0, (weeklyClassXP[q.classId] || 0) - q.xpBonus);
+    const pilierId = CLASS_TO_PILLAR[q.classId];
+    if (pilierId) {
+      S[pilierId + '_xp'] = Math.max(0, (S[pilierId + '_xp'] || 0) - q.xpBonus);
+    }
+    LOG = LOG.filter(l => !(l.quest_id === id && l.created_at && l.created_at.slice(0, 10) === today));
+    sbDelete('sys_log', UID, id, today).catch(() => {});
+  }
+  iaQuests = iaQuests.filter(x => x.id !== id);
+  await deleteIAQuestFromDB(id);
+  toast("🗑️ Quête IA supprimée.");
+  renderIAQuests();
+  renderQuetes();
+  updateHeader();
+}
+
 async function toggleIAQuest(id) {
   if (isDayLocked) {
     toast("⚠️ Journée verrouillée. Utilise 'Modifier la journée' pour ajuster.");
@@ -1290,6 +1326,10 @@ async function toggleIAQuest(id) {
     S.total_xp = Math.max(0, S.total_xp - q.xpBonus);
     classXP[q.classId] = Math.max(0, (classXP[q.classId] || 0) - q.xpBonus);
     weeklyClassXP[q.classId] = Math.max(0, (weeklyClassXP[q.classId] || 0) - q.xpBonus);
+    const pilierId = CLASS_TO_PILLAR[q.classId];
+    if (pilierId) {
+      S[pilierId + '_xp'] = Math.max(0, (S[pilierId + '_xp'] || 0) - q.xpBonus);
+    }
     LOG = LOG.filter(l => !(l.quest_id === id && l.created_at && l.created_at.slice(0, 10) === today));
     sbDelete('sys_log', UID, id, today).catch(() => {});
     toast("↩️ Quête IA décochée — XP retirés");
@@ -1298,12 +1338,16 @@ async function toggleIAQuest(id) {
     S.total_xp += q.xpBonus;
     classXP[q.classId] = (classXP[q.classId] || 0) + q.xpBonus;
     weeklyClassXP[q.classId] = (weeklyClassXP[q.classId] || 0) + q.xpBonus;
+    const pilierId = CLASS_TO_PILLAR[q.classId];
+    if (pilierId) {
+      S[pilierId + '_xp'] = Math.min(MAX_PILLIER_XP, (S[pilierId + '_xp'] || 0) + q.xpBonus);
+    }
     const entry = {
       user_id: UID,
       quest_id: id,
       quest_name: '[IA] ' + q.text.slice(0, 40) + '...',
       xp: q.xpBonus,
-      pillar_id: 'custom',
+      pillar_id: pilierId || 'custom',
       created_at: new Date().toISOString()
     };
     LOG.unshift(entry);
@@ -1316,6 +1360,7 @@ async function toggleIAQuest(id) {
   renderQuetes();
   updateHeader();
 }
+
 function renderIAQuests() {
   const container = document.getElementById('ia-quests-container');
   if (!container) return;
@@ -1329,9 +1374,9 @@ function renderIAQuests() {
     const classEmoji = CLASSES[q.classId]?.icon || '🎒';
     const difficultyLabel = IA_DIFFICULTY[q.difficulty]?.label || 'Moyen';
     const done = q.done || false;
-    return `<div class="quest${done ? ' done' : ''}" onclick="toggleIAQuest('${q.id}')">
-      <div class="check">${done ? '✓' : ''}</div>
-      <div class="q-info">
+    return `<div class="quest${done ? ' done' : ''}" style="position:relative;">
+      <div class="check" onclick="toggleIAQuest('${q.id}')">${done ? '✓' : ''}</div>
+      <div class="q-info" onclick="toggleIAQuest('${q.id}')">
         <div class="q-name">🤖 ${q.text}</div>
         <div class="q-desc">Classe : ${classEmoji} ${CLASSES[q.classId]?.name || q.classId} · Difficulté : ${difficultyLabel}</div>
         <div class="q-tags">
@@ -1340,6 +1385,9 @@ function renderIAQuests() {
         </div>
       </div>
       <div class="q-xp">+${q.xpBonus} XP</div>
+      <div class="q-actions">
+        <button class="del" onclick="event.stopPropagation();deleteIAQuest('${q.id}')" title="Supprimer">🗑️</button>
+      </div>
     </div>`;
   }).join('');
 }
@@ -1403,7 +1451,8 @@ let checkedToday = {};
 let S = {
   total_xp: 0, streak: 0, last_day: null, days_total: 0,
   start_date: new Date().toISOString().slice(0, 10), current_month: 1,
-  p1_xp: 0, p2_xp: 0, p3_xp: 0, p4_xp: 0, p5_xp: 0
+  p1_xp: 0, p2_xp: 0, p3_xp: 0, p4_xp: 0, p5_xp: 0,
+  is_day_locked: false
 };
 let LOG = [];
 let XP_HISTORY = [];
@@ -1537,6 +1586,7 @@ async function loadFromSupabase() {
       const diffJours = Math.floor((now - start) / (1000 * 60 * 60 * 24));
       let moisEcoules = Math.floor(diffJours / 30.44);
       S.current_month = Math.max(1, Math.min(12, moisEcoules + 1));
+      isDayLocked = S.is_day_locked || false;
     }
     if (Array.isArray(logRaw)) LOG = logRaw;
     if (Array.isArray(histRaw)) XP_HISTORY = histRaw;
@@ -1613,10 +1663,12 @@ async function loadFromSupabase() {
     }
     if (S.last_day && S.last_day !== todayStr) {
       isDayLocked = false;
+      S.is_day_locked = false;
+      await saveProgress();
       updateValidationButton();
       toast("🔓 Nouveau jour ! La journée est déverrouillée.");
     } else {
-      isDayLocked = (S.last_day === todayStr && isDayLocked);
+      isDayLocked = S.is_day_locked || false;
     }
     if (!localStorage.getItem('newForgedQuest')) localStorage.setItem('newForgedQuest', 'false');
     if (!localStorage.getItem('newRecipe')) localStorage.setItem('newRecipe', 'false');
@@ -1630,6 +1682,7 @@ async function loadFromSupabase() {
 async function saveProgress() {
   setSyncState('syncing');
   try {
+    S.is_day_locked = isDayLocked;
     await sbUpsert('sys_progress', { ...S, user_id: UID, updated_at: new Date().toISOString() });
     await saveClassData();
     await saveCustomQuestsToDB();
@@ -1726,9 +1779,9 @@ function updateHeader() {
       bilanBtn.textContent = '📊 Lancer le Bilan Hebdomadaire';
     }
   }
+  updateValidationButton();
 }
 
-// === CORRECTION : barre Aventurier (🎒) exclut les quêtes IA ===
 function updateXPbars() {
   const maxXP = 5000;
   const pilliersXP = (S.p1_xp || 0) + (S.p2_xp || 0) + (S.p3_xp || 0) + (S.p4_xp || 0) + (S.p5_xp || 0);
@@ -1747,7 +1800,7 @@ function updateXPbars() {
 }
 
 // ============================================================
-// QUÊTES PRÉ-DÉFINIES (avec générateur d'entraînement et +temps)
+// QUÊTES PRÉ-DÉFINIES
 // ============================================================
 function getClassEmoji(pid) {
   const c = getClassForPillar(pid);
@@ -1853,7 +1906,6 @@ function renderQuetes() {
     const safeN = q.name.replace(/"/g, '&quot;');
     const safeD = q.desc.replace(/"/g, '&quot;');
     let extraHtml = '';
-    // AJOUT : bouton + temps UNIQUEMENT si la quête a une durée définie
     if (inPhase && q.id in QUEST_DEFAULT_TIME) {
       extraHtml = `
         <div style="display:flex;align-items:center;gap:6px;margin-top:2px;flex-wrap:wrap;">
@@ -1870,7 +1922,6 @@ function renderQuetes() {
         </div>
       `;
     }
-    // Générateur d'entraînement (q5)
     let coachBtn = '';
     if (q.id === 'q5' && inPhase) {
       coachBtn = `
@@ -1959,14 +2010,6 @@ async function toggleQuete(id) {
   updateHeader();
   renderPiliers();
 }
-
-// ============================================================
-// SIDEQUEST, QUÊTES FORGÉES, RECETTES, VALIDATION, PILIERS, STATS
-// (Ces sections sont inchangées, elles sont dans le code précédent)
-// Pour gagner de la place, je les réinclus ici en une seule fois.
-// ============================================================
-// ... (toutes les fonctions sidequest, customQuests, recipes, validation, piliers, stats) ...
-// Je vais les ajouter maintenant.
 
 // ============================================================
 // SIDEQUEST
@@ -2439,21 +2482,26 @@ async function validerJour() {
   renderRecipes();
   renderIAQuests();
   isDayLocked = true;
+  S.is_day_locked = true;
   updateValidationButton();
   scheduleSave();
   updateHeader();
   toast("🔒 Journée validée !");
   goTab('stats', document.querySelectorAll('.tab-btn')[3]);
 }
+
 function modifierJour() {
   if (!isDayLocked) {
     toast("⚠️ La journée n'est pas verrouillée.");
     return;
   }
   isDayLocked = false;
+  S.is_day_locked = false;
   updateValidationButton();
   toast("✏️ Journée déverrouillée — tu peux ajuster tes quêtes.");
+  scheduleSave();
 }
+
 function updateValidationButton() {
   const btn = document.getElementById('btn-valider');
   if (!btn) return;
@@ -2506,7 +2554,7 @@ function renderPiliers() {
 }
 
 // ============================================================
-// AVATAR / CLASSES + DIAGRAMME À BARRES (correction alignement)
+// AVATAR / CLASSES + DIAGRAMME À BARRES
 // ============================================================
 function renderClassBarChart() {
   const canvas = document.getElementById('class-bar-chart');
@@ -3116,7 +3164,6 @@ async function genererEntrainement(btn) {
 // ============================================================
 async function init() {
   await loadFromSupabase();
-  isDayLocked = (S.last_day === todayKey() && isDayLocked);
   updateValidationButton();
   updateHeader();
   renderQuetes();
