@@ -232,6 +232,8 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 .recipe-item .recipe-xp{font-size:12px;font-weight:700;color:var(--accent);}
 .recipe-item .recipe-steps{font-size:13px;color:var(--muted);margin-top:4px;padding-left:12px;border-left:2px solid var(--border);display:none;white-space:pre-wrap;}
 .recipe-item .recipe-steps.open{display:block;}
+.recipe-item .recipe-ingredients{font-size:12px;color:var(--text);margin-top:4px;padding-left:12px;border-left:2px solid var(--border);display:none;}
+.recipe-item .recipe-ingredients.open{display:block;}
 .recipe-item.done{opacity:0.4;}
 .recipe-item.done .recipe-name{text-decoration:line-through;}
 .rating-popup{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:400;display:none;align-items:center;justify-content:center;padding:20px;}
@@ -474,6 +476,9 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
             <div class="form-row">
               <input type="number" id="recipe-time" class="form-input" placeholder="Temps (min)" min="1" value="30">
               <input type="number" id="recipe-people" class="form-input" placeholder="Personnes" min="1" value="2">
+            </div>
+            <div class="form-group">
+              <textarea id="recipe-ingredients" class="form-input" placeholder="Ingrédients (un par ligne)" rows="3"></textarea>
             </div>
             <div class="form-group">
               <textarea id="recipe-steps" class="form-input" placeholder="Étapes (une par ligne)" rows="4"></textarea>
@@ -863,13 +868,14 @@ const QUETES = {
     { id: 'q10', name: 'Échecs / jeu stratégique', desc: '15 min blitz ou puzzle — pensée multi-coups', xp: 35, pid: 'p5', phases: [2, 3] },
     { id: 'q11', name: "Dessin d'observation", desc: '5 min — percevoir les lignes et volumes réels avant de dessiner', xp: 25, pid: 'p3', phases: [3] },
     { id: 'q12', name: 'Calcul mental chronométré', desc: '10 min — vitesse et chunking', xp: 30, pid: 'p1', phases: [2, 3] },
+    { id: 'q13', name: 'Mobilité & Souplesse', desc: '15-30 min de travail articulaire, étirements ou yoga', xp: 60, pid: 'p4', phases: [1, 2, 3] }
   ]
 };
 const PILLARS = [
   { id: 'p1', name: 'Métacognition & apprentissage', icon: '🧠', color: '#a78bfa', satellites: 'Mémoire · Calcul · Biais · Feynman' },
   { id: 'p2', name: 'Régulation psychophysio', icon: '🫁', color: '#34d399', satellites: 'Stress · Wim Hof · Sommeil · Récupération' },
   { id: 'p3', name: 'Présence & observation', icon: '👁', color: '#60a5fa', satellites: 'Sémiologie · Espace · Faits · Distances' },
-  { id: 'p4', name: 'Condition physique', icon: '⚡', color: '#fb923c', satellites: 'Force · Endurance · Proprio · Réflexes' },
+  { id: 'p4', name: 'Condition physique', icon: '⚡', color: '#fb923c', satellites: 'Force · Endurance · Proprio · Réflexes · Mobilité' },
   { id: 'p5', name: 'Influence & communication', icon: '🎯', color: '#fbbf24', satellites: 'Rhétorique · Langues · Négociation · Stratégie' },
 ];
 const MILESTONES = [
@@ -1076,6 +1082,7 @@ async function saveRecipes() {
         time: r.time,
         people: r.people,
         steps: r.steps,
+        ingredients: r.ingredients || '',
         done: r.done || false,
         total_xp: r.total_xp || 0,
         created_at: r.created_at || new Date().toISOString()
@@ -1094,6 +1101,7 @@ async function loadRecipes() {
         time: r.time || 30,
         people: r.people || 2,
         steps: r.steps || '',
+        ingredients: r.ingredients || '',
         done: r.done || false,
         total_xp: r.total_xp || 0,
         created_at: r.created_at || new Date().toISOString()
@@ -1553,6 +1561,11 @@ function formatSteps(text) {
   const lines = text.split('\n').filter(line => line.trim() !== '');
   return lines.map((line, i) => (i + 1) + '. ' + line.trim()).join('\n');
 }
+function formatIngredients(text) {
+  if (!text) return '';
+  const lines = text.split('\n').filter(line => line.trim() !== '');
+  return lines.map(line => '• ' + line.trim()).join('\n');
+}
 
 // ============================================================
 // INITIALISATION ET CHARGEMENT
@@ -1673,6 +1686,10 @@ async function loadFromSupabase() {
     if (!localStorage.getItem('newForgedQuest')) localStorage.setItem('newForgedQuest', 'false');
     if (!localStorage.getItem('newRecipe')) localStorage.setItem('newRecipe', 'false');
     updateBadges();
+    // Mise à jour finale de l'affichage après chargement complet
+    renderAvatar();
+    renderStats();
+    updateHeader();
     setSyncState('ok');
   } catch (e) {
     setSyncState('error');
@@ -1760,7 +1777,6 @@ function updateHeader() {
   const missed = S.last_day && (new Date() - new Date(S.last_day)) / 86400000 > 3;
   document.getElementById('alert').classList.toggle('show', !!missed && S.days_total > 0);
   updateXPbars();
-  renderAvatar();
   const iaCount = getIAQuestsCount();
   const iaBtn = document.getElementById('generate-ia-btn');
   if (iaBtn) {
@@ -1771,7 +1787,6 @@ function updateHeader() {
   const isSunday = today.getDay() === 0;
   const bilanBtn = document.getElementById('btn-bilan-hebdo');
   if (bilanBtn) {
-    // Vérifier si le bilan a déjà été fait cette semaine
     let bilanDejaFait = false;
     if (lastBilanDate) {
       const lastBilan = new Date(lastBilanDate);
@@ -1949,6 +1964,19 @@ function renderQuetes() {
         </div>
       `;
     }
+    if (q.id === 'q13' && inPhase) {
+      coachBtn = `
+        <div style="margin-top:4px;">
+          <select class="coach-select" id="mobility-type" onclick="event.stopPropagation();">
+            <option value="general">🧘 Mobilité générale</option>
+            <option value="yoga">🧘 Yoga / étirements</option>
+            <option value="dynamic">🏃 Étirements dynamiques</option>
+            <option value="articular">🦵 Mobilité articulaire</option>
+          </select>
+          <button class="btn-coach" style="background:rgba(96,165,250,.1);border-color:rgba(96,165,250,.3);color:var(--blue);margin-left:4px;" onclick="event.stopPropagation();genererMobilite(this)">🧘 Générer</button>
+        </div>
+      `;
+    }
     return `<div class="quest${done ? ' done' : ''}${!inPhase ? ' locked' : ''}" onclick="toggleQuete('${q.id}')" data-qid="${q.id}">
       <div class="check">${done ? '✓' : ''}</div>
       <div class="q-info">
@@ -2013,6 +2041,13 @@ async function toggleQuete(id) {
     if (id === 'q5') {
       const select = document.getElementById('workout-type');
       const category = select ? select.value : 'auto';
+      setTimeout(() => {
+        showWorkoutRatingPopup(category, finalXp, entry);
+      }, 300);
+    }
+    if (id === 'q13') {
+      const select = document.getElementById('mobility-type');
+      const category = select ? select.value : 'general';
       setTimeout(() => {
         showWorkoutRatingPopup(category, finalXp, entry);
       }, 300);
@@ -2375,12 +2410,14 @@ function ajouterRecette() {
   const time = parseInt(document.getElementById('recipe-time').value) || 30;
   const people = parseInt(document.getElementById('recipe-people').value) || 2;
   const steps = document.getElementById('recipe-steps').value.trim();
+  const ingredients = document.getElementById('recipe-ingredients').value.trim();
   const r = {
     id: 'rec_' + Date.now(),
     name: name,
     time: time,
     people: people,
     steps: steps,
+    ingredients: ingredients,
     done: false,
     total_xp: 0,
     created_at: new Date().toISOString()
@@ -2390,6 +2427,7 @@ function ajouterRecette() {
   document.getElementById('recipe-time').value = '30';
   document.getElementById('recipe-people').value = '2';
   document.getElementById('recipe-steps').value = '';
+  document.getElementById('recipe-ingredients').value = '';
   saveRecipes();
   setNewRecipe();
   toast("🍳 Recette ajoutée : '" + name + "'");
@@ -2405,11 +2443,14 @@ function renderRecipes() {
     const xp = r.total_xp || 0;
     const done = r.done || false;
     const formattedSteps = formatSteps(r.steps);
+    const formattedIngredients = formatIngredients(r.ingredients);
+    const hasIngredients = r.ingredients && r.ingredients.trim() !== '';
     return `<div class="recipe-item${done ? ' done' : ''}" data-id="${r.id}">
       <div class="check" onclick="event.stopPropagation();toggleRecipe('${r.id}')">${done ? '✓' : ''}</div>
       <div class="recipe-info" onclick="event.stopPropagation();toggleRecipe('${r.id}')">
         <div class="recipe-name">${r.name}</div>
         <div class="recipe-meta">⏱️ ${r.time} min · 👥 ${r.people} pers</div>
+        ${hasIngredients ? `<div class="recipe-ingredients open" onclick="event.stopPropagation();toggleRecipeIngredients(this)">${formattedIngredients}</div>` : ''}
         <div class="recipe-steps${formattedSteps ? ' open' : ''}" onclick="event.stopPropagation();toggleRecipeSteps(this)">${formattedSteps}</div>
       </div>
       <div class="recipe-xp">+${xp} XP</div>
@@ -2459,6 +2500,9 @@ async function toggleRecipe(id) {
   renderAvatar();
 }
 function toggleRecipeSteps(el) {
+  el.classList.toggle('open');
+}
+function toggleRecipeIngredients(el) {
   el.classList.toggle('open');
 }
 
@@ -2593,7 +2637,7 @@ function renderClassBarChart() {
         borderColor: colors.map(c => c + 'aa'),
         borderWidth: 1,
         borderRadius: 4,
-        barPercentage: 0.6,
+        barPercentage: 0.4,
       }]
     },
     options: {
@@ -2617,10 +2661,10 @@ function renderClassBarChart() {
         x: {
           ticks: {
             color: '#aaa',
-            font: { size: 10, weight: 'bold' },
+            font: { size: 9, weight: 'bold' },
             maxRotation: 0,
             autoSkip: false,
-            padding: 6,
+            padding: 8,
             offset: true,
             align: 'center'
           },
@@ -2650,7 +2694,7 @@ function renderAvatar() {
       desc.textContent = 'Aucune activité cette semaine. Retour au front !';
       banner.className = 'aura-banner stagnant';
     } else {
-      desc.textContent = `Classe dominante de la semaine${boostClass ? ` — Bénédiction: +10% ${CLASSES[boostClass]?.name || ''}` : ''}`;
+      desc.textContent = `Classe dominante${boostClass ? ` — Bénédiction: +10% ${CLASSES[boostClass]?.name || ''}` : ''}`;
       banner.className = 'aura-banner ' + currentAura.cssClass;
     }
   } else {
@@ -3209,6 +3253,83 @@ async function genererEntrainement(btn) {
 }
 
 // ============================================================
+// GENERER MOBILITE
+// ============================================================
+async function genererMobilite(btn) {
+  const existingId = 'mobility-generated';
+  const existing = document.getElementById(existingId);
+  if (existing) { existing.remove(); return; }
+  const selectEl = document.getElementById('mobility-type');
+  const selectedDomain = selectEl ? selectEl.value : 'general';
+  const ratings = await getLastWorkoutRatings(3);
+  let avgDifficulty = 3;
+  if (ratings.length > 0) {
+    const sum = ratings.reduce((acc, r) => acc + (r.difficulty || 0), 0);
+    avgDifficulty = sum / ratings.length;
+  }
+  const card = document.createElement('div');
+  card.className = 'ai-card';
+  card.id = existingId;
+  card.style.marginTop = '6px';
+  card.style.border = '0.5px solid rgba(52,211,153,.3)';
+  card.style.background = 'linear-gradient(135deg,rgba(52,211,153,.12),rgba(14,14,16,.08))';
+  card.innerHTML = '<div class="ai-header"><span style="font-size:16px">🧘</span><span class="ai-label" style="color:var(--green)">Mobilité sur-mesure</span></div><div class="ai-body" id="txt-mobility">Analyse du domaine choisi et construction du protocole adaptatif...</div>';
+  btn.closest('.quest').after(card);
+
+  const historiquesRecents = LOG.slice(0, 10).map(l => l.quest_name).join(', ');
+  let domaineInstructions = "";
+  if (selectedDomain === "general") {
+    domaineInstructions = "Génère une séance de mobilité générale incluant des exercices pour les hanches, épaules, colonne et chevilles.";
+  } else if (selectedDomain === "yoga") {
+    domaineInstructions = "Génère une séance de yoga/étirements statiques, avec des postures tenues, la respiration et la relaxation.";
+  } else if (selectedDomain === "dynamic") {
+    domaineInstructions = "Génère une séance d'étirements dynamiques (balancements, rotations, mouvements actifs) pour préparer le corps à l'effort.";
+  } else if (selectedDomain === "articular") {
+    domaineInstructions = "Génère une séance de mobilité articulaire (rotations, cercles, flexions/extensions) pour améliorer l'amplitude et la fluidité.";
+  } else {
+    domaineInstructions = "Laisse libre cours à ton expertise pour choisir le type de mobilité le plus pertinent.";
+  }
+
+  let difficultyLevel = 'moyen';
+  if (avgDifficulty <= 2) difficultyLevel = 'facile';
+  else if (avgDifficulty >= 4) difficultyLevel = 'difficile';
+
+  const prompt = buildCtx() + `
+  En tant que coach, génère une séance de mobilité et souplesse de 15 à 25 minutes pour Eliseo.
+  TYPE DEMANDÉ : ${domaineInstructions}
+  Prends en compte son historique récent : [${historiquesRecents}].
+  La difficulté perçue moyenne est de ${avgDifficulty.toFixed(1)}/5.
+  Propose une séance de difficulté ${difficultyLevel} (plus élevée si la moyenne est basse).
+  Format de réponse (très concis) :
+  1. Objectif de la séance (ex: "Amplitude des hanches et souplesse du dos")
+  2. Échauffement (2-3 mouvements)
+  3. Corps de séance : 4-5 exercices avec consignes précises (durée, répétitions, ressenti)
+  4. Récupération (1-2 étirements)
+  Maximum 8 lignes. Pas de markdown, pas de listes à puces (sauts de ligne simples).
+  Ajoute en début la difficulté proposée (1 à 5) entre parenthèses, ex: "(3/5)".
+  `;
+  const response = await callGemini(prompt);
+  let proposedDifficulty = 3;
+  const match = response.match(/\((\d)\/5\)/);
+  if (match) proposedDifficulty = parseInt(match[1]);
+
+  let baseXP = 60;
+  let xpMultiplier = 1 + (proposedDifficulty - 3) * 0.15;
+  xpMultiplier = Math.max(0.8, Math.min(1.4, xpMultiplier));
+  let finalXP = Math.round(baseXP * xpMultiplier);
+  finalXP = Math.round(finalXP * 1.2);
+  const classId = getClassForPillar('p4');
+  if (boostClass && classId === boostClass) {
+    finalXP = Math.round(finalXP * 1.1);
+  }
+
+  const bodyEl = document.getElementById('txt-mobility');
+  if (bodyEl) {
+    bodyEl.textContent = response + '\n\n🏆 XP estimé : +' + finalXP + ' XP (difficulté ' + proposedDifficulty + '/5)';
+  }
+}
+
+// ============================================================
 // INITIALISATION
 // ============================================================
 async function init() {
@@ -3284,7 +3405,7 @@ SYSTEME 12 MOIS — 5 PILIERS:
 1. Metacognition & apprentissage (memoire, calcul mental, bais cognitifs, methode Feynman, transfert inter-domaines)
 2. Regulation psychophysiologique (respiration, Wim Hof, sommeil, stress, controle emotionnel)
 3. Presence & observation (semiologie clinique factuelle, conscience spatiale, detection elements tactiques et environnementaux, sans psychologisation)
-4. Condition physique (force, endurance zone 2, proprioception, reflexes, coordination)
+4. Condition physique (force, endurance zone 2, proprioception, reflexes, coordination, mobilité)
 5. Influence & communication (rhetorique, langues, negociation, echecs/strategie)
 
 3 PHASES:
