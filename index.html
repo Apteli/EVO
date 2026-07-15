@@ -73,6 +73,9 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .tag-min{background:rgba(167,139,250,.15);color:var(--accent);}
 .tag-ph{background:rgba(255,255,255,.07);color:var(--muted);}
 .tag-aventurier{background:rgba(34,197,94,.15);color:#22c55e;}
+.tag-guerrier{background:rgba(239,68,68,.15);color:#ef4444;}
+.tag-ombre{background:rgba(139,92,246,.15);color:#8b5cf6;}
+.tag-mage{background:rgba(59,130,246,.15);color:#3b82f6;}
 .q-xp{font-size:13px;font-weight:700;color:var(--accent);flex-shrink:0;cursor:default;}
 .q-actions{display:flex;gap:4px;flex-shrink:0;}
 .q-actions button{background:rgba(255,255,255,0.06);border:0.5px solid var(--border);border-radius:6px;color:var(--muted);font-size:14px;padding:2px 6px;cursor:pointer;font-family:inherit;}
@@ -87,13 +90,23 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .btn-accent:active,.btn-muted:active{opacity:0.8;}
 .alert{background:rgba(251,191,36,.1);border:0.5px solid rgba(251,191,36,.3);border-radius:10px;padding:12px 14px;font-size:13px;color:#fbbf24;margin-bottom:12px;display:none;}
 .alert.show{display:block;}
-.pillar{background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;}
+.pillar{background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;cursor:pointer;transition:all .2s;}
+.pillar:hover{background:var(--card2);}
+.pillar .sub-pillars{display:none;margin-top:10px;padding-top:10px;border-top:0.5px solid var(--border);}
+.pillar .sub-pillars.open{display:block;}
+.sub-pillar{display:flex;align-items:center;gap:8px;margin-bottom:6px;padding:4px 0;}
+.sub-pillar .sub-label{font-size:11px;font-weight:600;color:var(--muted);min-width:70px;}
+.sub-pillar .sub-track{flex:1;background:rgba(255,255,255,0.06);border-radius:4px;height:4px;overflow:hidden;}
+.sub-pillar .sub-fill{height:100%;border-radius:4px;transition:width .5s;}
+.sub-pillar .sub-value{font-size:10px;color:var(--muted);min-width:40px;text-align:right;}
 .pillar-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
 .pillar-icon{font-size:20px;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .pillar-name{font-size:14px;font-weight:600;flex:1;}
 .pillar-lv{font-size:12px;color:var(--muted);}
 .pillar-title{font-size:13px;font-weight:700;color:var(--accent);margin-left:6px;}
 .pillar-sats{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;}
+.pillar-arrow{font-size:12px;color:var(--muted);transition:transform .3s;}
+.pillar-arrow.open{transform:rotate(180deg);}
 .chart-card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px;}
 .chart-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
 .cap-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
@@ -123,6 +136,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .log-time{font-size:11px;color:var(--muted);}
 .rev-card{background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px;}
 .rev-q{font-size:14px;font-weight:600;margin-bottom:10px;}
+.rev-stats{font-size:12px;color:var(--muted);margin-bottom:12px;padding:8px;background:rgba(255,255,255,0.03);border-radius:8px;line-height:1.6;}
 .stars{display:flex;gap:6px;}
 .star{font-size:26px;opacity:.2;cursor:pointer;transition:opacity .1s;}
 .star.on{opacity:1;}
@@ -502,7 +516,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 <!-- Écran Stats -->
 <div id="screen-stats" class="screen">
   <div class="chart-card">
-    <div class="chart-title">XP cumulé — historique</div>
+    <div class="chart-title">XP gagnés par jour</div>
     <canvas id="chart-xp" height="130"></canvas>
   </div>
   <div class="chart-card">
@@ -525,10 +539,12 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
   <div class="chart-card" id="log-list"><div class="empty-state">Aucune action enregistrée</div></div>
 </div>
 
-<!-- Écran Revue -->
+<!-- Écran Revue (fusionnée avec bilan) -->
 <div id="screen-revue" class="screen">
   <div class="rev-card">
-    <div class="rev-q">Cette semaine globalement</div>
+    <div class="rev-q">📊 Bilan de la semaine</div>
+    <div class="rev-stats" id="rev-stats-preview">Chargement des statistiques...</div>
+    <div class="rev-q" style="margin-top:12px;">Cette semaine globalement (1 à 5 étoiles)</div>
     <div class="stars" id="stars-row">
       <span class="star" onclick="setStar(1)">★</span>
       <span class="star" onclick="setStar(2)">★</span>
@@ -539,17 +555,17 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
   </div>
   <div class="rev-card">
     <div class="rev-q">Ce qui a bien fonctionné</div>
-    <textarea id="rv-bien" placeholder="Habitudes tenues, progrès..."></textarea>
+    <textarea id="rv-bien" placeholder="Habitudes tenues, progrès, fiertés..."></textarea>
   </div>
   <div class="rev-card">
-    <div class="rev-q">Ce qui a résisté</div>
+    <div class="rev-q">Ce qui a résisté ou a été difficile</div>
     <textarea id="rv-resist" placeholder="Friction, abandons, raisons..."></textarea>
   </div>
   <div class="rev-card">
     <div class="rev-q">Ce que je change cette semaine</div>
     <textarea id="rv-change" placeholder="Un ajustement concret..."></textarea>
   </div>
-  <button class="btn-main" onclick="sauvegarderRevue()">Sauvegarder +100 XP</button>
+  <button class="btn-main" id="btn-bilan-revue" onclick="sauvegarderRevue()">Sauvegarder et recevoir le bilan</button>
   <div id="ai-bilan" class="ai-card" style="display:none;margin-top:12px;"><div class="ai-header"><span style="font-size:16px">🧠</span><span class="ai-label">Bilan IA</span></div><div class="ai-body" id="ai-bilan-text"></div></div>
 </div>
 
@@ -622,7 +638,6 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
       <div class="empty-state">Aucun bilan enregistré</div>
     </div>
   </div>
-  <button class="bilan-btn" onclick="lancerBilanHebdo()" id="btn-bilan-hebdo">📊 Lancer le Bilan Hebdomadaire</button>
 </div>
 
 <!-- Tab Bar -->
@@ -632,7 +647,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
   <button class="tab-btn" onclick="goTab('piliers',this)"><span class="tab-icon">🧱</span>Piliers</button>
   <button class="tab-btn" onclick="goTab('stats',this)"><span class="tab-icon">📈</span>Stats</button>
   <button class="tab-btn" onclick="goTab('avatar',this)"><span class="tab-icon">👤</span>Statuts</button>
-  <button class="tab-btn" onclick="goTab('revue',this)"><span class="tab-icon">📋</span>Revue</button>
+  <button class="tab-btn" onclick="goTab('revue',this)"><span class="tab-icon">📋</span>Bilan</button>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -725,6 +740,57 @@ const CLASS_TO_PILLAR = {
   'guerrier': 'p4',
   'mage': 'p1',
   'ombre': 'p3'
+};
+
+// === Sous-piliers ===
+const SUB_PILLARS = {
+  p1: ['mémoire', 'calcul', 'biais', 'lecture'],
+  p2: ['respiration', 'froid', 'sommeil'],
+  p3: ['observation', 'spatial', 'sémiologie'],
+  p4: ['force', 'endurance', 'mobilité', 'coordination'],
+  p5: ['rhétorique', 'langue', 'stratégie', 'négociation']
+};
+const SUB_PILLAR_NAMES = {
+  mémoire: 'Mémoire',
+  calcul: 'Calcul',
+  biais: 'Biais',
+  lecture: 'Lecture',
+  respiration: 'Respiration',
+  froid: 'Exposition au froid',
+  sommeil: 'Sommeil',
+  observation: 'Observation',
+  spatial: 'Spatial',
+  sémiologie: 'Sémiologie',
+  force: 'Force',
+  endurance: 'Endurance',
+  mobilité: 'Mobilité',
+  coordination: 'Coordination',
+  rhétorique: 'Rhétorique',
+  langue: 'Langue',
+  stratégie: 'Stratégie',
+  négociation: 'Négociation'
+};
+const SUB_PILLAR_MAX_XP = 1000;
+
+// === Messages coach statiques (économie IA) ===
+const COACH_MESSAGES = {
+  q1: "La respiration cohérente améliore la variabilité cardiaque. Fais 5 cycles complets (inspire 4s, bloque 4s, expire 6s).",
+  q2: "L'Anki est un outil puissant. Essaie de créer des associations mentales pour chaque carte. 10 cartes aujourd'hui, c'est l'objectif.",
+  q3: "Observe un fait physique (posture, démarche) et scanne l'espace (distances, issues). Note-les dans ton journal.",
+  q4: "La méthode Feynman : explique le concept à voix haute comme si tu l'enseignais. Identifie les zones floues.",
+  q5: "Entraînement physique : écoute ton corps. L'échauffement est crucial. Hydrate-toi bien.",
+  q6: "Protocole Wim Hof : 3 cycles de respiration (30-40 respirations) puis douche froide progressive. Termine par 30s-1min de froid.",
+  q7: "Pour la langue, écoute et répète des phrases courtes. L'imitation est la clé. Utilise Pimsleur ou Assimil.",
+  q8: "Journal décisionnel : prends une décision récente, analyse les biais possibles (ancrage, confirmation, etc.).",
+  q9: "Lecture 30 min : prends des notes marginales. Relis les passages clés et reformule-les.",
+  q10: "Aux échecs, pense en termes de menaces et de plans. 15 min de blitz, c'est parfait pour la rapidité.",
+  q11: "Dessin d'observation : regarde l'objet 30s, puis ferme les yeux et visualise-le. Dessine ensuite sans regarder.",
+  q12: "Calcul mental : entraîne-toi sur des multiplications complexes. Chronomètre-toi pour suivre la progression.",
+  q13: "Mobilité : fais chaque exercice avec contrôle et respiration. Ne force jamais au-delà de ton amplitude confortable.",
+  q14: "Parcours de mobilité active : enchaîne des mouvements fluides (fentes, rotations, balancements). 10 min suffisent.",
+  q15: "Observation urbaine : dans la rue, repère 3 détails architecturaux ou humains que tu n'avais jamais vus.",
+  q16: "Exploration d'un sujet : lis un article sur un domaine que tu ne connais pas. Note 3 idées nouvelles.",
+  q17: "Défi d'observation clinique : dans un lieu public, décris mentalement la posture de 3 personnes sans les regarder directement."
 };
 
 // === Fonctions piliers et classes ===
@@ -825,7 +891,7 @@ async function sbGetMany(table, uid, limit = 30) {
 }
 
 // ============================================================
-// DONNÉES STATIQUES
+// DONNÉES STATIQUES (Mage -20%)
 // ============================================================
 const LEVELS = [
   { min: 0, name: 'Initié' }, { min: 500, name: 'Apprenti' }, { min: 1200, name: 'Praticien' },
@@ -849,26 +915,32 @@ const QUEST_DEFAULT_TIME = {
   'q9': 30,
   'q10': 15,
   'q11': 5,
-  'q12': 10
+  'q12': 10,
+  'q13': 15
 };
 
+// Quêtes avec XP du Mage réduits de 20%
 const QUETES = {
   min: [
-    { id: 'q1', name: 'Respiration / cohérence cardiaque', desc: '5 min box breathing ou cohérence cardiaque', xp: 30, pid: 'p2', phases: [1, 2, 3] },
-    { id: 'q2', name: 'Anki — cartes du jour', desc: '10 min, minimum 10 cartes (Étymologie médicale)', xp: 40, pid: 'p1', phases: [1, 2, 3] },
-    { id: 'q3', name: 'Sémiologie factuelle & conscience spatiale', desc: '1 fait physique noté (posture/marche) + 1 scan spatial (sorties/distances)', xp: 20, pid: 'p3', phases: [1, 2, 3] },
+    { id: 'q1', name: 'Respiration / cohérence cardiaque', desc: '5 min box breathing ou cohérence cardiaque', xp: 30, pid: 'p2', sub: 'respiration', phases: [1, 2, 3] },
+    { id: 'q2', name: 'Anki — cartes du jour', desc: '10 min, minimum 10 cartes (Étymologie médicale)', xp: 27, pid: 'p1', sub: 'mémoire', phases: [1, 2, 3] },
+    { id: 'q3', name: 'Sémiologie factuelle & conscience spatiale', desc: '1 fait physique noté (posture/marche) + 1 scan spatial (sorties/distances)', xp: 20, pid: 'p3', sub: 'observation', phases: [1, 2, 3] },
   ],
   opt: [
-    { id: 'q4', name: 'Bloc cognitif profond', desc: '45 min lecture technique, calcul ou méthode Feynman', xp: 80, pid: 'p1', phases: [1, 2, 3] },
-    { id: 'q5', name: 'Entraînement physique', desc: '30 min force, natation ou zone 2', xp: 70, pid: 'p4', phases: [1, 2, 3] },
-    { id: 'q6', name: 'Wim Hof / douche froide', desc: 'Protocole respiration + exposition au froid', xp: 50, pid: 'p2', phases: [1, 2, 3] },
-    { id: 'q7', name: 'Langue ou rhétorique', desc: '30 min Pimsleur, Assimil ou débat oral', xp: 60, pid: 'p5', phases: [2, 3] },
-    { id: 'q8', name: 'Journal décisionnel', desc: '5 min — 1 décision analysée pour biais cognitifs', xp: 30, pid: 'p1', phases: [1, 2, 3] },
-    { id: 'q9', name: 'Lecture 30 min', desc: 'Médecine, philo, neuro, stoïcisme...', xp: 40, pid: 'p1', phases: [1, 2, 3] },
-    { id: 'q10', name: 'Échecs / jeu stratégique', desc: '15 min blitz ou puzzle — pensée multi-coups', xp: 35, pid: 'p5', phases: [2, 3] },
-    { id: 'q11', name: "Dessin d'observation", desc: '5 min — percevoir les lignes et volumes réels avant de dessiner', xp: 25, pid: 'p3', phases: [3] },
-    { id: 'q12', name: 'Calcul mental chronométré', desc: '10 min — vitesse et chunking', xp: 30, pid: 'p1', phases: [2, 3] },
-    { id: 'q13', name: 'Mobilité & Souplesse', desc: '15-30 min de travail articulaire, étirements ou yoga', xp: 60, pid: 'p4', phases: [1, 2, 3] }
+    { id: 'q4', name: 'Bloc cognitif profond', desc: '45 min lecture technique, calcul ou méthode Feynman', xp: 54, pid: 'p1', sub: 'lecture', phases: [1, 2, 3] },
+    { id: 'q5', name: 'Entraînement physique', desc: '30 min force, natation ou zone 2', xp: 70, pid: 'p4', sub: 'endurance', phases: [1, 2, 3] },
+    { id: 'q6', name: 'Wim Hof / douche froide', desc: 'Protocole respiration + exposition au froid', xp: 50, pid: 'p2', sub: 'froid', phases: [1, 2, 3] },
+    { id: 'q7', name: 'Langue ou rhétorique', desc: '30 min Pimsleur, Assimil ou débat oral', xp: 60, pid: 'p5', sub: 'langue', phases: [2, 3] },
+    { id: 'q8', name: 'Journal décisionnel', desc: '5 min — 1 décision analysée pour biais cognitifs', xp: 21, pid: 'p1', sub: 'biais', phases: [1, 2, 3] },
+    { id: 'q9', name: 'Lecture 30 min', desc: 'Médecine, philo, neuro, stoïcisme...', xp: 27, pid: 'p1', sub: 'lecture', phases: [1, 2, 3] },
+    { id: 'q10', name: 'Échecs / jeu stratégique', desc: '15 min blitz ou puzzle — pensée multi-coups', xp: 35, pid: 'p5', sub: 'stratégie', phases: [2, 3] },
+    { id: 'q11', name: "Dessin d'observation", desc: '5 min — percevoir les lignes et volumes réels avant de dessiner', xp: 25, pid: 'p3', sub: 'observation', phases: [3] },
+    { id: 'q12', name: 'Calcul mental chronométré', desc: '10 min — vitesse et chunking', xp: 21, pid: 'p1', sub: 'calcul', phases: [2, 3] },
+    { id: 'q13', name: 'Mobilité & Souplesse', desc: '15-30 min de travail articulaire, étirements ou yoga', xp: 60, pid: 'p4', sub: 'mobilité', phases: [1, 2, 3] },
+    { id: 'q14', name: 'Parcours de mobilité active', desc: '10 min d\'enchaînement dynamique (fentes, rotations)', xp: 30, pid: 'p4', sub: 'coordination', phases: [1, 2, 3] },
+    { id: 'q15', name: 'Observation urbaine', desc: 'Dans la rue, repère 3 détails architecturaux ou humains inédits', xp: 25, pid: 'p3', sub: 'spatial', phases: [1, 2, 3] },
+    { id: 'q16', name: 'Exploration d\'un sujet', desc: 'Lis un article sur un domaine inconnu, note 3 idées nouvelles', xp: 20, pid: 'p1', sub: 'lecture', phases: [1, 2, 3] },
+    { id: 'q17', name: 'Défi d\'observation clinique', desc: 'Dans un lieu public, décris mentalement la posture de 3 personnes', xp: 35, pid: 'p3', sub: 'observation', phases: [1, 2, 3] }
   ]
 };
 const PILLARS = [
@@ -1151,6 +1223,35 @@ async function loadIAQuestsFromDB() {
       }));
     }
   } catch (e) { console.warn('loadIAQuestsFromDB:', e); }
+}
+
+// --- Sous-piliers ---
+let subXP = {};
+
+async function loadSubProgress() {
+  if (!UID) return;
+  try {
+    const data = await sbGetMany('sys_sub_progress', UID, 50);
+    if (Array.isArray(data)) {
+      subXP = {};
+      data.forEach(row => { subXP[row.sub_id] = row.xp || 0; });
+    }
+  } catch (e) { console.warn('loadSubProgress:', e); }
+}
+async function saveSubProgress(sub_id, xp) {
+  if (!UID) return;
+  try {
+    await sbUpsert('sys_sub_progress', {
+      user_id: UID,
+      sub_id: sub_id,
+      xp: xp,
+      updated_at: new Date().toISOString()
+    });
+  } catch (e) { console.warn('saveSubProgress:', e); }
+}
+function addSubXP(sub_id, amount) {
+  subXP[sub_id] = (subXP[sub_id] || 0) + amount;
+  saveSubProgress(sub_id, subXP[sub_id]);
 }
 
 // ============================================================
@@ -1485,6 +1586,7 @@ let isProcessing = false;
 let isGeneratingIA = false;
 let pendingWorkoutRating = null;
 let workoutRatingValue = 0;
+let boostSelectionPending = false;
 
 // ============================================================
 // FONCTIONS UTILITAIRES
@@ -1566,6 +1668,31 @@ function formatIngredients(text) {
   const lines = text.split('\n').filter(line => line.trim() !== '');
   return lines.map(line => '• ' + line.trim()).join('\n');
 }
+function applyTheme(color) {
+  if (!color) color = '#a78bfa';
+  document.documentElement.style.setProperty('--accent', color);
+  document.documentElement.style.setProperty('--accent2', color);
+}
+function getWeekStats() {
+  const weekAgo = new Date();
+  weekAgo.setDate(weekAgo.getDate() - 7);
+  const weekLogs = LOG.filter(l => {
+    if (!l.created_at) return false;
+    const d = new Date(l.created_at);
+    return d >= weekAgo;
+  });
+  const totalXP = weekLogs.reduce((sum, l) => sum + l.xp, 0);
+  const count = weekLogs.length;
+  const byPillar = {};
+  weekLogs.forEach(l => {
+    const p = l.pillar_id || 'custom';
+    byPillar[p] = (byPillar[p] || 0) + l.xp;
+  });
+  return { totalXP, count, byPillar };
+}
+function isSunday() {
+  return new Date().getDay() === 0;
+}
 
 // ============================================================
 // INITIALISATION ET CHARGEMENT
@@ -1614,6 +1741,9 @@ async function loadFromSupabase() {
     await loadBilanHistory();
     await loadRecipes();
     await loadIAQuestsFromDB();
+    await loadSubProgress();
+
+    // Chargement de l'aura (persistante)
     const auraData = await loadAuraFromDB();
     if (auraData) {
       const aura = AURA_CONFIG[auraData.aura_id] || null;
@@ -1686,8 +1816,10 @@ async function loadFromSupabase() {
     if (!localStorage.getItem('newForgedQuest')) localStorage.setItem('newForgedQuest', 'false');
     if (!localStorage.getItem('newRecipe')) localStorage.setItem('newRecipe', 'false');
     updateBadges();
-    // Mise à jour finale de l'affichage après chargement complet
+    // Mise à jour finale de l'affichage avec la couleur de l'aura
+    applyTheme(currentAura ? currentAura.color : '#a78bfa');
     renderAvatar();
+    renderPiliers();
     renderStats();
     updateHeader();
     setSyncState('ok');
@@ -1783,31 +1915,30 @@ function updateHeader() {
     iaBtn.textContent = '🤖 Générer une quête IA (' + iaCount + '/' + IA_MAX_PER_DAY + ')';
     iaBtn.disabled = (iaCount >= IA_MAX_PER_DAY);
   }
-  const today = new Date();
-  const isSunday = today.getDay() === 0;
-  const bilanBtn = document.getElementById('btn-bilan-hebdo');
-  if (bilanBtn) {
-    let bilanDejaFait = false;
-    if (lastBilanDate) {
+  updateValidationButton();
+
+  // Bilan : désactiver si ce n'est pas dimanche
+  const bilanRevueBtn = document.getElementById('btn-bilan-revue');
+  if (bilanRevueBtn) {
+    if (!isSunday()) {
+      bilanRevueBtn.disabled = true;
+      bilanRevueBtn.textContent = '📅 Bilan disponible uniquement le dimanche';
+    } else if (lastBilanDate) {
       const lastBilan = new Date(lastBilanDate);
-      const startOfWeek = new Date(today);
-      startOfWeek.setDate(today.getDate() - today.getDay());
+      const startOfWeek = new Date();
+      startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
       if (lastBilan >= startOfWeek) {
-        bilanDejaFait = true;
+        bilanRevueBtn.disabled = true;
+        bilanRevueBtn.textContent = '✅ Bilan déjà effectué';
+      } else {
+        bilanRevueBtn.disabled = false;
+        bilanRevueBtn.textContent = 'Sauvegarder et recevoir le bilan';
       }
-    }
-    if (!isSunday) {
-      bilanBtn.disabled = true;
-      bilanBtn.textContent = '📊 Bilan disponible uniquement le dimanche';
-    } else if (bilanDejaFait) {
-      bilanBtn.disabled = true;
-      bilanBtn.textContent = '📊 Bilan effectué';
     } else {
-      bilanBtn.disabled = false;
-      bilanBtn.textContent = '📊 Lancer le Bilan Hebdomadaire';
+      bilanRevueBtn.disabled = false;
+      bilanRevueBtn.textContent = 'Sauvegarder et recevoir le bilan';
     }
   }
-  updateValidationButton();
 }
 
 function updateXPbars() {
@@ -1828,7 +1959,7 @@ function updateXPbars() {
 }
 
 // ============================================================
-// QUÊTES PRÉ-DÉFINIES
+// QUÊTES PRÉ-DÉFINIES (avec + temps pour mobilité)
 // ============================================================
 function getClassEmoji(pid) {
   const c = getClassForPillar(pid);
@@ -1977,6 +2108,7 @@ function renderQuetes() {
         </div>
       `;
     }
+    const coachMsg = COACH_MESSAGES[q.id] || 'Concentre-toi sur l\'intention de cette quête.';
     return `<div class="quest${done ? ' done' : ''}${!inPhase ? ' locked' : ''}" onclick="toggleQuete('${q.id}')" data-qid="${q.id}">
       <div class="check">${done ? '✓' : ''}</div>
       <div class="q-info">
@@ -1985,6 +2117,7 @@ function renderQuetes() {
         <div class="q-tags">${minTag}${phTag}${classTag}</div>
         ${coachBtn}
         ${extraHtml}
+        <div class="coach-message" style="font-size:11px;color:var(--muted);margin-top:4px;padding:4px 8px;background:rgba(255,255,255,0.03);border-radius:6px;">💡 ${coachMsg}</div>
       </div>
       <div class="q-xp">+${baseXP} XP</div>
     </div>`;
@@ -2023,6 +2156,10 @@ async function toggleQuete(id) {
     const cId = getClassForPillar(q.pid);
     classXP[cId] = Math.max(0, (classXP[cId] || 0) - finalXp);
     weeklyClassXP[cId] = Math.max(0, (weeklyClassXP[cId] || 0) - finalXp);
+    if (q.sub) {
+      subXP[q.sub] = Math.max(0, (subXP[q.sub] || 0) - finalXp);
+      saveSubProgress(q.sub, subXP[q.sub]);
+    }
     LOG = LOG.filter(l => !(l.quest_id === id && l.created_at && l.created_at.slice(0, 10) === today));
     sbDelete('sys_log', UID, id, today).catch(() => {});
     toast("↩️ Quête décochée — XP retirés");
@@ -2033,6 +2170,10 @@ async function toggleQuete(id) {
     const cId = getClassForPillar(q.pid);
     classXP[cId] = (classXP[cId] || 0) + finalXp;
     weeklyClassXP[cId] = (weeklyClassXP[cId] || 0) + finalXp;
+    if (q.sub) {
+      subXP[q.sub] = (subXP[q.sub] || 0) + finalXp;
+      saveSubProgress(q.sub, subXP[q.sub]);
+    }
     const entry = { user_id: UID, quest_id: id, quest_name: q.name, xp: finalXp, pillar_id: q.pid, created_at: new Date().toISOString() };
     LOG.unshift(entry);
     if (LOG.length > 60) LOG.pop();
@@ -2574,7 +2715,7 @@ function updateValidationButton() {
 }
 
 // ============================================================
-// AFFICHAGE DES PILIERS
+// AFFICHAGE DES PILIERS (avec sous-piliers cliquables)
 // ============================================================
 function renderPiliers() {
   document.getElementById('piliers-list').innerHTML = PILLARS.map(p => {
@@ -2588,7 +2729,27 @@ function renderPiliers() {
     const xp_needed = progress.xp_needed;
     const nextLevel = progress.nextLevel;
     const nextTitle = progress.nextTitle;
-    return `<div class="pillar">
+
+    const subList = SUB_PILLARS[p.id] || [];
+    let subHtml = '';
+    if (subList.length) {
+      subHtml = `<div class="sub-pillars" id="sub-${p.id}">`;
+      subList.forEach(sub => {
+        const subXp = subXP[sub] || 0;
+        const subPct = Math.min(100, Math.round((subXp / SUB_PILLAR_MAX_XP) * 100));
+        const subName = SUB_PILLAR_NAMES[sub] || sub;
+        subHtml += `
+          <div class="sub-pillar">
+            <span class="sub-label">${subName}</span>
+            <div class="sub-track"><div class="sub-fill" style="width:${subPct}%;background:${p.color}"></div></div>
+            <span class="sub-value">${subXp}/${SUB_PILLAR_MAX_XP}</span>
+          </div>
+        `;
+      });
+      subHtml += '</div>';
+    }
+
+    return `<div class="pillar" onclick="toggleSubPillars('${p.id}')">
       <div class="pillar-top">
         <div class="pillar-icon" style="background:${p.color}22">${p.icon}</div>
         <div class="pillar-name">${p.name}</div>
@@ -2596,6 +2757,7 @@ function renderPiliers() {
           Niv. ${level} 
           <span class="pillar-title">${title}</span>
         </div>
+        <span class="pillar-arrow" id="arrow-${p.id}">▼</span>
       </div>
       <div class="bar-wrap"><div class="bar-fill" style="width:${pct}%;background:${p.color}"></div></div>
       <div class="bar-label">
@@ -2606,8 +2768,17 @@ function renderPiliers() {
         Prochain palier : ${nextTitle} (Niv. ${nextLevel}) — ${xp_needed - xp_into} XP restants
         <br>${p.satellites}
       </div>
+      ${subHtml}
     </div>`;
   }).join('');
+}
+function toggleSubPillars(pId) {
+  const sub = document.getElementById('sub-' + pId);
+  const arrow = document.getElementById('arrow-' + pId);
+  if (sub) {
+    sub.classList.toggle('open');
+    if (arrow) arrow.classList.toggle('open');
+  }
 }
 
 // ============================================================
@@ -2697,11 +2868,13 @@ function renderAvatar() {
       desc.textContent = `Classe dominante${boostClass ? ` — Bénédiction: +10% ${CLASSES[boostClass]?.name || ''}` : ''}`;
       banner.className = 'aura-banner ' + currentAura.cssClass;
     }
+    applyTheme(currentAura.color);
   } else {
     icon.textContent = '⚔️';
     name.textContent = 'En attente';
     desc.textContent = 'Effectue ton premier bilan hebdomadaire';
     banner.className = 'aura-banner';
+    applyTheme('#a78bfa');
   }
   for (const [id, cls] of Object.entries(CLASSES)) {
     const xp = classXP[id] || 0;
@@ -2758,7 +2931,7 @@ function renderAvatar() {
 }
 
 // ============================================================
-// STATISTIQUES - avec journal déroulant
+// STATISTIQUES - graphiques par jour avec couleur de l'aura
 // ============================================================
 function renderStats() {
   const today = todayKey();
@@ -2772,6 +2945,8 @@ function renderStats() {
     hm += `<div class="hm-sq${on && !isToday ? ' on' : ''}${isToday ? ' today' : ''}"></div>`;
   }
   document.getElementById('heatmap').innerHTML = hm;
+
+  const auraColor = currentAura ? currentAura.color : '#a78bfa';
 
   const maxXP = Math.max(
     S.p1_xp || 0,
@@ -2793,10 +2968,10 @@ function renderStats() {
       labels: rLabels,
       datasets: [{
         data: rData,
-        borderColor: '#a78bfa',
-        backgroundColor: 'rgba(124,58,237,0.18)',
+        borderColor: auraColor,
+        backgroundColor: auraColor + '33',
         borderWidth: 2,
-        pointBackgroundColor: '#a78bfa',
+        pointBackgroundColor: auraColor,
         pointRadius: 4
       }]
     },
@@ -2828,23 +3003,56 @@ function renderStats() {
     }
   });
 
+  // Graphique des XP gagnés par jour (gains quotidiens)
   const xpCtx = document.getElementById('chart-xp').getContext('2d');
-  const sorted = [...XP_HISTORY].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).slice(-20);
-  const xpLabels = sorted.map(h => h.created_at ? h.created_at.slice(5, 10) : '');
-  const xpData = sorted.map(h => h.xp);
+  const dailyXP = {};
+  LOG.forEach(l => {
+    if (l.created_at) {
+      const day = l.created_at.slice(0, 10);
+      dailyXP[day] = (dailyXP[day] || 0) + l.xp;
+    }
+  });
+  const sortedDays = Object.keys(dailyXP).sort();
+  const last20Days = sortedDays.slice(-20);
+  const xpLabels = last20Days.map(d => d.slice(5, 10)); // MM-JJ
+  const xpData = last20Days.map(d => dailyXP[d] || 0);
+
   if (chartXp) chartXp.destroy();
   chartXp = new Chart(xpCtx, {
-    type: 'line',
+    type: 'bar',
     data: {
       labels: xpLabels.length ? xpLabels : ['—'],
-      datasets: [{ data: xpData.length ? xpData : [0], borderColor: '#a78bfa', backgroundColor: 'rgba(124,58,237,0.15)', borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#a78bfa', fill: true, tension: .4 }]
+      datasets: [{
+        data: xpData.length ? xpData : [0],
+        backgroundColor: auraColor + '99',
+        borderColor: auraColor,
+        borderWidth: 1,
+        borderRadius: 3,
+        barPercentage: 0.7,
+      }]
     },
     options: {
       responsive: true,
-      plugins: { legend: { display: false } },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return context.raw + ' XP gagnés';
+            }
+          }
+        }
+      },
       scales: {
-        x: { ticks: { color: '#555', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
-        y: { ticks: { color: '#555', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' }, beginAtZero: true }
+        x: {
+          ticks: { color: '#555', font: { size: 9 }, maxRotation: 45 },
+          grid: { display: false }
+        },
+        y: {
+          beginAtZero: true,
+          ticks: { color: '#555', font: { size: 9 } },
+          grid: { color: 'rgba(255,255,255,0.04)' }
+        }
       }
     }
   });
@@ -2917,19 +3125,52 @@ function toggleLog() {
 }
 
 // ============================================================
-// REVUE, NAVIGATION, BILAN
+// REVUE (fusionnée avec bilan) - bloquée si pas dimanche
 // ============================================================
 function setStar(v) {
   starVal = v;
   document.querySelectorAll('.star').forEach((s, i) => s.classList.toggle('on', i < v));
 }
+function updateRevueStats() {
+  const stats = getWeekStats();
+  const el = document.getElementById('rev-stats-preview');
+  if (el) {
+    const byPillarText = Object.entries(stats.byPillar)
+      .map(([pid, xp]) => {
+        const p = PILLARS.find(p => p.id === pid);
+        return p ? `${p.icon} ${p.name.split(' ')[0]}: ${xp} XP` : `${pid}: ${xp} XP`;
+      })
+      .join(' · ');
+    el.innerHTML = `
+      <strong>📅 Cette semaine (7 derniers jours)</strong><br>
+      Total XP : ${stats.totalXP} · Nombre d'actions : ${stats.count}<br>
+      Répartition : ${byPillarText || 'Aucune donnée'}
+    `;
+  }
+}
 async function sauvegarderRevue() {
+  if (!isSunday()) {
+    toast("📅 Le bilan n'est disponible que le dimanche.");
+    return;
+  }
+  if (starVal === 0) {
+    toast("⚠️ Merci de noter ta semaine (1 à 5 étoiles).");
+    return;
+  }
+  const bien = document.getElementById('rv-bien').value.trim();
+  const resist = document.getElementById('rv-resist').value.trim();
+  const change = document.getElementById('rv-change').value.trim();
+  if (!bien && !resist && !change) {
+    toast("⚠️ Remplis au moins un champ pour valider.");
+    return;
+  }
+
   const rev = {
     user_id: UID,
     stars: starVal,
-    went_well: document.getElementById('rv-bien').value,
-    resisted: document.getElementById('rv-resist').value,
-    next_change: document.getElementById('rv-change').value,
+    went_well: bien,
+    resisted: resist,
+    next_change: change,
     created_at: new Date().toISOString()
   };
   S.total_xp += 100;
@@ -2937,18 +3178,21 @@ async function sauvegarderRevue() {
   LOG.unshift(entry);
   sbInsert('sys_log', entry).catch(() => {});
   sbInsert('sys_reviews', rev).catch(() => {});
-  scheduleSave();
-  updateHeader();
-  const _bien = document.getElementById('rv-bien').value;
-  const _resist = document.getElementById('rv-resist').value;
-  const _change = document.getElementById('rv-change').value;
-  const _stars = starVal;
+
+  await lancerBilanHebdo(true);
+
   ['rv-bien', 'rv-resist', 'rv-change'].forEach(id => document.getElementById(id).value = '');
   starVal = 0;
   document.querySelectorAll('.star').forEach(s => s.classList.remove('on'));
-  genererBilanRevue(_bien, _resist, _change, _stars);
-  toast("📝 Revue sauvegardée ! +100 XP");
+
+  toast("📝 Revue et bilan enregistrés ! +100 XP");
+  updateHeader();
+  goTab('avatar', document.querySelectorAll('.tab-btn')[4]);
 }
+
+// ============================================================
+// NAVIGATION
+// ============================================================
 function goTab(id, btn) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-' + id).classList.add('active');
@@ -2987,28 +3231,28 @@ function goTab(id, btn) {
   if (id === 'avatar') {
     renderAvatar();
     renderBilanHistory();
-    const today = new Date();
-    const isSunday = today.getDay() === 0;
-    const bilanBtn = document.getElementById('btn-bilan-hebdo');
-    if (bilanBtn) {
-      let bilanDejaFait = false;
-      if (lastBilanDate) {
+  }
+  if (id === 'revue') {
+    updateRevueStats();
+    const btn = document.getElementById('btn-bilan-revue');
+    if (btn) {
+      if (!isSunday()) {
+        btn.disabled = true;
+        btn.textContent = '📅 Bilan disponible uniquement le dimanche';
+      } else if (lastBilanDate) {
         const lastBilan = new Date(lastBilanDate);
-        const startOfWeek = new Date(today);
-        startOfWeek.setDate(today.getDate() - today.getDay());
+        const startOfWeek = new Date();
+        startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
         if (lastBilan >= startOfWeek) {
-          bilanDejaFait = true;
+          btn.disabled = true;
+          btn.textContent = '✅ Bilan déjà effectué';
+        } else {
+          btn.disabled = false;
+          btn.textContent = 'Sauvegarder et recevoir le bilan';
         }
-      }
-      if (!isSunday) {
-        bilanBtn.disabled = true;
-        bilanBtn.textContent = '📊 Bilan disponible uniquement le dimanche';
-      } else if (bilanDejaFait) {
-        bilanBtn.disabled = true;
-        bilanBtn.textContent = '📊 Bilan effectué';
       } else {
-        bilanBtn.disabled = false;
-        bilanBtn.textContent = '📊 Lancer le Bilan Hebdomadaire';
+        btn.disabled = false;
+        btn.textContent = 'Sauvegarder et recevoir le bilan';
       }
     }
   }
@@ -3058,30 +3302,26 @@ function confirmerBoost() {
   scheduleSave();
   toast("✅ Bénédiction appliquée au " + CLASSES[selected].name);
 }
-function lancerBilanHebdo() {
-  const today = new Date();
-  if (today.getDay() !== 0) {
+
+// ============================================================
+// BILAN HEBDOMADAIRE (uniquement le dimanche)
+// ============================================================
+async function lancerBilanHebdo(fromRevue = false) {
+  if (!isSunday()) {
     toast("📅 Le bilan n'est disponible que le dimanche.");
     return;
   }
-  // Vérifier si déjà fait cette semaine
+
   if (lastBilanDate) {
     const lastBilan = new Date(lastBilanDate);
-    const startOfWeek = new Date(today);
-    startOfWeek.setDate(today.getDate() - today.getDay());
+    const startOfWeek = new Date();
+    startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
     if (lastBilan >= startOfWeek) {
       toast("✅ Bilan déjà effectué cette semaine.");
-      document.getElementById('btn-bilan-hebdo').disabled = true;
-      document.getElementById('btn-bilan-hebdo').textContent = '📊 Bilan effectué';
       return;
     }
   }
 
-  const btn = document.getElementById('btn-bilan-hebdo');
-  btn.disabled = true;
-  btn.textContent = 'Calcul en cours...';
-
-  // Utiliser classXP (total) au lieu de weeklyClassXP
   const totalXP = Object.values(classXP).reduce((a, b) => a + b, 0);
   let auraId = 'stagnant';
   let aura = null;
@@ -3129,7 +3369,7 @@ function lancerBilanHebdo() {
     is_souverain: isSouv,
     is_stagnant: isStag
   };
-  saveBilan(bilan);
+  await saveBilan(bilan);
   bilanHistory.unshift(bilan);
   currentAura = aura;
   lastBilanDate = new Date().toISOString().slice(0, 10);
@@ -3138,17 +3378,12 @@ function lancerBilanHebdo() {
     boostSelectionPending = true;
     document.getElementById('choose-boost-container').style.display = 'block';
     renderBoostOptions();
-    btn.textContent = '📊 Bilan effectué';
-    btn.disabled = true;
     toast("👑 Équilibre parfait ! Choisis ta bénédiction.");
   } else if (isStag) {
     boostClass = null;
     document.getElementById('choose-boost-container').style.display = 'none';
-    btn.textContent = '📊 Bilan effectué';
-    btn.disabled = true;
     toast("💤 Bilan : Le Stagnant. Retour au front !");
   } else {
-    // Classe la plus faible en XP total pour le boost
     let minXP = Infinity;
     let weakest = null;
     for (const [cls, xp] of Object.entries(classXP)) {
@@ -3159,16 +3394,13 @@ function lancerBilanHebdo() {
     }
     boostClass = weakest;
     document.getElementById('choose-boost-container').style.display = 'none';
-    btn.textContent = '📊 Bilan effectué';
-    btn.disabled = true;
     const cls = getClassFromId(weakest);
     toast("📊 Bilan terminé ! " + (cls ? cls.name : '') + " reçoit +10% la semaine prochaine.");
   }
 
-  // Réinitialiser les XP hebdomadaires pour le suivi, mais on garde classXP
   weeklyClassXP = { guerrier: 0, mage: 0, ombre: 0, aventurier: 0 };
 
-  saveAuraToDB({
+  await saveAuraToDB({
     aura_id: currentAura ? currentAura.id : null,
     aura_name: currentAura ? currentAura.name : null,
     is_souverain: isSouverain,
@@ -3177,6 +3409,7 @@ function lancerBilanHebdo() {
     last_bilan_date: lastBilanDate
   });
 
+  applyTheme(currentAura ? currentAura.color : '#a78bfa');
   renderAvatar();
   renderBilanHistory();
   updateHeader();
@@ -3446,36 +3679,6 @@ async function envoyerMessageCoach() {
   const responseText = await callGemini(prompt);
   coachEl.textContent = '🤖 Coach : ' + responseText;
   chatBox.scrollTop = chatBox.scrollHeight;
-}
-async function coachQuete(btn) {
-  const qId = btn.getAttribute('data-qid');
-  const qName = btn.getAttribute('data-qname');
-  const qDesc = btn.getAttribute('data-qdesc');
-  const existingId = 'coach-' + qId;
-  const existing = document.getElementById(existingId);
-  if (existing) { existing.remove(); return; }
-  const card = document.createElement('div');
-  card.className = 'ai-card';
-  card.id = existingId;
-  card.style.marginTop = '6px';
-  card.innerHTML = '<div class="ai-header"><span style="font-size:16px">💡</span><span class="ai-label">Conseils</span></div><div class="ai-body" id="txt-' + qId + '">Chargement...</div>';
-  btn.closest('.quest').after(card);
-  let consigneSpecifique = "";
-  if (qId === 'q3') {
-    consigneSpecifique = " Interdiction absolue de parler de détection de mensonges, de psychologie, d'intentions ou de micro-expressions. Donne uniquement des exercices de repérage de faits anatomiques/mécaniques (asymétries, démarche, posture) et de tactique spatiale (calcul de distances à l'oeil nu, angles morts, repérage des sorties) utiles pour l'armée et la clinique.";
-  }
-  const prompt = buildCtx() + ' Quete: "' + qName + '" (' + qDesc + ').' + consigneSpecifique + ' Donne 3 conseils pratiques et concrets pour bien realiser cette quete aujourd hui. 4 lignes max. Pas de markdown ni tirets.';
-  const bodyEl = document.getElementById('txt-' + qId);
-  if (bodyEl) bodyEl.textContent = await callGemini(prompt);
-}
-async function genererBilanRevue(bien, resist, change, stars) {
-  const el = document.getElementById('ai-bilan');
-  const txt = document.getElementById('ai-bilan-text');
-  el.style.display = 'block';
-  txt.textContent = 'Analyse de ta semaine...';
-  await refreshWorkoutRatings();
-  const prompt = buildCtx() + ' Revue (' + stars + '/5). Ce qui a marche: "' + bien + '". Ce qui a resiste: "' + resist + '". Changement prevu: "' + change + '". Bilan: 1 point fort a consolider, 1 conseil sur le point de friction, 1 suggestion concrete pour la semaine prochaine. 5-6 lignes. Direct. Pas de markdown.';
-  txt.textContent = await callGemini(prompt);
 }
 </script>
 </body>
