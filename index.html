@@ -789,7 +789,8 @@ const COACH_MESSAGES = {
   q13: "Mobilité : fais chaque exercice avec contrôle et respiration. Ne force jamais au-delà de ton amplitude confortable.",
   q14: "Parcours de mobilité active : enchaîne des mouvements fluides (fentes, rotations, balancements). 10 min suffisent.",
   q15: "Observation urbaine : dans la rue, repère 3 détails architecturaux ou humains que tu n'avais jamais vus.",
-  q16: "Exploration d'un sujet : lis un article sur un domaine que tu ne connais pas. Note 3 idées nouvelles."
+  q16: "Exploration d'un sujet : lis un article sur un domaine que tu ne connais pas. Note 3 idées nouvelles.",
+  q17: "Défi d'observation clinique : dans un lieu public, décris mentalement la posture de 3 personnes sans les regarder directement."
 };
 
 // === Fonctions piliers et classes ===
@@ -890,7 +891,7 @@ async function sbGetMany(table, uid, limit = 30) {
 }
 
 // ============================================================
-// DONNÉES STATIQUES (avec XP du Mage réduits de 15%)
+// DONNÉES STATIQUES (XP du Mage réduits de 15%, nouvelle quête Ombre)
 // ============================================================
 const LEVELS = [
   { min: 0, name: 'Initié' }, { min: 500, name: 'Apprenti' }, { min: 1200, name: 'Praticien' },
@@ -918,7 +919,7 @@ const QUEST_DEFAULT_TIME = {
   'q13': 15
 };
 
-// Quêtes avec ajustement des XP (Mage -15%) et nouvelles quêtes
+// Quêtes avec ajustement (Mage -15%) + nouvelle quête pour Ombre
 const QUETES = {
   min: [
     { id: 'q1', name: 'Respiration / cohérence cardiaque', desc: '5 min box breathing ou cohérence cardiaque', xp: 30, pid: 'p2', sub: 'respiration', phases: [1, 2, 3] },
@@ -939,6 +940,7 @@ const QUETES = {
     { id: 'q14', name: 'Parcours de mobilité active', desc: '10 min d\'enchaînement dynamique (fentes, rotations)', xp: 30, pid: 'p4', sub: 'coordination', phases: [1, 2, 3] },
     { id: 'q15', name: 'Observation urbaine', desc: 'Dans la rue, repère 3 détails architecturaux ou humains inédits', xp: 25, pid: 'p3', sub: 'spatial', phases: [1, 2, 3] },
     { id: 'q16', name: 'Exploration d\'un sujet', desc: 'Lis un article sur un domaine inconnu, note 3 idées nouvelles', xp: 20, pid: 'p1', sub: 'lecture', phases: [1, 2, 3] },
+    { id: 'q17', name: 'Défi d\'observation clinique', desc: 'Dans un lieu public, décris mentalement la posture de 3 personnes', xp: 35, pid: 'p3', sub: 'observation', phases: [1, 2, 3] }
   ]
 };
 const PILLARS = [
@@ -1250,55 +1252,6 @@ async function saveSubProgress(sub_id, xp) {
 function addSubXP(sub_id, amount) {
   subXP[sub_id] = (subXP[sub_id] || 0) + amount;
   saveSubProgress(sub_id, subXP[sub_id]);
-}
-
-// ============================================================
-// CORRECTION DES XP (recalcul à partir des logs)
-// ============================================================
-function recalcXPFromLogs() {
-  // Cette fonction recalcule S.total_xp, S.pX_xp et classXP à partir des logs
-  // en utilisant les valeurs de base des quêtes.
-  // Elle est appelée après chargement des logs.
-  const allQuests = [...QUETES.min, ...QUETES.opt];
-  const questMap = {};
-  allQuests.forEach(q => { questMap[q.id] = q; });
-
-  // Réinitialiser
-  S.total_xp = 0;
-  S.p1_xp = 0;
-  S.p2_xp = 0;
-  S.p3_xp = 0;
-  S.p4_xp = 0;
-  S.p5_xp = 0;
-  classXP = { guerrier: 0, mage: 0, ombre: 0, aventurier: 0 };
-  subXP = {};
-
-  // Parcourir les logs
-  LOG.forEach(log => {
-    const xp = log.xp || 0;
-    if (xp === 0) return;
-    S.total_xp += xp;
-    if (log.pillar_id && log.pillar_id.startsWith('p')) {
-      S[log.pillar_id + '_xp'] = (S[log.pillar_id + '_xp'] || 0) + xp;
-    }
-    // Classes
-    const classId = getClassForPillar(log.pillar_id);
-    if (classId) {
-      classXP[classId] = (classXP[classId] || 0) + xp;
-    }
-    // Sous-pilier (si présent dans la quête)
-    if (log.quest_id) {
-      const q = questMap[log.quest_id];
-      if (q && q.sub) {
-        subXP[q.sub] = (subXP[q.sub] || 0) + xp;
-      }
-    }
-  });
-
-  // Sauvegarder les sous-piliers recalculés
-  Object.keys(subXP).forEach(sub => {
-    saveSubProgress(sub, subXP[sub]);
-  });
 }
 
 // ============================================================
@@ -1787,12 +1740,7 @@ async function loadFromSupabase() {
     await loadIAQuestsFromDB();
     await loadSubProgress();
 
-    // RECALCUL DES XP À PARTIR DES LOGS (pour appliquer les nouvelles valeurs)
-    recalcXPFromLogs();
-    // Mettre à jour le champ is_day_locked
-    isDayLocked = S.is_day_locked || false;
-
-    // Chargement de l'aura (persistance)
+    // Chargement de l'aura
     const auraData = await loadAuraFromDB();
     if (auraData) {
       const aura = AURA_CONFIG[auraData.aura_id] || null;
@@ -3027,9 +2975,8 @@ function renderStats() {
     }
   });
 
-  // Graphique des XP gagnés par jour (gains quotidiens)
+  // Graphique des XP gagnés par jour
   const xpCtx = document.getElementById('chart-xp').getContext('2d');
-  // Grouper les logs par jour
   const dailyXP = {};
   LOG.forEach(l => {
     if (l.created_at) {
@@ -3039,7 +2986,7 @@ function renderStats() {
   });
   const sortedDays = Object.keys(dailyXP).sort();
   const last20Days = sortedDays.slice(-20);
-  const xpLabels = last20Days.map(d => d.slice(5, 10)); // MM-DD
+  const xpLabels = last20Days.map(d => d.slice(5, 10));
   const xpData = last20Days.map(d => dailyXP[d] || 0);
 
   if (chartXp) chartXp.destroy();
@@ -3304,15 +3251,13 @@ function confirmerBoost() {
 }
 
 // ============================================================
-// BILAN HEBDOMADAIRE
+// BILAN HEBDOMADAIRE (disponible tous les jours, boost que le dimanche)
 // ============================================================
 async function lancerBilanHebdo(fromRevue = false) {
   const today = new Date();
   const isSunday = today.getDay() === 0;
-  if (!isSunday && !fromRevue) {
-    toast("📅 Le bilan n'est disponible que le dimanche.");
-    return;
-  }
+
+  // Vérifier si le bilan a déjà été fait cette semaine
   if (lastBilanDate) {
     const lastBilan = new Date(lastBilanDate);
     const startOfWeek = new Date(today);
@@ -3323,6 +3268,7 @@ async function lancerBilanHebdo(fromRevue = false) {
     }
   }
 
+  // Calculer l'aura et le boost à partir du XP total (classXP)
   const totalXP = Object.values(classXP).reduce((a, b) => a + b, 0);
   let auraId = 'stagnant';
   let aura = null;
@@ -3358,6 +3304,7 @@ async function lancerBilanHebdo(fromRevue = false) {
   isSouverain = isSouv;
   isStagnant = isStag;
 
+  // Sauvegarder le bilan
   const bilan = {
     week_start: new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10),
     week_end: new Date().toISOString().slice(0, 10),
@@ -3375,32 +3322,42 @@ async function lancerBilanHebdo(fromRevue = false) {
   currentAura = aura;
   lastBilanDate = new Date().toISOString().slice(0, 10);
 
-  if (isSouv) {
-    boostSelectionPending = true;
-    document.getElementById('choose-boost-container').style.display = 'block';
-    renderBoostOptions();
-    toast("👑 Équilibre parfait ! Choisis ta bénédiction.");
-  } else if (isStag) {
+  // Le boost (bénédiction) n'est attribué que le dimanche
+  if (isSunday) {
+    if (isSouv) {
+      boostSelectionPending = true;
+      document.getElementById('choose-boost-container').style.display = 'block';
+      renderBoostOptions();
+      toast("👑 Équilibre parfait ! Choisis ta bénédiction.");
+    } else if (isStag) {
+      boostClass = null;
+      document.getElementById('choose-boost-container').style.display = 'none';
+      toast("💤 Bilan : Le Stagnant. Retour au front !");
+    } else {
+      let minXP = Infinity;
+      let weakest = null;
+      for (const [cls, xp] of Object.entries(classXP)) {
+        if (xp < minXP) {
+          minXP = xp;
+          weakest = cls;
+        }
+      }
+      boostClass = weakest;
+      document.getElementById('choose-boost-container').style.display = 'none';
+      const cls = getClassFromId(weakest);
+      toast("📊 Bilan terminé ! " + (cls ? cls.name : '') + " reçoit +10% la semaine prochaine.");
+    }
+  } else {
+    // Pas de boost, mais le bilan est enregistré
     boostClass = null;
     document.getElementById('choose-boost-container').style.display = 'none';
-    toast("💤 Bilan : Le Stagnant. Retour au front !");
-  } else {
-    let minXP = Infinity;
-    let weakest = null;
-    for (const [cls, xp] of Object.entries(classXP)) {
-      if (xp < minXP) {
-        minXP = xp;
-        weakest = cls;
-      }
-    }
-    boostClass = weakest;
-    document.getElementById('choose-boost-container').style.display = 'none';
-    const cls = getClassFromId(weakest);
-    toast("📊 Bilan terminé ! " + (cls ? cls.name : '') + " reçoit +10% la semaine prochaine.");
+    toast("📊 Bilan enregistré (hors dimanche). Reviens dimanche pour la bénédiction !");
   }
 
+  // Réinitialiser les XP hebdomadaires
   weeklyClassXP = { guerrier: 0, mage: 0, ombre: 0, aventurier: 0 };
 
+  // Sauvegarder l'aura
   await saveAuraToDB({
     aura_id: currentAura ? currentAura.id : null,
     aura_name: currentAura ? currentAura.name : null,
