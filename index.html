@@ -565,7 +565,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
     <div class="rev-q">Ce que je change cette semaine</div>
     <textarea id="rv-change" placeholder="Un ajustement concret..."></textarea>
   </div>
-  <button class="btn-main" onclick="sauvegarderRevue()">Sauvegarder et recevoir le bilan</button>
+  <button class="btn-main" id="btn-bilan-revue" onclick="sauvegarderRevue()">Sauvegarder et recevoir le bilan</button>
   <div id="ai-bilan" class="ai-card" style="display:none;margin-top:12px;"><div class="ai-header"><span style="font-size:16px">🧠</span><span class="ai-label">Bilan IA</span></div><div class="ai-body" id="ai-bilan-text"></div></div>
 </div>
 
@@ -891,7 +891,7 @@ async function sbGetMany(table, uid, limit = 30) {
 }
 
 // ============================================================
-// DONNÉES STATIQUES (XP du Mage réduits de 15%, nouvelle quête Ombre)
+// DONNÉES STATIQUES (Mage -15%)
 // ============================================================
 const LEVELS = [
   { min: 0, name: 'Initié' }, { min: 500, name: 'Apprenti' }, { min: 1200, name: 'Praticien' },
@@ -919,23 +919,23 @@ const QUEST_DEFAULT_TIME = {
   'q13': 15
 };
 
-// Quêtes avec ajustement (Mage -15%) + nouvelle quête pour Ombre
+// Quêtes avec XP du Mage réduits (-15%) et nouvelles quêtes pour équilibrer
 const QUETES = {
   min: [
     { id: 'q1', name: 'Respiration / cohérence cardiaque', desc: '5 min box breathing ou cohérence cardiaque', xp: 30, pid: 'p2', sub: 'respiration', phases: [1, 2, 3] },
-    { id: 'q2', name: 'Anki — cartes du jour', desc: '10 min, minimum 10 cartes (Étymologie médicale)', xp: 34, pid: 'p1', sub: 'mémoire', phases: [1, 2, 3] },
+    { id: 'q2', name: 'Anki — cartes du jour', desc: '10 min, minimum 10 cartes (Étymologie médicale)', xp: 29, pid: 'p1', sub: 'mémoire', phases: [1, 2, 3] },
     { id: 'q3', name: 'Sémiologie factuelle & conscience spatiale', desc: '1 fait physique noté (posture/marche) + 1 scan spatial (sorties/distances)', xp: 20, pid: 'p3', sub: 'observation', phases: [1, 2, 3] },
   ],
   opt: [
-    { id: 'q4', name: 'Bloc cognitif profond', desc: '45 min lecture technique, calcul ou méthode Feynman', xp: 68, pid: 'p1', sub: 'lecture', phases: [1, 2, 3] },
+    { id: 'q4', name: 'Bloc cognitif profond', desc: '45 min lecture technique, calcul ou méthode Feynman', xp: 58, pid: 'p1', sub: 'lecture', phases: [1, 2, 3] },
     { id: 'q5', name: 'Entraînement physique', desc: '30 min force, natation ou zone 2', xp: 70, pid: 'p4', sub: 'endurance', phases: [1, 2, 3] },
     { id: 'q6', name: 'Wim Hof / douche froide', desc: 'Protocole respiration + exposition au froid', xp: 50, pid: 'p2', sub: 'froid', phases: [1, 2, 3] },
     { id: 'q7', name: 'Langue ou rhétorique', desc: '30 min Pimsleur, Assimil ou débat oral', xp: 60, pid: 'p5', sub: 'langue', phases: [2, 3] },
-    { id: 'q8', name: 'Journal décisionnel', desc: '5 min — 1 décision analysée pour biais cognitifs', xp: 26, pid: 'p1', sub: 'biais', phases: [1, 2, 3] },
-    { id: 'q9', name: 'Lecture 30 min', desc: 'Médecine, philo, neuro, stoïcisme...', xp: 34, pid: 'p1', sub: 'lecture', phases: [1, 2, 3] },
+    { id: 'q8', name: 'Journal décisionnel', desc: '5 min — 1 décision analysée pour biais cognitifs', xp: 22, pid: 'p1', sub: 'biais', phases: [1, 2, 3] },
+    { id: 'q9', name: 'Lecture 30 min', desc: 'Médecine, philo, neuro, stoïcisme...', xp: 29, pid: 'p1', sub: 'lecture', phases: [1, 2, 3] },
     { id: 'q10', name: 'Échecs / jeu stratégique', desc: '15 min blitz ou puzzle — pensée multi-coups', xp: 35, pid: 'p5', sub: 'stratégie', phases: [2, 3] },
     { id: 'q11', name: "Dessin d'observation", desc: '5 min — percevoir les lignes et volumes réels avant de dessiner', xp: 25, pid: 'p3', sub: 'observation', phases: [3] },
-    { id: 'q12', name: 'Calcul mental chronométré', desc: '10 min — vitesse et chunking', xp: 26, pid: 'p1', sub: 'calcul', phases: [2, 3] },
+    { id: 'q12', name: 'Calcul mental chronométré', desc: '10 min — vitesse et chunking', xp: 22, pid: 'p1', sub: 'calcul', phases: [2, 3] },
     { id: 'q13', name: 'Mobilité & Souplesse', desc: '15-30 min de travail articulaire, étirements ou yoga', xp: 60, pid: 'p4', sub: 'mobilité', phases: [1, 2, 3] },
     { id: 'q14', name: 'Parcours de mobilité active', desc: '10 min d\'enchaînement dynamique (fentes, rotations)', xp: 30, pid: 'p4', sub: 'coordination', phases: [1, 2, 3] },
     { id: 'q15', name: 'Observation urbaine', desc: 'Dans la rue, repère 3 détails architecturaux ou humains inédits', xp: 25, pid: 'p3', sub: 'spatial', phases: [1, 2, 3] },
@@ -1690,6 +1690,9 @@ function getWeekStats() {
   });
   return { totalXP, count, byPillar };
 }
+function isSunday() {
+  return new Date().getDay() === 0;
+}
 
 // ============================================================
 // INITIALISATION ET CHARGEMENT
@@ -1913,6 +1916,29 @@ function updateHeader() {
     iaBtn.disabled = (iaCount >= IA_MAX_PER_DAY);
   }
   updateValidationButton();
+
+  // Bilan : désactiver si ce n'est pas dimanche
+  const bilanRevueBtn = document.getElementById('btn-bilan-revue');
+  if (bilanRevueBtn) {
+    if (!isSunday()) {
+      bilanRevueBtn.disabled = true;
+      bilanRevueBtn.textContent = '📅 Bilan disponible uniquement le dimanche';
+    } else if (lastBilanDate) {
+      const lastBilan = new Date(lastBilanDate);
+      const startOfWeek = new Date();
+      startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+      if (lastBilan >= startOfWeek) {
+        bilanRevueBtn.disabled = true;
+        bilanRevueBtn.textContent = '✅ Bilan déjà effectué';
+      } else {
+        bilanRevueBtn.disabled = false;
+        bilanRevueBtn.textContent = 'Sauvegarder et recevoir le bilan';
+      }
+    } else {
+      bilanRevueBtn.disabled = false;
+      bilanRevueBtn.textContent = 'Sauvegarder et recevoir le bilan';
+    }
+  }
 }
 
 function updateXPbars() {
@@ -2905,7 +2931,7 @@ function renderAvatar() {
 }
 
 // ============================================================
-// STATISTIQUES - avec graphique des gains quotidiens
+// STATISTIQUES - avec couleur de l'aura
 // ============================================================
 function renderStats() {
   const today = todayKey();
@@ -2919,6 +2945,8 @@ function renderStats() {
     hm += `<div class="hm-sq${on && !isToday ? ' on' : ''}${isToday ? ' today' : ''}"></div>`;
   }
   document.getElementById('heatmap').innerHTML = hm;
+
+  const auraColor = currentAura ? currentAura.color : '#a78bfa';
 
   const maxXP = Math.max(
     S.p1_xp || 0,
@@ -2940,10 +2968,10 @@ function renderStats() {
       labels: rLabels,
       datasets: [{
         data: rData,
-        borderColor: '#a78bfa',
-        backgroundColor: 'rgba(124,58,237,0.18)',
+        borderColor: auraColor,
+        backgroundColor: auraColor + '33',
         borderWidth: 2,
-        pointBackgroundColor: '#a78bfa',
+        pointBackgroundColor: auraColor,
         pointRadius: 4
       }]
     },
@@ -2996,8 +3024,8 @@ function renderStats() {
       labels: xpLabels.length ? xpLabels : ['—'],
       datasets: [{
         data: xpData.length ? xpData : [0],
-        backgroundColor: 'rgba(167,139,250,0.6)',
-        borderColor: '#a78bfa',
+        backgroundColor: auraColor + '99',
+        borderColor: auraColor,
         borderWidth: 1,
         borderRadius: 3,
         barPercentage: 0.7,
@@ -3097,7 +3125,7 @@ function toggleLog() {
 }
 
 // ============================================================
-// REVUE (fusionnée avec bilan)
+// REVUE (fusionnée avec bilan) - bloquée si pas dimanche
 // ============================================================
 function setStar(v) {
   starVal = v;
@@ -3121,6 +3149,10 @@ function updateRevueStats() {
   }
 }
 async function sauvegarderRevue() {
+  if (!isSunday()) {
+    toast("📅 Le bilan n'est disponible que le dimanche.");
+    return;
+  }
   if (starVal === 0) {
     toast("⚠️ Merci de noter ta semaine (1 à 5 étoiles).");
     return;
@@ -3202,6 +3234,27 @@ function goTab(id, btn) {
   }
   if (id === 'revue') {
     updateRevueStats();
+    const btn = document.getElementById('btn-bilan-revue');
+    if (btn) {
+      if (!isSunday()) {
+        btn.disabled = true;
+        btn.textContent = '📅 Bilan disponible uniquement le dimanche';
+      } else if (lastBilanDate) {
+        const lastBilan = new Date(lastBilanDate);
+        const startOfWeek = new Date();
+        startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+        if (lastBilan >= startOfWeek) {
+          btn.disabled = true;
+          btn.textContent = '✅ Bilan déjà effectué';
+        } else {
+          btn.disabled = false;
+          btn.textContent = 'Sauvegarder et recevoir le bilan';
+        }
+      } else {
+        btn.disabled = false;
+        btn.textContent = 'Sauvegarder et recevoir le bilan';
+      }
+    }
   }
 }
 function renderBilanHistory() {
@@ -3251,17 +3304,19 @@ function confirmerBoost() {
 }
 
 // ============================================================
-// BILAN HEBDOMADAIRE (disponible tous les jours, boost que le dimanche)
+// BILAN HEBDOMADAIRE (uniquement le dimanche)
 // ============================================================
 async function lancerBilanHebdo(fromRevue = false) {
-  const today = new Date();
-  const isSunday = today.getDay() === 0;
+  if (!isSunday()) {
+    toast("📅 Le bilan n'est disponible que le dimanche.");
+    return;
+  }
 
-  // Vérifier si le bilan a déjà été fait cette semaine
+  // Vérifier si déjà fait cette semaine
   if (lastBilanDate) {
     const lastBilan = new Date(lastBilanDate);
-    const startOfWeek = new Date(today);
-    startOfWeek.setDate(today.getDate() - today.getDay());
+    const startOfWeek = new Date();
+    startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
     if (lastBilan >= startOfWeek) {
       toast("✅ Bilan déjà effectué cette semaine.");
       return;
@@ -3322,36 +3377,29 @@ async function lancerBilanHebdo(fromRevue = false) {
   currentAura = aura;
   lastBilanDate = new Date().toISOString().slice(0, 10);
 
-  // Le boost (bénédiction) n'est attribué que le dimanche
-  if (isSunday) {
-    if (isSouv) {
-      boostSelectionPending = true;
-      document.getElementById('choose-boost-container').style.display = 'block';
-      renderBoostOptions();
-      toast("👑 Équilibre parfait ! Choisis ta bénédiction.");
-    } else if (isStag) {
-      boostClass = null;
-      document.getElementById('choose-boost-container').style.display = 'none';
-      toast("💤 Bilan : Le Stagnant. Retour au front !");
-    } else {
-      let minXP = Infinity;
-      let weakest = null;
-      for (const [cls, xp] of Object.entries(classXP)) {
-        if (xp < minXP) {
-          minXP = xp;
-          weakest = cls;
-        }
-      }
-      boostClass = weakest;
-      document.getElementById('choose-boost-container').style.display = 'none';
-      const cls = getClassFromId(weakest);
-      toast("📊 Bilan terminé ! " + (cls ? cls.name : '') + " reçoit +10% la semaine prochaine.");
-    }
-  } else {
-    // Pas de boost, mais le bilan est enregistré
+  // Attribuer le boost (bénédiction)
+  if (isSouv) {
+    boostSelectionPending = true;
+    document.getElementById('choose-boost-container').style.display = 'block';
+    renderBoostOptions();
+    toast("👑 Équilibre parfait ! Choisis ta bénédiction.");
+  } else if (isStag) {
     boostClass = null;
     document.getElementById('choose-boost-container').style.display = 'none';
-    toast("📊 Bilan enregistré (hors dimanche). Reviens dimanche pour la bénédiction !");
+    toast("💤 Bilan : Le Stagnant. Retour au front !");
+  } else {
+    let minXP = Infinity;
+    let weakest = null;
+    for (const [cls, xp] of Object.entries(classXP)) {
+      if (xp < minXP) {
+        minXP = xp;
+        weakest = cls;
+      }
+    }
+    boostClass = weakest;
+    document.getElementById('choose-boost-container').style.display = 'none';
+    const cls = getClassFromId(weakest);
+    toast("📊 Bilan terminé ! " + (cls ? cls.name : '') + " reçoit +10% la semaine prochaine.");
   }
 
   // Réinitialiser les XP hebdomadaires
