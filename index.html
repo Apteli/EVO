@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Évolution v2">
-<title>Évolution v2.1</title>
+<meta name="apple-mobile-web-app-title" content="Évolution">
+<title>Projet Évolution</title>
 <link rel="icon" type="image/jpeg" href="favicon.jpg?v=3">
 <link rel="apple-touch-icon" href="favicon.jpg?v=3">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -73,9 +73,6 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .tag-min{background:rgba(167,139,250,.15);color:var(--accent);}
 .tag-ph{background:rgba(255,255,255,.07);color:var(--muted);}
 .tag-aventurier{background:rgba(34,197,94,.15);color:#22c55e;}
-.tag-guerrier{background:rgba(239,68,68,.15);color:#ef4444;}
-.tag-ombre{background:rgba(139,92,246,.15);color:#8b5cf6;}
-.tag-mage{background:rgba(59,130,246,.15);color:#3b82f6;}
 .q-xp{font-size:13px;font-weight:700;color:var(--accent);flex-shrink:0;cursor:default;}
 .q-actions{display:flex;gap:4px;flex-shrink:0;}
 .q-actions button{background:rgba(255,255,255,0.06);border:0.5px solid var(--border);border-radius:6px;color:var(--muted);font-size:14px;padding:2px 6px;cursor:pointer;font-family:inherit;}
@@ -90,23 +87,13 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .btn-accent:active,.btn-muted:active{opacity:0.8;}
 .alert{background:rgba(251,191,36,.1);border:0.5px solid rgba(251,191,36,.3);border-radius:10px;padding:12px 14px;font-size:13px;color:#fbbf24;margin-bottom:12px;display:none;}
 .alert.show{display:block;}
-.pillar{background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;cursor:pointer;transition:all .2s;}
-.pillar:hover{background:var(--card2);}
-.pillar .sub-pillars{display:none;margin-top:10px;padding-top:10px;border-top:0.5px solid var(--border);}
-.pillar .sub-pillars.open{display:block;}
-.sub-pillar{display:flex;align-items:center;gap:8px;margin-bottom:6px;padding:4px 0;}
-.sub-pillar .sub-label{font-size:11px;font-weight:600;color:var(--muted);min-width:70px;}
-.sub-pillar .sub-track{flex:1;background:rgba(255,255,255,0.06);border-radius:4px;height:4px;overflow:hidden;}
-.sub-pillar .sub-fill{height:100%;border-radius:4px;transition:width .5s;}
-.sub-pillar .sub-value{font-size:10px;color:var(--muted);min-width:40px;text-align:right;}
+.pillar{background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;}
 .pillar-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
 .pillar-icon{font-size:20px;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .pillar-name{font-size:14px;font-weight:600;flex:1;}
 .pillar-lv{font-size:12px;color:var(--muted);}
 .pillar-title{font-size:13px;font-weight:700;color:var(--accent);margin-left:6px;}
 .pillar-sats{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;}
-.pillar-arrow{font-size:12px;color:var(--muted);transition:transform .3s;}
-.pillar-arrow.open{transform:rotate(180deg);}
 .chart-card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px;}
 .chart-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
 .cap-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
@@ -136,7 +123,6 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .log-time{font-size:11px;color:var(--muted);}
 .rev-card{background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px;}
 .rev-q{font-size:14px;font-weight:600;margin-bottom:10px;}
-.rev-stats{font-size:12px;color:var(--muted);margin-bottom:12px;padding:8px;background:rgba(255,255,255,0.03);border-radius:8px;line-height:1.6;}
 .stars{display:flex;gap:6px;}
 .star{font-size:26px;opacity:.2;cursor:pointer;transition:opacity .1s;}
 .star.on{opacity:1;}
@@ -277,7 +263,6 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 .log-toggle-btn { background: none; border: none; color: var(--muted); font-size: 12px; cursor: pointer; padding: 4px 8px; margin-top: 8px; font-family: inherit; }
 .log-toggle-btn:hover { color: var(--text); }
 .bilan-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.version-footer { text-align: center; font-size: 11px; color: var(--muted); padding: 20px 0 10px; border-top: 0.5px solid var(--border); margin-top: 20px; }
 </style>
 </head>
 <body>
@@ -295,17 +280,72 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
   </div>
 </div>
 
+<!-- Pop-up de notation d'entraînement -->
+<div class="rating-popup" id="rating-popup">
+  <div class="rating-box">
+    <div class="rating-title">🏋️ Comment s'est passé ton entraînement ?</div>
+    <div class="rating-stars" id="rating-stars">
+      <span class="star" data-value="1">★</span>
+      <span class="star" data-value="2">★</span>
+      <span class="star" data-value="3">★</span>
+      <span class="star" data-value="4">★</span>
+      <span class="star" data-value="5">★</span>
+    </div>
+    <div class="rating-sub" id="rating-label">Clique sur une étoile pour noter la difficulté</div>
+    <div class="rating-actions">
+      <button class="btn-confirm" onclick="submitWorkoutRating()">💾 Envoyer</button>
+      <button class="btn-skip" onclick="skipWorkoutRating()">Passer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal d'édition des quêtes forgées -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal-box">
+    <div class="modal-title">✏️ Modifier la quête</div>
+    <div class="form-group">
+      <input type="text" id="edit-cq-name" class="form-input" placeholder="Nom de la quête...">
+    </div>
+    <div class="form-row">
+      <select id="edit-cq-diff" class="form-select">
+        <option value="easy">Facile (5 XP)</option>
+        <option value="medium">Moyen (15 XP)</option>
+        <option value="hard">Difficile (30 XP)</option>
+      </select>
+      <select id="edit-cq-type" class="form-select">
+        <option value="oneshot">One-shot</option>
+        <option value="recurrent">Récurrente</option>
+      </select>
+    </div>
+    <input type="hidden" id="edit-cq-id">
+    <div class="modal-actions">
+      <button class="btn-confirm" onclick="saveEditQuest()">💾 Sauvegarder</button>
+      <button class="btn-cancel" onclick="closeEditModal()">Annuler</button>
+    </div>
+  </div>
+</div>
+
 <!-- Top Bar -->
 <div class="topbar">
-  <div class="topbar-title">Évolution v2.1</div>
+  <div class="topbar-title">Projet Évolution</div>
   <div class="topbar-right">
     <div class="sync-dot" id="sync-dot"></div>
     <div class="top-xp" id="top-xp">0 XP</div>
   </div>
 </div>
 
-<!-- Écran Tableau de bord -->
-<div id="screen-dashboard" class="screen active">
+<!-- Écran Aujourd'hui -->
+<div id="screen-today" class="screen active">
+  <div id="alert" class="alert">⚠️ 3 jours sans activité — protocole minimum : 20 min.</div>
+  <div id="ai-welcome" class="ai-card" style="display:none">
+    <div class="ai-header"><span style="font-size:16px">🤖</span><span class="ai-label">Coach IA</span></div>
+    <div class="ai-body" id="ai-welcome-text"></div>
+    <div id="coach-chat-messages" class="chat-messages-box" style="display:none"></div>
+    <div class="coach-chat-wrap">
+      <input type="text" id="coach-free-input" class="coach-input" placeholder="Discuter avec ton coach..." autocomplete="off">
+      <button class="coach-send" onclick="envoyerMessageCoach()">Envoyer</button>
+    </div>
+  </div>
   <div id="phase-banner" class="phase-banner ph1">
     <div class="phase-icon">🌱</div>
     <div class="phase-info">
@@ -313,6 +353,23 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
       <div class="phase-desc">Installer les routines à friction minimale</div>
     </div>
     <div class="phase-prog" id="phase-prog">Mois 1</div>
+  </div>
+  <div class="xp-bars-container">
+    <div class="xp-bar-row">
+      <span class="xp-bar-label">👤</span>
+      <div class="xp-bar-track"><div class="xp-bar-fill global" id="bar-global" style="width:0%"></div></div>
+      <span class="xp-bar-value" id="bar-global-val">0 XP</span>
+    </div>
+    <div class="xp-bar-row">
+      <span class="xp-bar-label">🧱</span>
+      <div class="xp-bar-track"><div class="xp-bar-fill pilliers" id="bar-pilliers" style="width:0%"></div></div>
+      <span class="xp-bar-value" id="bar-pilliers-val">0 XP</span>
+    </div>
+    <div class="xp-bar-row">
+      <span class="xp-bar-label">🎒</span>
+      <div class="xp-bar-track"><div class="xp-bar-fill forges" id="bar-forges" style="width:0%"></div></div>
+      <span class="xp-bar-value" id="bar-forges-val">0 XP</span>
+    </div>
   </div>
   <div class="xp-hero">
     <div class="xp-big" id="xp-big">0</div>
@@ -330,60 +387,260 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
       <div class="streak-lbl">jours actifs</div>
     </div>
   </div>
-  <div class="section-title">Piliers - Aperçu</div>
-  <div id="pillars-preview"></div>
+  <div class="section-title">Minimum — 20 min</div>
+  <div id="quetes-min"></div>
+  <div class="section-title">Optimal</div>
+  <div id="quetes-opt"></div>
   <button class="btn-main" id="btn-valider" onclick="validerJour()">✓ Valider la journée</button>
 </div>
 
-<!-- Écran Capacités -->
-<div id="screen-capacities" class="screen">
-  <div id="capacities-list"></div>
-</div>
+<!-- Écran Livre des Quêtes -->
+<div id="screen-book" class="screen">
+  <div class="accordion">
+    <!-- Bloc 1 : Sidequest -->
+    <div class="accordion-item">
+      <button class="accordion-header" onclick="toggleAccordion('sidequest-block')">
+        <span>🎲 Sidequest du Jour</span>
+        <span>▼</span>
+      </button>
+      <div class="accordion-body open" id="sidequest-block">
+        <div class="sidequest-box" style="margin-bottom:0;">
+          <div class="sidequest-header">
+            <div class="sidequest-title">🎲 Sidequest du Jour</div>
+            <div class="sidequest-xp" id="sq-xp-display">+30 XP</div>
+          </div>
+          <div class="quest" id="sidequest-item" onclick="toggleSidequest()" style="margin-bottom:8px;">
+            <div class="check" id="sq-check"></div>
+            <div class="q-info">
+              <div class="q-name" id="sidequest-text">Chargement du défi...</div>
+              <div class="q-desc" id="sidequest-sub">Zone de confort, sociabilité et observation de terrain.</div>
+            </div>
+          </div>
+          <button class="btn-sm btn-muted" id="btn-reroll" onclick="rerollSidequestIA()" style="width:100%;">🎲 Relancer via le Coach (IA)</button>
+        </div>
+      </div>
+    </div>
 
-<!-- Écran Quêtes -->
-<div id="screen-quests" class="screen">
-  <div class="section-title">Quêtes du jour</div>
-  <div id="quetes-min"></div>
-  <div id="quetes-opt"></div>
-  <div class="section-title">Quêtes extérieures (To Do List)</div>
-  <div id="external-quests"></div>
-  <button class="btn-sm btn-accent" onclick="ajouterQueteExterne()" style="width:100%;margin-top:10px;">➕ Ajouter une quête extérieure</button>
-</div>
+    <!-- Bloc 2 : Quêtes forgées -->
+    <div class="accordion-item">
+      <button class="accordion-header" onclick="toggleAccordion('forges-block')">
+        <span>🔨 Quêtes forgées <span class="badge" id="forge-badge"></span></span>
+        <span>▼</span>
+      </button>
+      <div class="accordion-body" id="forges-block">
+        <div class="btn-group">
+          <button class="btn-sm btn-accent" onclick="toggleSection('forge-form')">➕ Forger une quête</button>
+          <button class="btn-sm btn-muted" onclick="toggleSection('forge-list'); hideBadge('forge-badge')">📋 Voir mes quêtes</button>
+        </div>
+        <div id="forge-form" style="display:none;">
+          <div class="rev-card" style="margin-bottom:8px;">
+            <div class="form-group">
+              <input type="text" id="cq-name" class="form-input" placeholder="Nom de la quête..." autocomplete="off">
+            </div>
+            <div class="form-row">
+              <select id="cq-diff" class="form-select">
+                <option value="easy">Facile (5 XP)</option>
+                <option value="medium">Moyen (15 XP)</option>
+                <option value="hard">Difficile (30 XP)</option>
+              </select>
+              <select id="cq-type" class="form-select">
+                <option value="oneshot">One-shot</option>
+                <option value="recurrent">Récurrente</option>
+              </select>
+            </div>
+            <button class="btn-sm btn-accent" onclick="ajouterQuetePerso()" style="width:100%;">+ Forger</button>
+          </div>
+        </div>
+        <div id="forge-list" style="display:none;">
+          <div id="custom-quests-list"></div>
+        </div>
+      </div>
+    </div>
 
-<!-- Écran Journal -->
-<div id="screen-journal" class="screen">
-  <div class="chart-card" id="log-list"><div class="empty-state">Aucune action enregistrée</div></div>
-  <button class="btn-sm btn-muted" onclick="annulerDerniereAction()" style="width:100%;margin-top:10px;">↩️ Annuler la dernière action</button>
-</div>
-
-<!-- Écran Paramètres -->
-<div id="screen-settings" class="screen">
-  <div class="avatar-card">
-    <div class="avatar-title">⚙️ Paramètres</div>
-    <div class="avatar-subtitle">Gestion des données et préférences</div>
-    <button class="bilan-btn" onclick="exporterDonnees()">📤 Exporter les données</button>
-    <button class="bilan-btn" onclick="importerDonnees()">📥 Importer les données</button>
-    <button class="bilan-btn" onclick="reinitialiserTout()" style="color:var(--coral);border-color:var(--coral);">⚠️ Réinitialiser tout</button>
+    <!-- Bloc 3 : Recettes -->
+    <div class="accordion-item">
+      <button class="accordion-header" onclick="toggleAccordion('recipes-block')">
+        <span>🍳 Recettes <span class="badge" id="recipe-badge"></span></span>
+        <span>▼</span>
+      </button>
+      <div class="accordion-body" id="recipes-block">
+        <div class="btn-group">
+          <button class="btn-sm btn-accent" onclick="toggleSection('recipe-form')">➕ Ajouter une recette</button>
+          <button class="btn-sm btn-muted" onclick="toggleSection('recipe-list'); hideBadge('recipe-badge')">📋 Voir mes recettes</button>
+        </div>
+        <div id="recipe-form" style="display:none;">
+          <div class="rev-card" style="margin-bottom:8px;">
+            <div class="form-group">
+              <input type="text" id="recipe-name" class="form-input" placeholder="Nom de la recette..." autocomplete="off">
+            </div>
+            <div class="form-row">
+              <input type="number" id="recipe-time" class="form-input" placeholder="Temps (min)" min="1" value="30">
+              <input type="number" id="recipe-people" class="form-input" placeholder="Personnes" min="1" value="2">
+            </div>
+            <div class="form-group">
+              <textarea id="recipe-ingredients" class="form-input" placeholder="Ingrédients (un par ligne)" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+              <textarea id="recipe-steps" class="form-input" placeholder="Étapes (une par ligne)" rows="4"></textarea>
+            </div>
+            <button class="btn-sm btn-accent" onclick="ajouterRecette()" style="width:100%;">+ Ajouter</button>
+          </div>
+        </div>
+        <div id="recipe-list" style="display:none;">
+          <div id="recipes-list-container"></div>
+        </div>
+      </div>
+    </div>
   </div>
+</div>
+
+<!-- Écran Piliers -->
+<div id="screen-piliers" class="screen">
+  <div id="piliers-list"></div>
+</div>
+
+<!-- Écran Stats -->
+<div id="screen-stats" class="screen">
+  <div class="chart-card">
+    <div class="chart-title">XP cumulé — historique</div>
+    <canvas id="chart-xp" height="130"></canvas>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title">Équilibre des piliers</div>
+    <canvas id="chart-radar" height="200"></canvas>
+  </div>
+  <div class="section-title">Activité — 60 jours</div>
+  <div class="chart-card">
+    <div class="heatmap" id="heatmap"></div>
+    <div class="hm-legend">
+      <span><div class="hm-sq on" style="display:inline-block;width:10px;height:10px;border-radius:2px"></div> actif</span>
+      <span><div class="hm-sq today" style="display:inline-block;width:10px;height:10px;border-radius:2px"></div> aujourd'hui</span>
+    </div>
+  </div>
+  <div class="section-title">Capacités développées</div>
+  <div class="cap-grid" id="cap-grid"></div>
+  <div class="section-title">Jalons</div>
+  <div class="ms-grid" id="milestones"></div>
+  <div class="section-title">Journal des actions</div>
+  <div class="chart-card" id="log-list"><div class="empty-state">Aucune action enregistrée</div></div>
+</div>
+
+<!-- Écran Revue -->
+<div id="screen-revue" class="screen">
+  <div class="rev-card">
+    <div class="rev-q">Cette semaine globalement</div>
+    <div class="stars" id="stars-row">
+      <span class="star" onclick="setStar(1)">★</span>
+      <span class="star" onclick="setStar(2)">★</span>
+      <span class="star" onclick="setStar(3)">★</span>
+      <span class="star" onclick="setStar(4)">★</span>
+      <span class="star" onclick="setStar(5)">★</span>
+    </div>
+  </div>
+  <div class="rev-card">
+    <div class="rev-q">Ce qui a bien fonctionné</div>
+    <textarea id="rv-bien" placeholder="Habitudes tenues, progrès..."></textarea>
+  </div>
+  <div class="rev-card">
+    <div class="rev-q">Ce qui a résisté</div>
+    <textarea id="rv-resist" placeholder="Friction, abandons, raisons..."></textarea>
+  </div>
+  <div class="rev-card">
+    <div class="rev-q">Ce que je change cette semaine</div>
+    <textarea id="rv-change" placeholder="Un ajustement concret..."></textarea>
+  </div>
+  <button class="btn-main" onclick="sauvegarderRevue()">Sauvegarder +100 XP</button>
+  <div id="ai-bilan" class="ai-card" style="display:none;margin-top:12px;"><div class="ai-header"><span style="font-size:16px">🧠</span><span class="ai-label">Bilan IA</span></div><div class="ai-body" id="ai-bilan-text"></div></div>
+</div>
+
+<!-- Écran Avatar -->
+<div id="screen-avatar" class="screen">
+  <div id="aura-banner" class="aura-banner">
+    <div class="aura-icon" id="aura-icon">⚔️</div>
+    <div class="aura-info">
+      <div class="aura-name" id="aura-name">Aventurier</div>
+      <div class="aura-desc" id="aura-desc">Classe dominante de la semaine</div>
+    </div>
+  </div>
+  <div class="avatar-card">
+    <div class="avatar-title">📊 Niveaux de Classe</div>
+    <div class="avatar-subtitle">Progression dans les 4 disciplines</div>
+    <div class="class-grid" id="class-grid">
+      <div class="class-item" id="class-guerrier">
+        <div class="class-icon">⚔️</div>
+        <div class="class-name">Guerrier</div>
+        <div class="class-level" id="guerrier-level"></div>
+        <div class="class-title" id="guerrier-title">Apprenti</div>
+        <div class="class-bar"><div class="class-bar-fill guerrier" id="guerrier-bar" style="width:0%"></div></div>
+        <div class="class-progress" style="font-size:10px;color:var(--muted);margin-top:2px;" id="guerrier-progress">0 / 100 XP</div>
+      </div>
+      <div class="class-item" id="class-mage">
+        <div class="class-icon">🔮</div>
+        <div class="class-name">Mage</div>
+        <div class="class-level" id="mage-level"></div>
+        <div class="class-title" id="mage-title">Apprenti</div>
+        <div class="class-bar"><div class="class-bar-fill mage" id="mage-bar" style="width:0%"></div></div>
+        <div class="class-progress" style="font-size:10px;color:var(--muted);margin-top:2px;" id="mage-progress">0 / 100 XP</div>
+      </div>
+      <div class="class-item" id="class-ombre">
+        <div class="class-icon">🌑</div>
+        <div class="class-name">Ombre</div>
+        <div class="class-level" id="ombre-level"></div>
+        <div class="class-title" id="ombre-title">Apprenti</div>
+        <div class="class-bar"><div class="class-bar-fill ombre" id="ombre-bar" style="width:0%"></div></div>
+        <div class="class-progress" style="font-size:10px;color:var(--muted);margin-top:2px;" id="ombre-progress">0 / 100 XP</div>
+      </div>
+      <div class="class-item" id="class-aventurier">
+        <div class="class-icon">🎒</div>
+        <div class="class-name">Aventurier</div>
+        <div class="class-level" id="aventurier-level"></div>
+        <div class="class-title" id="aventurier-title">Apprenti</div>
+        <div class="class-bar"><div class="class-bar-fill aventurier" id="aventurier-bar" style="width:0%"></div></div>
+        <div class="class-progress" style="font-size:10px;color:var(--muted);margin-top:2px;" id="aventurier-progress">0 / 100 XP</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Diagramme à barres (XP des classes) -->
+  <div class="chart-card">
+    <div class="chart-title">Répartition des XP par classe</div>
+    <canvas id="class-bar-chart" height="150"></canvas>
+  </div>
+
+  <div class="avatar-card">
+    <div class="avatar-title">⚡ Bénédiction Active</div>
+    <div class="avatar-subtitle" id="benediction-desc">Aucune bénédiction active</div>
+    <div id="choose-boost-container" style="display:none;">
+      <div class="avatar-subtitle" style="margin-bottom:4px;">Choisis ta classe bénéficiaire du +10% pour la semaine :</div>
+      <div class="choose-boost" id="choose-boost"></div>
+      <button class="bilan-btn" onclick="confirmerBoost()">Confirmer le choix</button>
+    </div>
+  </div>
+  <div class="avatar-card">
+    <div class="avatar-title">📋 Historique des Bilans</div>
+    <div id="bilan-history">
+      <div class="empty-state">Aucun bilan enregistré</div>
+    </div>
+  </div>
+  <button class="bilan-btn" onclick="lancerBilanHebdo()" id="btn-bilan-hebdo">📊 Lancer le Bilan Hebdomadaire</button>
 </div>
 
 <!-- Tab Bar -->
 <div class="tab-bar">
-  <button class="tab-btn active" onclick="goTab('dashboard',this)"><span class="tab-icon">📊</span>Tableau</button>
-  <button class="tab-btn" onclick="goTab('capacities',this)"><span class="tab-icon">🧠</span>Capacités</button>
-  <button class="tab-btn" onclick="goTab('quests',this)"><span class="tab-icon">📋</span>Quêtes</button>
-  <button class="tab-btn" onclick="goTab('journal',this)"><span class="tab-icon">📜</span>Journal</button>
-  <button class="tab-btn" onclick="goTab('settings',this)"><span class="tab-icon">⚙️</span>Param.</button>
+  <button class="tab-btn active" onclick="goTab('today',this)"><span class="tab-icon">☀️</span>Aujourd'hui</button>
+  <button class="tab-btn" onclick="goTab('book',this)"><span class="tab-icon">📖</span>Livre</button>
+  <button class="tab-btn" onclick="goTab('piliers',this)"><span class="tab-icon">🧱</span>Piliers</button>
+  <button class="tab-btn" onclick="goTab('stats',this)"><span class="tab-icon">📈</span>Stats</button>
+  <button class="tab-btn" onclick="goTab('avatar',this)"><span class="tab-icon">👤</span>Statuts</button>
+  <button class="tab-btn" onclick="goTab('revue',this)"><span class="tab-icon">📋</span>Revue</button>
 </div>
 
 <div class="toast" id="toast"></div>
-<div class="version-footer">v2.1.0 – 2026-07-19</div>
 
 <script>
 // ============================================================
 // CONFIGURATION
 // ============================================================
-const VERSION = '2.1.0';
 const SB_URL = 'https://nlicstxewcrzjliyslkm.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5saWNzdHhld2NyempsaXlzbGttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1ODg1NzUsImV4cCI6MjA5ODE2NDU3NX0.CTHaV_iM50Q_sA1l8_5rVL7b4nU8XonYRcds8Z702GI';
 const HDR = {
@@ -393,97 +650,153 @@ const HDR = {
   'Prefer': 'return=representation'
 };
 
-// ============================================================
-// DONNÉES STATIQUES
-// ============================================================
-const LEVELS = [
-  { min: 0, name: 'Initié' }, { min: 500, name: 'Apprenti' }, { min: 1200, name: 'Praticien' },
-  { min: 2500, name: 'Expert' }, { min: 5000, name: 'Maître' }, { min: 10000, name: 'Architecte' }
+const MAX_PILLIER_XP = 100000;
+
+const PILLAR_RANKS = [
+  { level: 1, xp: 0, title: 'Apprenti' },
+  { level: 2, xp: 600, title: 'Praticien' },
+  { level: 3, xp: 1200, title: 'Expert' },
+  { level: 4, xp: 2000, title: 'Maître' },
+  { level: 5, xp: 3000, title: 'Grand Maître' },
+  { level: 6, xp: 4200, title: 'Archimage' },
+  { level: 7, xp: 5600, title: 'Savant' },
+  { level: 8, xp: 7200, title: 'Sage' },
+  { level: 9, xp: 9000, title: 'Visionnaire' },
+  { level: 10, xp: 11000, title: 'Érudit' },
+  { level: 11, xp: 13200, title: 'Oracle' },
+  { level: 12, xp: 15600, title: 'Prophète' },
+  { level: 13, xp: 18200, title: 'Illuminé' },
+  { level: 14, xp: 21000, title: 'Transcendant' },
+  { level: 15, xp: 24000, title: 'Légende' },
+  { level: 16, xp: 27200, title: 'Mythe' },
+  { level: 17, xp: 30600, title: 'Divin' },
+  { level: 18, xp: 34200, title: 'Omniscient' },
+  { level: 19, xp: 38000, title: 'Éveillé' },
+  { level: 20, xp: 42000, title: 'Dieu' },
+  { level: 21, xp: 46000, title: 'Alpha' },
+  { level: 22, xp: 50000, title: 'Oméga' },
+  { level: 23, xp: 54000, title: 'Cosmique' },
+  { level: 24, xp: 58000, title: 'Primordial' },
+  { level: 25, xp: 62000, title: 'Éternel' },
 ];
 
-const PHASES = [
-  { id: 1, months: [1, 2, 3], name: 'Fondations', desc: 'Installer les routines à friction minimale', icon: '🌱', cls: 'ph1' },
-  { id: 2, months: [4, 5, 6, 7, 8], name: 'Intensification', desc: 'Intégration des satellites, armée comme labo', icon: '⚡', cls: 'ph2' },
-  { id: 3, months: [9, 10, 11, 12], name: 'Consolidation', desc: 'Mesure, ajustement, extension du système', icon: '💎', cls: 'ph3' },
+const CLASS_RANKS = [
+  { level: 1, xp: 0, title: 'Apprenti' },
+  { level: 2, xp: 100, title: 'Initié' },
+  { level: 3, xp: 300, title: 'Praticien' },
+  { level: 4, xp: 600, title: 'Expert' },
+  { level: 5, xp: 1000, title: 'Maître' },
+  { level: 6, xp: 1500, title: 'Grand Maître' },
+  { level: 7, xp: 2100, title: 'Archimage' },
+  { level: 8, xp: 2800, title: 'Savant' },
+  { level: 9, xp: 3600, title: 'Sage' },
+  { level: 10, xp: 4500, title: 'Visionnaire' },
+  { level: 11, xp: 5500, title: 'Érudit' },
+  { level: 12, xp: 6600, title: 'Oracle' },
+  { level: 13, xp: 7800, title: 'Prophète' },
+  { level: 14, xp: 9100, title: 'Illuminé' },
+  { level: 15, xp: 10500, title: 'Transcendant' },
+  { level: 16, xp: 12000, title: 'Légende' },
+  { level: 17, xp: 13600, title: 'Mythe' },
+  { level: 18, xp: 15300, title: 'Divin' },
+  { level: 19, xp: 17100, title: 'Omniscient' },
+  { level: 20, xp: 19000, title: 'Alpha' },
+  { level: 21, xp: 21000, title: 'Oméga' },
+  { level: 22, xp: 23100, title: 'Cosmique' },
+  { level: 23, xp: 25300, title: 'Primordial' },
+  { level: 24, xp: 27600, title: 'Éternel' },
+  { level: 25, xp: 30000, title: '★ Infini' },
 ];
 
-const PILLARS = [
-  { id: 'p1', name: 'Cognitif', icon: '🧠', color: '#a78bfa' },
-  { id: 'p2', name: 'Physiologique', icon: '🫁', color: '#34d399' },
-  { id: 'p3', name: 'Sensoriel', icon: '👁', color: '#60a5fa' },
-  { id: 'p4', name: 'Social/Communication', icon: '🎯', color: '#fbbf24' },
-  { id: 'p5', name: 'Transversal', icon: '💎', color: '#fb923c' }
-];
-
-const CAPACITIES_DATA = [
-  // P1 Cognitif
-  { id: 'mct', name: 'Mémoire à court terme', pillar: 'p1', desc: 'Retenir et manipuler des informations' },
-  { id: 'mlt', name: 'Mémoire à long terme', pillar: 'p1', desc: 'Stockage et rappel d\'informations' },
-  { id: 'raisonnement', name: 'Raisonnement logique', pillar: 'p1', desc: 'Résolution de problèmes, déduction' },
-  { id: 'calcul', name: 'Calcul mental', pillar: 'p1', desc: 'Vitesse et précision' },
-  { id: 'lecture', name: 'Compréhension de lecture', pillar: 'p1', desc: 'Analyse de texte, extraction d\'idées' },
-  { id: 'metacognition', name: 'Métacognition', pillar: 'p1', desc: 'Conscience de ses processus cognitifs' },
-  // P2 Physiologique
-  { id: 'stress', name: 'Régulation du stress', pillar: 'p2', desc: 'Variabilité cardiaque, contrôle émotionnel' },
-  { id: 'souplesse', name: 'Souplesse/mobilité', pillar: 'p2', desc: 'Amplitude articulaire, coordination' },
-  { id: 'endurance', name: 'Endurance', pillar: 'p2', desc: 'Capacité aérobie' },
-  { id: 'force', name: 'Force', pillar: 'p2', desc: 'Puissance musculaire' },
-  { id: 'recuperation', name: 'Récupération', pillar: 'p2', desc: 'Qualité du sommeil, récupération post-effort' },
-  // P3 Sensoriel
-  { id: 'observation', name: 'Observation clinique', pillar: 'p3', desc: 'Détection de détails visuels, auditifs' },
-  { id: 'spatial', name: 'Conscience spatiale', pillar: 'p3', desc: 'Orientation, perception des distances' },
-  { id: 'proprioception', name: 'Proprioception', pillar: 'p3', desc: 'Perception du corps dans l\'espace' },
-  // P4 Social
-  { id: 'rhetorique', name: 'Rhétorique', pillar: 'p4', desc: 'Structurer un discours' },
-  { id: 'ecoute', name: 'Écoute active', pillar: 'p4', desc: 'Compréhension des nuances' },
-  { id: 'negociation', name: 'Négociation', pillar: 'p4', desc: 'Trouver des compromis' },
-  { id: 'langues', name: 'Langues', pillar: 'p4', desc: 'Maîtrise de langues étrangères' },
-  // P5 Transversal
-  { id: 'creativite', name: 'Créativité', pillar: 'p5', desc: 'Pensée divergente' },
-  { id: 'decision', name: 'Prise de décision', pillar: 'p5', desc: 'Efficacité et rapidité' },
-  { id: 'coordination', name: 'Coordination', pillar: 'p5', desc: 'Vitesse, réflexes, coordination' }
-];
-
-// Quêtes prédéfinies (avec capacités associées)
-const QUETES = {
-  min: [
-    { id: 'q1', name: 'Respiration / cohérence cardiaque', desc: '5 min box breathing ou cohérence cardiaque', xp: 30, caps: ['stress'], time: 5 },
-    { id: 'q2', name: 'Anki — cartes du jour', desc: '10 min, minimum 10 cartes', xp: 34, caps: ['mct', 'mlt'], time: 10 },
-    { id: 'q3', name: 'Sémiologie factuelle & conscience spatiale', desc: '1 fait physique noté + 1 scan spatial', xp: 20, caps: ['observation', 'spatial'], time: 15 },
-  ],
-  opt: [
-    { id: 'q4', name: 'Bloc cognitif profond', desc: '45 min lecture technique, calcul ou méthode Feynman', xp: 54, caps: ['raisonnement', 'lecture'], time: 45 },
-    { id: 'q5', name: 'Entraînement physique', desc: '30 min force, natation ou zone 2', xp: 70, caps: ['endurance', 'force'], time: 30 },
-    { id: 'q6', name: 'Wim Hof / douche froide', desc: 'Protocole respiration + exposition au froid', xp: 50, caps: ['stress', 'recuperation'], time: 15 },
-    { id: 'q7', name: 'Langue ou rhétorique', desc: '30 min Pimsleur, Assimil ou débat oral', xp: 60, caps: ['langues', 'rhetorique'], time: 30 },
-    { id: 'q8', name: 'Journal décisionnel', desc: '5 min — 1 décision analysée pour biais cognitifs', xp: 21, caps: ['metacognition', 'decision'], time: 5 },
-    { id: 'q9', name: 'Lecture 30 min', desc: 'Médecine, philo, neuro, stoïcisme...', xp: 27, caps: ['lecture', 'mlt'], time: 30 },
-    { id: 'q10', name: 'Échecs / jeu stratégique', desc: '15 min blitz ou puzzle — pensée multi-coups', xp: 35, caps: ['raisonnement', 'decision'], time: 15 },
-    { id: 'q11', name: "Dessin d'observation", desc: '5 min — percevoir les lignes et volumes réels', xp: 25, caps: ['observation', 'creativite'], time: 5 },
-    { id: 'q12', name: 'Calcul mental chronométré', desc: '10 min — vitesse et chunking', xp: 21, caps: ['calcul', 'mct'], time: 10 },
-    { id: 'q13', name: 'Mobilité & Souplesse', desc: '15-30 min de travail articulaire, étirements ou yoga', xp: 60, caps: ['souplesse', 'coordination'], time: 15 },
-    { id: 'q14', name: 'Parcours de mobilité active', desc: '10 min d\'enchaînement dynamique (fentes, rotations)', xp: 30, caps: ['souplesse', 'coordination'], time: 10 },
-    { id: 'q15', name: 'Observation urbaine', desc: 'Dans la rue, repère 3 détails inédits', xp: 25, caps: ['observation', 'spatial'], time: 10 },
-    { id: 'q16', name: 'Exploration d\'un sujet', desc: 'Lis un article sur un domaine inconnu, note 3 idées', xp: 20, caps: ['lecture', 'creativite'], time: 20 },
-    { id: 'q17', name: 'Défi d\'observation clinique', desc: 'Dans un lieu public, décris la posture de 3 personnes', xp: 35, caps: ['observation', 'proprioception'], time: 15 }
-  ]
+const AURA_CONFIG = {
+  'guerrier': { name: 'Guerrier', icon: '⚔️', color: '#ef4444', cssClass: 'guerrier' },
+  'mage': { name: 'Mage', icon: '🔮', color: '#3b82f6', cssClass: 'mage' },
+  'ombre': { name: 'Ombre', icon: '🌑', color: '#8b5cf6', cssClass: 'ombre' },
+  'aventurier': { name: 'Aventurier', icon: '🎒', color: '#22c55e', cssClass: 'aventurier' },
+  'stratege': { name: 'Le Stratège', icon: '🎯', color: '#7c3aed', cssClass: 'stratege' },
+  'vagabond': { name: 'Le Vagabond', icon: '🧭', color: '#f59e0b', cssClass: 'vagabond' },
+  'traqueur': { name: 'Le Traqueur', icon: '🐾', color: '#6b7280', cssClass: 'traqueur' },
+  'savant': { name: 'Le Savant', icon: '📚', color: '#06b6d4', cssClass: 'savant' },
+  'souverain': { name: 'Aventurier Suprême', icon: '👑', color: '#fbbf24', cssClass: 'souverain' },
+  'stagnant': { name: 'Le Stagnant', icon: '💤', color: '#6b7280', cssClass: 'stagnant' }
 };
 
-// ============================================================
-// ÉTAT GLOBAL
-// ============================================================
-let UID = localStorage.getItem('sys12_uid') || null;
-let S = {
-  total_xp: 0, streak: 0, last_day: null, days_total: 0,
-  start_date: new Date().toISOString().slice(0, 10), current_month: 1,
-  is_day_locked: false
+const CLASS_TO_PILLAR = {
+  'guerrier': 'p4',
+  'mage': 'p1',
+  'ombre': 'p3'
 };
-let LOG = [];
-let capacities = {}; // { id: { xp, level, level_up_xp } }
-let customQuests = [];
-let checkedToday = {};
-let isDayLocked = false;
-let syncTimer = null;
+
+// === Fonctions piliers et classes ===
+function getPillarRank(xp) {
+  let rank = PILLAR_RANKS[0];
+  for (const r of PILLAR_RANKS) {
+    if (xp >= r.xp) rank = r;
+  }
+  return rank;
+}
+function getPillarLevel(xp) {
+  let level = 1;
+  for (const r of PILLAR_RANKS) {
+    if (xp >= r.xp) level = r.level;
+  }
+  return level;
+}
+function getNextPillarRank(xp) {
+  let next = null;
+  for (const r of PILLAR_RANKS) {
+    if (xp < r.xp) { next = r; break; }
+  }
+  if (!next) {
+    const last = PILLAR_RANKS[PILLAR_RANKS.length - 1];
+    next = { level: last.level + 1, xp: last.xp + 4000, title: '★ ' + last.title + ' ∞' };
+  }
+  return next;
+}
+function getPillarProgress(xp) {
+  const current = getPillarRank(xp);
+  const next = getNextPillarRank(xp);
+  if (!next) return { pct: 100, xp_into: xp - current.xp, xp_needed: 1 };
+  const xp_into = xp - current.xp;
+  const xp_needed = next.xp - current.xp;
+  const pct = Math.min(100, Math.round((xp_into / xp_needed) * 100));
+  return { pct, xp_into, xp_needed, nextLevel: next.level, nextTitle: next.title };
+}
+
+function getClassRank(xp) {
+  let rank = CLASS_RANKS[0];
+  for (const r of CLASS_RANKS) {
+    if (xp >= r.xp) rank = r;
+  }
+  return rank;
+}
+function getClassLevel(xp) {
+  let level = 1;
+  for (const r of CLASS_RANKS) {
+    if (xp >= r.xp) level = r.level;
+  }
+  return level;
+}
+function getNextClassRank(xp) {
+  let next = null;
+  for (const r of CLASS_RANKS) {
+    if (xp < r.xp) { next = r; break; }
+  }
+  if (!next) {
+    const last = CLASS_RANKS[CLASS_RANKS.length - 1];
+    next = { level: last.level + 1, xp: last.xp + 2000, title: '★ ' + last.title + ' ∞' };
+  }
+  return next;
+}
+function getClassProgress(xp) {
+  const current = getClassRank(xp);
+  const next = getNextClassRank(xp);
+  if (!next) return { pct: 100, xp_into: xp - current.xp, xp_needed: 1 };
+  const xp_into = xp - current.xp;
+  const xp_needed = next.xp - current.xp;
+  const pct = Math.min(100, Math.round((xp_into / xp_needed) * 100));
+  return { pct, xp_into, xp_needed, nextLevel: next.level, nextTitle: next.title };
+}
 
 // ============================================================
 // FONCTIONS SUPABASE
@@ -506,13 +819,2543 @@ async function sbInsert(table, obj) {
 async function sbDelete(table, uid, questId, day) {
   return fetch(`${SB_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(uid)}&quest_id=eq.${questId}&created_at=gte.${day}T00:00:00&created_at=lte.${day}T23:59:59`, { method: 'DELETE', headers: HDR });
 }
-async function sbGetMany(table, uid, limit = 50) {
+async function sbGetMany(table, uid, limit = 30) {
   const r = await fetch(`${SB_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(uid)}&order=created_at.desc&limit=${limit}`, { headers: HDR });
   return r.json();
 }
 
 // ============================================================
-// IA (Gemini via Cloudflare Worker)
+// DONNÉES STATIQUES
+// ============================================================
+const LEVELS = [
+  { min: 0, name: 'Initié' }, { min: 500, name: 'Apprenti' }, { min: 1200, name: 'Praticien' },
+  { min: 2500, name: 'Expert' }, { min: 5000, name: 'Maître' }, { min: 10000, name: 'Architecte' }
+];
+const PHASES = [
+  { id: 1, months: [1, 2, 3], name: 'Fondations', desc: 'Installer les routines à friction minimale', icon: '🌱', cls: 'ph1' },
+  { id: 2, months: [4, 5, 6, 7, 8], name: 'Intensification', desc: 'Intégration des satellites, armée comme labo', icon: '⚡', cls: 'ph2' },
+  { id: 3, months: [9, 10, 11, 12], name: 'Consolidation', desc: 'Mesure, ajustement, extension du système', icon: '💎', cls: 'ph3' },
+];
+
+const QUEST_DEFAULT_TIME = {
+  'q1': 5,
+  'q2': 10,
+  'q3': 15,
+  'q4': 45,
+  'q5': 30,
+  'q6': 15,
+  'q7': 30,
+  'q8': 5,
+  'q9': 30,
+  'q10': 15,
+  'q11': 5,
+  'q12': 10
+};
+
+const QUETES = {
+  min: [
+    { id: 'q1', name: 'Respiration / cohérence cardiaque', desc: '5 min box breathing ou cohérence cardiaque', xp: 30, pid: 'p2', phases: [1, 2, 3] },
+    { id: 'q2', name: 'Anki — cartes du jour', desc: '10 min, minimum 10 cartes (Étymologie médicale)', xp: 40, pid: 'p1', phases: [1, 2, 3] },
+    { id: 'q3', name: 'Sémiologie factuelle & conscience spatiale', desc: '1 fait physique noté (posture/marche) + 1 scan spatial (sorties/distances)', xp: 20, pid: 'p3', phases: [1, 2, 3] },
+  ],
+  opt: [
+    { id: 'q4', name: 'Bloc cognitif profond', desc: '45 min lecture technique, calcul ou méthode Feynman', xp: 80, pid: 'p1', phases: [1, 2, 3] },
+    { id: 'q5', name: 'Entraînement physique', desc: '30 min force, natation ou zone 2', xp: 70, pid: 'p4', phases: [1, 2, 3] },
+    { id: 'q6', name: 'Wim Hof / douche froide', desc: 'Protocole respiration + exposition au froid', xp: 50, pid: 'p2', phases: [1, 2, 3] },
+    { id: 'q7', name: 'Langue ou rhétorique', desc: '30 min Pimsleur, Assimil ou débat oral', xp: 60, pid: 'p5', phases: [2, 3] },
+    { id: 'q8', name: 'Journal décisionnel', desc: '5 min — 1 décision analysée pour biais cognitifs', xp: 30, pid: 'p1', phases: [1, 2, 3] },
+    { id: 'q9', name: 'Lecture 30 min', desc: 'Médecine, philo, neuro, stoïcisme...', xp: 40, pid: 'p1', phases: [1, 2, 3] },
+    { id: 'q10', name: 'Échecs / jeu stratégique', desc: '15 min blitz ou puzzle — pensée multi-coups', xp: 35, pid: 'p5', phases: [2, 3] },
+    { id: 'q11', name: "Dessin d'observation", desc: '5 min — percevoir les lignes et volumes réels avant de dessiner', xp: 25, pid: 'p3', phases: [3] },
+    { id: 'q12', name: 'Calcul mental chronométré', desc: '10 min — vitesse et chunking', xp: 30, pid: 'p1', phases: [2, 3] },
+    { id: 'q13', name: 'Mobilité & Souplesse', desc: '15-30 min de travail articulaire, étirements ou yoga', xp: 60, pid: 'p4', phases: [1, 2, 3] }
+  ]
+};
+const PILLARS = [
+  { id: 'p1', name: 'Métacognition & apprentissage', icon: '🧠', color: '#a78bfa', satellites: 'Mémoire · Calcul · Biais · Feynman' },
+  { id: 'p2', name: 'Régulation psychophysio', icon: '🫁', color: '#34d399', satellites: 'Stress · Wim Hof · Sommeil · Récupération' },
+  { id: 'p3', name: 'Présence & observation', icon: '👁', color: '#60a5fa', satellites: 'Sémiologie · Espace · Faits · Distances' },
+  { id: 'p4', name: 'Condition physique', icon: '⚡', color: '#fb923c', satellites: 'Force · Endurance · Proprio · Réflexes · Mobilité' },
+  { id: 'p5', name: 'Influence & communication', icon: '🎯', color: '#fbbf24', satellites: 'Rhétorique · Langues · Négociation · Stratégie' },
+];
+const MILESTONES = [
+  { lbl: 'Premier jour', icon: '🌱', check: s => s.days_total >= 1 },
+  { lbl: '7 jours streak', icon: '🔥', check: s => s.streak >= 7 },
+  { lbl: '500 XP', icon: '⭐', check: s => s.total_xp >= 500 },
+  { lbl: '21 jours streak', icon: '💎', check: s => s.streak >= 21 },
+  { lbl: 'Phase 2', icon: '⚡', check: s => s.current_month >= 4 },
+  { lbl: '1000 XP', icon: '🏆', check: s => s.total_xp >= 1000 },
+];
+const PCOLS = { p1: '#a78bfa', p2: '#34d399', p3: '#60a5fa', p4: '#fb923c', p5: '#fbbf24' };
+const PILIER_TO_CLASSE = { 'p4': 'guerrier', 'p1': 'mage', 'p2': 'mage', 'p3': 'ombre', 'p5': 'ombre' };
+const CLASSES = {
+  guerrier: { id: 'guerrier', name: 'Guerrier', icon: '⚔️', color: '#ef4444', barClass: 'guerrier' },
+  mage: { id: 'mage', name: 'Mage', icon: '🔮', color: '#3b82f6', barClass: 'mage' },
+  ombre: { id: 'ombre', name: 'Ombre', icon: '🌑', color: '#8b5cf6', barClass: 'ombre' },
+  aventurier: { id: 'aventurier', name: 'Aventurier', icon: '🎒', color: '#22c55e', barClass: 'aventurier' }
+};
+const BANQUE_SIDEQUESTS = [
+  { text: "L'Œil Clinique Social : Fais un compliment sincère et ultra-spécifique à un inconnu sur son style ou un accessoire.", pid: "p5" },
+  { text: "Le Brise-Glace Tactique : Demande une direction ou une recommandation à quelqu'un dans la rue sans sortir ton téléphone.", pid: "p5" },
+  { text: "L'Improvisation Neutre : Parle aujourd'hui sans utiliser aucun mot de remplissage (euuuh, genre, du coup).", pid: "p5" },
+  { text: "Scan d'urgence absolu : Dans le prochain lieu public, repère instantanément 3 issues et un objet utilisable en couverture.", pid: "p3" },
+  { text: "Vitesse d'ancrage : Regarde une personne 2 secondes, ferme les yeux, et liste mentalement sa posture et 2 détails vestimentaires.", pid: "p3" },
+  { text: "Hydratation flash : Bois un grand verre d'eau immédiatement pour réactiver la vigilance métabolique.", pid: "p2" },
+  { text: "Focus respiration : Fais 2 minutes de respiration triangulaire (4s inspire, 4s bloque, 4s expire) avant ta prochaine tâche.", pid: "p2" },
+  { text: "Détox numérique : Passe les 2 prochaines heures sans regarder aucun écran (hors urgence absolue).", pid: "p1" },
+  { text: "Calcul mental flash : Multiplie mentalement 3 paires de nombres à 2 chiffres dans la prochaine heure.", pid: "p1" },
+  { text: "Posture de combat : Reste debout ou assis avec une symétrie parfaite et un alignement vertébral pendant 15 minutes.", pid: "p4" },
+  { text: "Test d'équilibre complet : Tiens-toi sur une seule jambe, yeux fermés, pendant 45 secondes sans bouger.", pid: "p4" },
+  { text: "Anki inversé : Tente de réciter de mémoire 5 définitions médicales sans regarder les cartes.", pid: "p1" },
+  { text: "Micro-sieste de contrôle : Allonge-toi 10 minutes en contrôle respiratoire complet sans t'endormir.", pid: "p2" },
+  { text: "Analyse d'impact environnemental : Note le niveau sonore et la luminosité du lieu actuel, évalue son impact sur ton stress.", pid: "p3" },
+  { text: "L'art du silence : Écoute une conversation ou un groupe pendant 5 minutes sans intervenir une seule fois.", pid: "p5" },
+  { text: "Chrono-réflexes : Lance un petit objet (balle, clé) et rattrape-le avec la main non dominante 15 fois de suite.", pid: "p4" },
+  { text: "Rappel stoïcien : Identifie une contrariété récente et liste 2 raisons pour lesquelles elle échappe à ton contrôle.", pid: "p1" },
+  { text: "Douche contrastée : Termine ta prochaine douche par 60 secondes d'eau froide au maximum de tolérance.", pid: "p2" },
+  { text: "Estimation de foule : Compte précisément le nombre de personnes dans une pièce en moins de 10 secondes.", pid: "p3" },
+  { text: "Mémorisation de plaque : Retiens la plaque d'immatriculation de la prochaine voiture croisée pendant 1 heure.", pid: "p1" }
+];
+
+// ============================================================
+// CONSTANTES IA
+// ============================================================
+const IA_DIFFICULTY = {
+  easy: { label: 'Facile', xp: 20, emoji: '🟢' },
+  medium: { label: 'Moyen', xp: 40, emoji: '🟡' },
+  hard: { label: 'Difficile', xp: 60, emoji: '🔴' }
+};
+const IA_MAX_PER_DAY = 3;
+const IA_BONUS_MULTIPLIER = 1.2;
+
+// ============================================================
+// FONCTIONS SUPABASE SPÉCIFIQUES
+// ============================================================
+async function saveAuraToDB(auraData) {
+  if (!UID) return;
+  try {
+    await sbUpsert('sys_aura', {
+      user_id: UID,
+      aura_id: auraData.aura_id || null,
+      aura_name: auraData.aura_name || null,
+      is_souverain: auraData.is_souverain || false,
+      is_stagnant: auraData.is_stagnant || false,
+      boost_class: auraData.boost_class || null,
+      last_bilan_date: auraData.last_bilan_date || null,
+      updated_at: new Date().toISOString()
+    });
+  } catch (e) { console.warn('saveAuraToDB:', e); }
+}
+
+async function loadAuraFromDB() {
+  if (!UID) return null;
+  try {
+    const data = await sbGet('sys_aura', UID);
+    if (data) {
+      return {
+        aura_id: data.aura_id,
+        aura_name: data.aura_name,
+        is_souverain: data.is_souverain || false,
+        is_stagnant: data.is_stagnant || false,
+        boost_class: data.boost_class,
+        last_bilan_date: data.last_bilan_date
+      };
+    }
+  } catch (e) { console.warn('loadAuraFromDB:', e); }
+  return null;
+}
+
+async function saveWorkoutRating(rating) {
+  if (!UID) return;
+  try {
+    await sbInsert('sys_workout_ratings', {
+      user_id: UID,
+      date: rating.date || todayKey(),
+      category: rating.category,
+      difficulty: rating.difficulty,
+      enjoyment: rating.enjoyment || null,
+      created_at: new Date().toISOString()
+    });
+  } catch (e) { console.warn('saveWorkoutRating:', e); }
+}
+async function getLastWorkoutRatings(limit = 3) {
+  if (!UID) return [];
+  try {
+    const data = await sbGetMany('sys_workout_ratings', UID, limit);
+    return data || [];
+  } catch (e) { console.warn('getLastWorkoutRatings:', e); return []; }
+}
+async function saveClassData() {
+  try {
+    await sbUpsert('sys_classes', {
+      user_id: UID,
+      guerrier_xp: classXP.guerrier || 0,
+      mage_xp: classXP.mage || 0,
+      ombre_xp: classXP.ombre || 0,
+      aventurier_xp: classXP.aventurier || 0,
+      updated_at: new Date().toISOString()
+    });
+  } catch (e) { console.warn('saveClassData:', e); }
+}
+async function loadClassData() {
+  try {
+    const data = await sbGet('sys_classes', UID);
+    if (data) {
+      classXP.guerrier = data.guerrier_xp || 0;
+      classXP.mage = data.mage_xp || 0;
+      classXP.ombre = data.ombre_xp || 0;
+      classXP.aventurier = data.aventurier_xp || 0;
+    }
+  } catch (e) { console.warn('loadClassData:', e); }
+}
+async function loadBilanHistory() {
+  try {
+    const data = await sbGetMany('sys_bilans', UID, 10);
+    if (Array.isArray(data)) {
+      bilanHistory = data;
+    }
+  } catch (e) { console.warn('loadBilanHistory:', e); }
+}
+async function saveBilan(bilan) {
+  try {
+    await sbInsert('sys_bilans', { ...bilan, user_id: UID, created_at: new Date().toISOString() });
+  } catch (e) { console.warn('saveBilan:', e); }
+}
+async function saveSidequestToDB(sq) {
+  if (!UID) return;
+  try {
+    await sbUpsert('sys_sidequests', {
+      user_id: UID,
+      date: sq.date,
+      text: sq.text,
+      pid: sq.pid || 'p5',
+      done: sq.done || false,
+      is_ia: sq.isIA || false,
+      updated_at: new Date().toISOString()
+    });
+  } catch (e) { console.warn('saveSidequestToDB:', e); }
+}
+async function loadSidequestFromDB() {
+  if (!UID) return null;
+  try {
+    const data = await sbGet('sys_sidequests', UID);
+    if (data) {
+      return {
+        date: data.date,
+        text: data.text,
+        pid: data.pid || 'p5',
+        done: data.done || false,
+        isIA: data.is_ia || false
+      };
+    }
+  } catch (e) { console.warn('loadSidequestFromDB:', e); }
+  return null;
+}
+async function saveCustomQuestsToDB() {
+  if (!UID) return;
+  try {
+    await sbUpsert('sys_custom_quests', {
+      user_id: UID,
+      quests: JSON.stringify(customQuests),
+      updated_at: new Date().toISOString()
+    });
+  } catch (e) { console.warn('saveCustomQuestsToDB:', e); }
+}
+async function loadCustomQuestsFromDB() {
+  if (!UID) return null;
+  try {
+    const data = await sbGet('sys_custom_quests', UID);
+    if (data && data.quests) {
+      return JSON.parse(data.quests);
+    }
+  } catch (e) { console.warn('loadCustomQuestsFromDB:', e); }
+  return null;
+}
+async function saveRecipes() {
+  if (!UID) return;
+  try {
+    for (const r of recipes) {
+      await sbUpsert('sys_recipes', {
+        user_id: UID,
+        id: r.id,
+        name: r.name,
+        time: r.time,
+        people: r.people,
+        steps: r.steps,
+        ingredients: r.ingredients || '',
+        done: r.done || false,
+        total_xp: r.total_xp || 0,
+        created_at: r.created_at || new Date().toISOString()
+      });
+    }
+  } catch (e) { console.warn('saveRecipes:', e); }
+}
+async function loadRecipes() {
+  if (!UID) return;
+  try {
+    const data = await sbGetMany('sys_recipes', UID, 100);
+    if (Array.isArray(data)) {
+      recipes = data.map(r => ({
+        id: r.id,
+        name: r.name,
+        time: r.time || 30,
+        people: r.people || 2,
+        steps: r.steps || '',
+        ingredients: r.ingredients || '',
+        done: r.done || false,
+        total_xp: r.total_xp || 0,
+        created_at: r.created_at || new Date().toISOString()
+      }));
+      recipes.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    }
+  } catch (e) { console.warn('loadRecipes:', e); }
+}
+async function saveIAQuestToDB(q) {
+  if (!UID) return;
+  try {
+    await sbUpsert('sys_ia_quests', {
+      user_id: UID,
+      id: q.id,
+      date: q.date,
+      class_id: q.classId,
+      text: q.text,
+      difficulty: q.difficulty,
+      xp_base: q.xpBase,
+      xp_bonus: q.xpBonus,
+      done: q.done || false,
+      created_at: q.created_at || new Date().toISOString()
+    });
+  } catch (e) { console.warn('saveIAQuestToDB:', e); }
+}
+async function deleteIAQuestFromDB(id) {
+  if (!UID) return;
+  try {
+    await sbDelete('sys_ia_quests', UID, id, null);
+  } catch (e) { console.warn('deleteIAQuestFromDB:', e); }
+}
+async function loadIAQuestsFromDB() {
+  if (!UID) return;
+  try {
+    const data = await sbGetMany('sys_ia_quests', UID, 50);
+    if (Array.isArray(data)) {
+      iaQuests = data.map(q => ({
+        id: q.id,
+        date: q.date,
+        classId: q.class_id,
+        text: q.text,
+        difficulty: q.difficulty,
+        xpBase: q.xp_base,
+        xpBonus: q.xp_bonus,
+        done: q.done || false,
+        created_at: q.created_at || new Date().toISOString()
+      }));
+    }
+  } catch (e) { console.warn('loadIAQuestsFromDB:', e); }
+}
+
+// ============================================================
+// FONCTIONS POUR LES QUÊTES IA
+// ============================================================
+function detectWeakestClasses() {
+  const scores = {
+    guerrier: classXP.guerrier || 0,
+    mage: classXP.mage || 0,
+    ombre: classXP.ombre || 0
+  };
+  const minScore = Math.min(...Object.values(scores));
+  const weakest = Object.keys(scores).filter(key => scores[key] === minScore);
+  return weakest;
+}
+function getIAQuestsCount() {
+  const today = todayKey();
+  return iaQuests.filter(q => q.date === today).length;
+}
+function generateFallbackIAQuest(classId, difficulty) {
+  const difficultyData = IA_DIFFICULTY[difficulty];
+  const xpBase = difficultyData.xp;
+  const xpBonus = Math.round(xpBase * IA_BONUS_MULTIPLIER);
+  const fallbackQuests = {
+    guerrier: [
+      'Fais 20 pompes et 20 squats en 5 minutes chrono.',
+      'Porte un objet lourd sur 100 mètres sans t\'arrêter.',
+      'Tiens une planche pendant 2 minutes.'
+    ],
+    mage: [
+      'Lis 10 pages d\'un livre technique en 20 minutes.',
+      'Résous 5 problèmes de calcul mental en 10 minutes.',
+      'Apprends 5 nouveaux mots de vocabulaire médical.'
+    ],
+    ombre: [
+      'Observe 3 personnes dans un lieu public et note leur posture.',
+      'Dessine un plan mental de la pièce où tu te trouves.',
+      'Écoute une conversation sans intervenir pendant 5 minutes.'
+    ]
+  };
+  const texts = fallbackQuests[classId] || fallbackQuests.mage;
+  const text = texts[Math.floor(Math.random() * texts.length)];
+  return {
+    id: 'ia_' + Date.now(),
+    date: todayKey(),
+    classId: classId,
+    text: text,
+    difficulty: difficulty,
+    xpBase: xpBase,
+    xpBonus: xpBonus,
+    done: false,
+    created_at: new Date().toISOString()
+  };
+}
+async function generateIAQuest() {
+  if (isGeneratingIA) {
+    toast("⏳ Une quête est déjà en cours de génération...");
+    return;
+  }
+  const today = todayKey();
+  const count = getIAQuestsCount();
+  if (count >= IA_MAX_PER_DAY) {
+    toast("⚠️ Limite de " + IA_MAX_PER_DAY + " quêtes IA atteinte pour aujourd'hui.");
+    return;
+  }
+  const weakest = detectWeakestClasses();
+  if (weakest.length === 0) {
+    toast("⚠️ Aucune classe faible détectée (hors Aventurier).");
+    return;
+  }
+  let selectedClass = weakest[0];
+  if (weakest.length > 1) {
+    const classOptions = weakest.map((c, i) => {
+      const emoji = CLASSES[c]?.icon || '🎒';
+      const name = CLASSES[c]?.name || c;
+      return (i + 1) + '. ' + emoji + ' ' + name;
+    }).join('\n');
+    const choice = prompt(
+      "Plusieurs classes sont à égalité. Choisis la classe à cibler :\n" + classOptions,
+      "1"
+    );
+    const idx = parseInt(choice) - 1;
+    if (idx >= 0 && idx < weakest.length) {
+      selectedClass = weakest[idx];
+    } else {
+      toast("⚠️ Choix invalide. Annulation.");
+      return;
+    }
+  }
+  const diffChoice = prompt(
+    "Choisis la difficulté :\n" +
+    "1. Facile (+" + IA_DIFFICULTY.easy.xp + " XP)\n" +
+    "2. Moyen (+" + IA_DIFFICULTY.medium.xp + " XP)\n" +
+    "3. Difficile (+" + IA_DIFFICULTY.hard.xp + " XP)",
+    "2"
+  );
+  const diffMap = { '1': 'easy', '2': 'medium', '3': 'hard' };
+  const difficulty = diffMap[diffChoice] || 'medium';
+  isGeneratingIA = true;
+  toast("🤖 Génération de la quête IA en cours...");
+  try {
+    const classDisplay = CLASSES[selectedClass]?.name || selectedClass;
+    const difficultyLabel = IA_DIFFICULTY[difficulty].label;
+    const prompt = buildCtx() + `
+    Génère une quête courte (15-30 minutes) pour améliorer la classe **${classDisplay}**.
+    
+    La classe ${classDisplay} est actuellement la plus faible. La quête doit être :
+    - **Concrète et réalisable** dans le quotidien d'Eliseo (étudiant, armée, vie sociale).
+    - **Adaptée à la difficulté choisie** : ${difficultyLabel}.
+    - **En lien direct avec la classe** et son pilier principal.
+    
+    Format de réponse (2 lignes max) : un titre court et une description précise.
+    Pas de markdown, pas de tirets, pas de listes.
+    `;
+    const response = await callGemini(prompt);
+    const xpBase = IA_DIFFICULTY[difficulty].xp;
+    const xpBonus = Math.round(xpBase * IA_BONUS_MULTIPLIER);
+    const newQuest = {
+      id: 'ia_' + Date.now(),
+      date: today,
+      classId: selectedClass,
+      text: response || 'Quête IA non disponible. Réessaie plus tard.',
+      difficulty: difficulty,
+      xpBase: xpBase,
+      xpBonus: xpBonus,
+      done: false,
+      created_at: new Date().toISOString()
+    };
+    iaQuests.push(newQuest);
+    await saveIAQuestToDB(newQuest);
+    toast("✅ Quête IA générée ! (" + difficultyLabel + " - +" + xpBonus + " XP)");
+    renderIAQuests();
+    renderQuetes();
+  } catch (e) {
+    console.error('generateIAQuest error:', e);
+    toast("⚠️ Erreur lors de la génération. Utilisation d'une quête de secours.");
+    const fallback = generateFallbackIAQuest(selectedClass, difficulty);
+    iaQuests.push(fallback);
+    await saveIAQuestToDB(fallback);
+    renderIAQuests();
+    renderQuetes();
+  } finally {
+    isGeneratingIA = false;
+  }
+}
+
+async function deleteIAQuest(id) {
+  if (!confirm("Supprimer cette quête IA définitivement ?")) return;
+  const q = iaQuests.find(x => x.id === id);
+  if (!q) return;
+  if (q.done) {
+    const today = todayKey();
+    S.total_xp = Math.max(0, S.total_xp - q.xpBonus);
+    classXP[q.classId] = Math.max(0, (classXP[q.classId] || 0) - q.xpBonus);
+    weeklyClassXP[q.classId] = Math.max(0, (weeklyClassXP[q.classId] || 0) - q.xpBonus);
+    const pilierId = CLASS_TO_PILLAR[q.classId];
+    if (pilierId) {
+      S[pilierId + '_xp'] = Math.max(0, (S[pilierId + '_xp'] || 0) - q.xpBonus);
+    }
+    LOG = LOG.filter(l => !(l.quest_id === id && l.created_at && l.created_at.slice(0, 10) === today));
+    sbDelete('sys_log', UID, id, today).catch(() => {});
+  }
+  iaQuests = iaQuests.filter(x => x.id !== id);
+  await deleteIAQuestFromDB(id);
+  toast("🗑️ Quête IA supprimée.");
+  renderIAQuests();
+  renderQuetes();
+  updateHeader();
+}
+
+async function toggleIAQuest(id) {
+  if (isDayLocked) {
+    toast("⚠️ Journée verrouillée. Utilise 'Modifier la journée' pour ajuster.");
+    return;
+  }
+  const q = iaQuests.find(x => x.id === id);
+  if (!q) return;
+  const today = todayKey();
+  if (q.done) {
+    q.done = false;
+    S.total_xp = Math.max(0, S.total_xp - q.xpBonus);
+    classXP[q.classId] = Math.max(0, (classXP[q.classId] || 0) - q.xpBonus);
+    weeklyClassXP[q.classId] = Math.max(0, (weeklyClassXP[q.classId] || 0) - q.xpBonus);
+    const pilierId = CLASS_TO_PILLAR[q.classId];
+    if (pilierId) {
+      S[pilierId + '_xp'] = Math.max(0, (S[pilierId + '_xp'] || 0) - q.xpBonus);
+    }
+    LOG = LOG.filter(l => !(l.quest_id === id && l.created_at && l.created_at.slice(0, 10) === today));
+    sbDelete('sys_log', UID, id, today).catch(() => {});
+    toast("↩️ Quête IA décochée — XP retirés");
+  } else {
+    q.done = true;
+    S.total_xp += q.xpBonus;
+    classXP[q.classId] = (classXP[q.classId] || 0) + q.xpBonus;
+    weeklyClassXP[q.classId] = (weeklyClassXP[q.classId] || 0) + q.xpBonus;
+    const pilierId = CLASS_TO_PILLAR[q.classId];
+    if (pilierId) {
+      S[pilierId + '_xp'] = Math.min(MAX_PILLIER_XP, (S[pilierId + '_xp'] || 0) + q.xpBonus);
+    }
+    const entry = {
+      user_id: UID,
+      quest_id: id,
+      quest_name: '[IA] ' + q.text.slice(0, 40) + '...',
+      xp: q.xpBonus,
+      pillar_id: pilierId || 'custom',
+      created_at: new Date().toISOString()
+    };
+    LOG.unshift(entry);
+    sbInsert('sys_log', entry).catch(() => {});
+    toast("✅ +" + q.xpBonus + " XP pour la quête IA !");
+  }
+  await saveIAQuestToDB(q);
+  scheduleSave();
+  renderIAQuests();
+  renderQuetes();
+  updateHeader();
+}
+
+function renderIAQuests() {
+  const container = document.getElementById('ia-quests-container');
+  if (!container) return;
+  const today = todayKey();
+  const todayQuests = iaQuests.filter(q => q.date === today);
+  if (!todayQuests.length) {
+    container.innerHTML = '';
+    return;
+  }
+  container.innerHTML = todayQuests.map(q => {
+    const classEmoji = CLASSES[q.classId]?.icon || '🎒';
+    const difficultyLabel = IA_DIFFICULTY[q.difficulty]?.label || 'Moyen';
+    const done = q.done || false;
+    return `<div class="quest${done ? ' done' : ''}" style="position:relative;">
+      <div class="check" onclick="toggleIAQuest('${q.id}')">${done ? '✓' : ''}</div>
+      <div class="q-info" onclick="toggleIAQuest('${q.id}')">
+        <div class="q-name">🤖 ${q.text}</div>
+        <div class="q-desc">Classe : ${classEmoji} ${CLASSES[q.classId]?.name || q.classId} · Difficulté : ${difficultyLabel}</div>
+        <div class="q-tags">
+          <span class="tag tag-min">🤖 IA – Quête bonus</span>
+          <span class="tag" style="background:rgba(251,191,36,0.15);color:#fbbf24;">+20% bonus</span>
+        </div>
+      </div>
+      <div class="q-xp">+${q.xpBonus} XP</div>
+      <div class="q-actions">
+        <button class="del" onclick="event.stopPropagation();deleteIAQuest('${q.id}')" title="Supprimer">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// FONCTIONS DE NOTATION D'ENTRAÎNEMENT
+// ============================================================
+function showWorkoutRatingPopup(category, xp, entry) {
+  pendingWorkoutRating = { category, xp, entry };
+  workoutRatingValue = 0;
+  document.getElementById('rating-popup').classList.add('show');
+  updateRatingStars();
+}
+function updateRatingStars() {
+  document.querySelectorAll('#rating-stars .star').forEach(el => {
+    const val = parseInt(el.dataset.value);
+    el.classList.toggle('active', val <= workoutRatingValue);
+  });
+  const label = document.getElementById('rating-label');
+  if (workoutRatingValue === 0) label.textContent = 'Clique sur une étoile pour noter la difficulté';
+  else if (workoutRatingValue <= 2) label.textContent = '😓 Trop difficile ?';
+  else if (workoutRatingValue === 3) label.textContent = '👍 Parfait, ni trop facile ni trop difficile';
+  else label.textContent = '😊 Trop facile ?';
+}
+document.addEventListener('click', function(e) {
+  const star = e.target.closest('#rating-stars .star');
+  if (star) {
+    workoutRatingValue = parseInt(star.dataset.value);
+    updateRatingStars();
+  }
+});
+async function submitWorkoutRating() {
+  if (workoutRatingValue === 0) {
+    toast("⚠️ Choisis une note avant d'envoyer.");
+    return;
+  }
+  if (!pendingWorkoutRating) return;
+  await saveWorkoutRating({
+    date: todayKey(),
+    category: pendingWorkoutRating.category,
+    difficulty: workoutRatingValue,
+    enjoyment: null
+  });
+  toast("✅ Notation enregistrée !");
+  document.getElementById('rating-popup').classList.remove('show');
+  pendingWorkoutRating = null;
+  workoutRatingValue = 0;
+}
+function skipWorkoutRating() {
+  document.getElementById('rating-popup').classList.remove('show');
+  pendingWorkoutRating = null;
+  workoutRatingValue = 0;
+  toast("⏩ Notation ignorée.");
+}
+
+// ============================================================
+// VARIABLES GLOBALES
+// ============================================================
+let UID = localStorage.getItem('sys12_uid') || null;
+let checkedToday = {};
+let S = {
+  total_xp: 0, streak: 0, last_day: null, days_total: 0,
+  start_date: new Date().toISOString().slice(0, 10), current_month: 1,
+  p1_xp: 0, p2_xp: 0, p3_xp: 0, p4_xp: 0, p5_xp: 0,
+  is_day_locked: false
+};
+let LOG = [];
+let XP_HISTORY = [];
+let customQuests = [];
+let recipes = [];
+let iaQuests = [];
+let starVal = 0;
+let chartXp = null, chartRadar = null, chartClassBar = null;
+let syncTimer = null;
+let isDayLocked = false;
+let classXP = { guerrier: 0, mage: 0, ombre: 0, aventurier: 0 };
+let weeklyClassXP = { guerrier: 0, mage: 0, ombre: 0, aventurier: 0 };
+let currentAura = null;
+let boostClass = null;
+let isSouverain = false;
+let isStagnant = false;
+let lastBilanDate = null;
+let bilanHistory = [];
+let currentSidequest = null;
+let editQuestId = null;
+let isProcessing = false;
+let isGeneratingIA = false;
+let pendingWorkoutRating = null;
+let workoutRatingValue = 0;
+
+// ============================================================
+// FONCTIONS UTILITAIRES
+// ============================================================
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._timeout);
+  el._timeout = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+function getClassForPillar(pid) {
+  return PILIER_TO_CLASSE[pid] || 'aventurier';
+}
+function getClassFromId(id) {
+  return CLASSES[id] || null;
+}
+function getDominantClass(xpMap) {
+  let max = 0;
+  let dominant = null;
+  let total = 0;
+  for (const [id, xp] of Object.entries(xpMap)) {
+    total += xp;
+    if (xp > max) {
+      max = xp;
+      dominant = id;
+    }
+  }
+  if (total === 0) return null;
+  const avg = total / 4;
+  const maxDiff = max * 0.05;
+  let isBalanced = true;
+  for (const xp of Object.values(xpMap)) {
+    if (Math.abs(xp - avg) > maxDiff) {
+      isBalanced = false;
+      break;
+    }
+  }
+  if (isBalanced && total > 0) return 'souverain';
+  return dominant;
+}
+function getWeakestClass(xpMap) {
+  let min = Infinity;
+  let weakest = null;
+  for (const [id, xp] of Object.entries(xpMap)) {
+    if (xp < min) {
+      min = xp;
+      weakest = id;
+    }
+  }
+  return weakest;
+}
+function getBoostedXP(xp, classId, isPillar = false) {
+  let boosted = xp;
+  if (isPillar) boosted = Math.round(boosted * 1.2);
+  if (boostClass && classId === boostClass) boosted = Math.round(boosted * 1.1);
+  return boosted;
+}
+function distributeClassXP(xp, pid, isCustom = false) {
+  let classId = isCustom ? 'aventurier' : getClassForPillar(pid);
+  const boostedXP = getBoostedXP(xp, classId, !isCustom);
+  classXP[classId] = (classXP[classId] || 0) + boostedXP;
+  weeklyClassXP[classId] = (weeklyClassXP[classId] || 0) + boostedXP;
+  return boostedXP;
+}
+function calculateRecipeXP(time, people) {
+  const base = Math.round(time / 5);
+  const bonus = 1 + (people - 1) * 0.2;
+  return Math.max(1, Math.round(base * bonus));
+}
+function formatSteps(text) {
+  if (!text) return '';
+  const lines = text.split('\n').filter(line => line.trim() !== '');
+  return lines.map((line, i) => (i + 1) + '. ' + line.trim()).join('\n');
+}
+function formatIngredients(text) {
+  if (!text) return '';
+  const lines = text.split('\n').filter(line => line.trim() !== '');
+  return lines.map(line => '• ' + line.trim()).join('\n');
+}
+
+// ============================================================
+// INITIALISATION ET CHARGEMENT
+// ============================================================
+function setupUser() {
+  const name = document.getElementById('setup-name').value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+  const errEl = document.getElementById('setup-err');
+  if (!name || name.length < 2) { errEl.classList.add('show'); return; }
+  errEl.classList.remove('show');
+  UID = name;
+  localStorage.setItem('sys12_uid', UID);
+  document.getElementById('setup-overlay').style.display = 'none';
+  init();
+}
+function setSyncState(st) {
+  const dot = document.getElementById('sync-dot');
+  dot.className = 'sync-dot' + (st === 'syncing' ? ' syncing' : st === 'error' ? ' error' : '');
+}
+async function loadFromSupabase() {
+  setSyncState('syncing');
+  try {
+    const [prog, logRaw, histRaw] = await Promise.all([
+      sbGet('sys_progress', UID),
+      sbGetMany('sys_log', UID, 50),
+      sbGetMany('sys_xp_history', UID, 60),
+    ]);
+    if (prog) {
+      S = { ...S, ...prog };
+      const start = new Date(S.start_date);
+      const now = new Date();
+      const diffJours = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+      let moisEcoules = Math.floor(diffJours / 30.44);
+      S.current_month = Math.max(1, Math.min(12, moisEcoules + 1));
+      isDayLocked = S.is_day_locked || false;
+    }
+    if (Array.isArray(logRaw)) LOG = logRaw;
+    if (Array.isArray(histRaw)) XP_HISTORY = histRaw;
+    const today = todayKey();
+    checkedToday = {};
+    LOG.forEach(l => {
+      if (l.quest_id && l.quest_id !== 'review' && l.created_at && l.created_at.slice(0, 10) === today) {
+        checkedToday[l.quest_id] = true;
+      }
+    });
+    await loadClassData();
+    await loadBilanHistory();
+    await loadRecipes();
+    await loadIAQuestsFromDB();
+    const auraData = await loadAuraFromDB();
+    if (auraData) {
+      const aura = AURA_CONFIG[auraData.aura_id] || null;
+      currentAura = aura;
+      isSouverain = auraData.is_souverain || false;
+      isStagnant = auraData.is_stagnant || false;
+      boostClass = auraData.boost_class || null;
+      lastBilanDate = auraData.last_bilan_date || null;
+    } else {
+      const savedAura = localStorage.getItem('sys12_aura');
+      if (savedAura) {
+        try {
+          const auraDataLocal = JSON.parse(savedAura);
+          const aura = AURA_CONFIG[auraDataLocal.aura_id] || null;
+          currentAura = aura;
+          isSouverain = auraDataLocal.isSouverain || false;
+          isStagnant = auraDataLocal.isStagnant || false;
+          boostClass = auraDataLocal.boostClass || null;
+          lastBilanDate = auraDataLocal.lastBilanDate || null;
+        } catch (e) {}
+      }
+    }
+    if (currentAura) {
+      await saveAuraToDB({
+        aura_id: currentAura ? currentAura.id : null,
+        aura_name: currentAura ? currentAura.name : null,
+        is_souverain: isSouverain,
+        is_stagnant: isStagnant,
+        boost_class: boostClass,
+        last_bilan_date: lastBilanDate
+      });
+    }
+    const savedWeekly = localStorage.getItem('sys12_weekly_xp');
+    if (savedWeekly) {
+      try { weeklyClassXP = JSON.parse(savedWeekly); } catch (e) {}
+    }
+    const dbQuests = await loadCustomQuestsFromDB();
+    if (dbQuests && Array.isArray(dbQuests)) {
+      customQuests = dbQuests;
+      localStorage.setItem('sys12_custom_quests', JSON.stringify(customQuests));
+    } else {
+      customQuests = JSON.parse(localStorage.getItem('sys12_custom_quests') || '[]');
+    }
+    const dbSq = await loadSidequestFromDB();
+    const todayStr = todayKey();
+    if (dbSq && dbSq.date === todayStr) {
+      currentSidequest = dbSq;
+      localStorage.setItem('sys12_sidequest', JSON.stringify(currentSidequest));
+    } else {
+      const rand = BANQUE_SIDEQUESTS[Math.floor(Math.random() * BANQUE_SIDEQUESTS.length)];
+      currentSidequest = {
+        date: todayStr,
+        text: rand.text,
+        pid: rand.pid || 'p5',
+        done: false,
+        isIA: false
+      };
+      localStorage.setItem('sys12_sidequest', JSON.stringify(currentSidequest));
+      await saveSidequestToDB(currentSidequest);
+    }
+    if (S.last_day && S.last_day !== todayStr) {
+      isDayLocked = false;
+      S.is_day_locked = false;
+      await saveProgress();
+      updateValidationButton();
+      toast("🔓 Nouveau jour ! La journée est déverrouillée.");
+    } else {
+      isDayLocked = S.is_day_locked || false;
+    }
+    if (!localStorage.getItem('newForgedQuest')) localStorage.setItem('newForgedQuest', 'false');
+    if (!localStorage.getItem('newRecipe')) localStorage.setItem('newRecipe', 'false');
+    updateBadges();
+    // Mise à jour finale de l'affichage après chargement complet
+    renderAvatar();
+    renderStats();
+    updateHeader();
+    setSyncState('ok');
+  } catch (e) {
+    setSyncState('error');
+    console.error('loadFromSupabase:', e);
+  }
+}
+async function saveProgress() {
+  setSyncState('syncing');
+  try {
+    S.is_day_locked = isDayLocked;
+    await sbUpsert('sys_progress', { ...S, user_id: UID, updated_at: new Date().toISOString() });
+    await saveClassData();
+    await saveCustomQuestsToDB();
+    await saveRecipes();
+    for (const q of iaQuests) {
+      await saveIAQuestToDB(q);
+    }
+    if (currentSidequest) {
+      await saveSidequestToDB(currentSidequest);
+    }
+    await saveAuraToDB({
+      aura_id: currentAura ? currentAura.id : null,
+      aura_name: currentAura ? currentAura.name : null,
+      is_souverain: isSouverain,
+      is_stagnant: isStagnant,
+      boost_class: boostClass,
+      last_bilan_date: lastBilanDate
+    });
+    localStorage.setItem('sys12_weekly_xp', JSON.stringify(weeklyClassXP));
+    localStorage.setItem('sys12_aura', JSON.stringify({
+      aura_id: currentAura ? currentAura.id : null,
+      aura_name: currentAura ? currentAura.name : null,
+      isSouverain,
+      isStagnant,
+      boostClass,
+      lastBilanDate
+    }));
+    localStorage.setItem('sys12_custom_quests', JSON.stringify(customQuests));
+    if (currentSidequest) {
+      localStorage.setItem('sys12_sidequest', JSON.stringify(currentSidequest));
+    }
+    setSyncState('ok');
+  } catch (e) {
+    setSyncState('error');
+    console.error('saveProgress:', e);
+  }
+}
+function scheduleSave() {
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(saveProgress, 1500);
+}
+function todayKey() { return new Date().toISOString().slice(0, 10); }
+function getCurrentPhase() {
+  const m = S.current_month || 1;
+  return PHASES.find(p => p.months.includes(m)) || PHASES[0];
+}
+function getLv(xp) {
+  let l = 0;
+  for (let i = 0; i < LEVELS.length; i++) { if (xp >= LEVELS[i].min) l = i; }
+  return l;
+}
+
+// ============================================================
+// AFFICHAGE PRINCIPAL
+// ============================================================
+function updateHeader() {
+  const xp = S.total_xp, lv = getLv(xp), nl = Math.min(lv + 1, LEVELS.length - 1);
+  const cur = LEVELS[lv].min, next = LEVELS[nl].min;
+  const pct = lv === LEVELS.length - 1 ? 100 : Math.round((xp - cur) / (next - cur) * 100);
+  document.getElementById('top-xp').textContent = xp + ' XP';
+  document.getElementById('xp-big').textContent = xp;
+  document.getElementById('lv-name').textContent = LEVELS[lv].name;
+  document.getElementById('lv-bar').style.width = pct + '%';
+  document.getElementById('bar-cur').textContent = (xp - cur) + ' / ' + (next - cur) + ' XP';
+  document.getElementById('bar-next').textContent = '→ ' + LEVELS[nl].name;
+  document.getElementById('streak-num').textContent = '🔥 ' + S.streak;
+  document.getElementById('days-total').textContent = S.days_total;
+  const ph = getCurrentPhase();
+  const banner = document.getElementById('phase-banner');
+  banner.className = 'phase-banner ' + ph.cls;
+  banner.querySelector('.phase-icon').textContent = ph.icon;
+  banner.querySelector('.phase-name').textContent = 'Phase ' + ph.id + ' — ' + ph.name;
+  banner.querySelector('.phase-desc').textContent = ph.desc;
+  document.getElementById('phase-prog').textContent = 'Mois ' + S.current_month;
+  const missed = S.last_day && (new Date() - new Date(S.last_day)) / 86400000 > 3;
+  document.getElementById('alert').classList.toggle('show', !!missed && S.days_total > 0);
+  updateXPbars();
+  const iaCount = getIAQuestsCount();
+  const iaBtn = document.getElementById('generate-ia-btn');
+  if (iaBtn) {
+    iaBtn.textContent = '🤖 Générer une quête IA (' + iaCount + '/' + IA_MAX_PER_DAY + ')';
+    iaBtn.disabled = (iaCount >= IA_MAX_PER_DAY);
+  }
+  const today = new Date();
+  const isSunday = today.getDay() === 0;
+  const bilanBtn = document.getElementById('btn-bilan-hebdo');
+  if (bilanBtn) {
+    let bilanDejaFait = false;
+    if (lastBilanDate) {
+      const lastBilan = new Date(lastBilanDate);
+      const startOfWeek = new Date(today);
+      startOfWeek.setDate(today.getDate() - today.getDay());
+      if (lastBilan >= startOfWeek) {
+        bilanDejaFait = true;
+      }
+    }
+    if (!isSunday) {
+      bilanBtn.disabled = true;
+      bilanBtn.textContent = '📊 Bilan disponible uniquement le dimanche';
+    } else if (bilanDejaFait) {
+      bilanBtn.disabled = true;
+      bilanBtn.textContent = '📊 Bilan effectué';
+    } else {
+      bilanBtn.disabled = false;
+      bilanBtn.textContent = '📊 Lancer le Bilan Hebdomadaire';
+    }
+  }
+  updateValidationButton();
+}
+
+function updateXPbars() {
+  const maxXP = 5000;
+  const pilliersXP = (S.p1_xp || 0) + (S.p2_xp || 0) + (S.p3_xp || 0) + (S.p4_xp || 0) + (S.p5_xp || 0);
+  let forgesXP = 0;
+  for (const l of LOG) {
+    if (l.pillar_id === 'custom' && l.quest_id && !l.quest_id.startsWith('ia_')) {
+      forgesXP += l.xp;
+    }
+  }
+  document.getElementById('bar-global').style.width = Math.min(100, (S.total_xp / maxXP) * 100) + '%';
+  document.getElementById('bar-global-val').textContent = S.total_xp + ' XP';
+  document.getElementById('bar-pilliers').style.width = Math.min(100, (pilliersXP / maxXP) * 100) + '%';
+  document.getElementById('bar-pilliers-val').textContent = pilliersXP + ' XP';
+  document.getElementById('bar-forges').style.width = Math.min(100, (forgesXP / maxXP) * 100) + '%';
+  document.getElementById('bar-forges-val').textContent = forgesXP + ' XP';
+}
+
+// ============================================================
+// QUÊTES PRÉ-DÉFINIES
+// ============================================================
+function getClassEmoji(pid) {
+  const c = getClassForPillar(pid);
+  return CLASSES[c]?.icon || '🎒';
+}
+function calculateBaseXP(q) {
+  let xp = q.xp;
+  xp = Math.round(xp * 1.2);
+  const classId = getClassForPillar(q.pid);
+  if (boostClass && classId === boostClass) {
+    xp = Math.round(xp * 1.1);
+  }
+  return xp;
+}
+function calculateXPWithExtraTime(q, extraMinutes) {
+  const defaultTime = QUEST_DEFAULT_TIME[q.id] || 30;
+  const totalTime = defaultTime + extraMinutes;
+  let xp = q.xp * (totalTime / defaultTime);
+  xp = Math.round(xp * 1.2);
+  const classId = getClassForPillar(q.pid);
+  if (boostClass && classId === boostClass) {
+    xp = Math.round(xp * 1.1);
+  }
+  return Math.round(xp);
+}
+function toggleExtraTime(qId) {
+  const field = document.getElementById('extra-time-field-' + qId);
+  if (!field) return;
+  field.classList.toggle('show');
+  if (field.classList.contains('show')) {
+    const input = field.querySelector('input');
+    if (input) {
+      input.focus();
+      input.value = 5;
+      updateExtraTimeDisplay(qId);
+    }
+  }
+}
+function updateExtraTimeDisplay(qId) {
+  const field = document.getElementById('extra-time-field-' + qId);
+  if (!field) return;
+  const input = field.querySelector('input');
+  const display = field.querySelector('.extra-xp');
+  if (!input || !display) return;
+  const extra = parseInt(input.value) || 0;
+  const all = [...QUETES.min, ...QUETES.opt];
+  const q = all.find(x => x.id === qId);
+  if (!q) return;
+  const xp = calculateXPWithExtraTime(q, extra);
+  display.textContent = '+' + xp + ' XP';
+  const baseXP = calculateBaseXP(q);
+  const baseDisplay = document.getElementById('xp-base-' + qId);
+  if (baseDisplay) {
+    if (extra > 0) {
+      baseDisplay.textContent = '[' + baseXP + ' + ' + (xp - baseXP) + ']';
+    } else {
+      baseDisplay.textContent = '';
+    }
+  }
+}
+function renderQuetes() {
+  const phase = getCurrentPhase();
+  let iaContainer = document.getElementById('ia-quests-container');
+  if (!iaContainer) {
+    iaContainer = document.createElement('div');
+    iaContainer.id = 'ia-quests-container';
+    const sectionTitle = document.querySelector('.section-title');
+    if (sectionTitle) {
+      sectionTitle.after(iaContainer);
+    }
+  }
+  renderIAQuests();
+  const iaBtnContainer = document.getElementById('ia-btn-container');
+  if (!iaBtnContainer) {
+    const btnContainer = document.createElement('div');
+    btnContainer.id = 'ia-btn-container';
+    btnContainer.style.marginBottom = '10px';
+    const btn = document.createElement('button');
+    btn.id = 'generate-ia-btn';
+    btn.className = 'btn-sm btn-accent';
+    btn.style.width = '100%';
+    btn.onclick = generateIAQuest;
+    btnContainer.appendChild(btn);
+    const container = document.getElementById('ia-quests-container');
+    if (container) {
+      container.before(btnContainer);
+    }
+  }
+  const iaBtn = document.getElementById('generate-ia-btn');
+  if (iaBtn) {
+    const count = getIAQuestsCount();
+    iaBtn.textContent = '🤖 Générer une quête IA (' + count + '/' + IA_MAX_PER_DAY + ')';
+    iaBtn.disabled = (count >= IA_MAX_PER_DAY);
+  }
+  function qHTML(q, isMin) {
+    const done = !!checkedToday[q.id];
+    const inPhase = q.phases.includes(phase.id);
+    const classEmoji = getClassEmoji(q.pid);
+    const baseXP = calculateBaseXP(q);
+    const phTag = !inPhase ? `<span class="tag tag-ph">Phase ${q.phases[0]}+</span>` : '';
+    const minTag = isMin ? `<span class="tag tag-min">minimum</span>` : '';
+    const classTag = `<span class="tag" style="background:rgba(255,255,255,0.05);">${classEmoji}</span>`;
+    const safeN = q.name.replace(/"/g, '&quot;');
+    const safeD = q.desc.replace(/"/g, '&quot;');
+    let extraHtml = '';
+    if (inPhase && q.id in QUEST_DEFAULT_TIME) {
+      extraHtml = `
+        <div style="display:flex;align-items:center;gap:6px;margin-top:2px;flex-wrap:wrap;">
+          <span style="font-size:13px;font-weight:600;color:var(--accent);" id="xp-base-${q.id}"></span>
+          <span class="extra-time-toggle" onclick="event.stopPropagation();toggleExtraTime('${q.id}')" title="Ajouter du temps">
+            <span class="plus">+</span> <span style="font-size:11px;">temps</span>
+          </span>
+        </div>
+        <div class="extra-time-field" id="extra-time-field-${q.id}">
+          <input type="number" id="extra-time-input-${q.id}" value="5" min="1" max="300" step="5"
+                 oninput="updateExtraTimeDisplay('${q.id}')" onclick="event.stopPropagation();">
+          <label>min supplémentaires</label>
+          <span class="extra-xp" id="extra-xp-${q.id}"></span>
+        </div>
+      `;
+    }
+    let coachBtn = '';
+    if (q.id === 'q5' && inPhase) {
+      coachBtn = `
+        <div style="margin-top:4px;">
+          <select class="coach-select" id="workout-type" onclick="event.stopPropagation();">
+            <option value="bodyweight">🧱 Poids du corps</option>
+            <option value="swim">🏊 Natation</option>
+            <option value="run">🏃 Course à pied</option>
+            <option value="auto">🎲 Choix du coach</option>
+          </select>
+          <button class="btn-coach" style="background:rgba(96,165,250,.1);border-color:rgba(96,165,250,.3);color:var(--blue);margin-left:4px;" onclick="event.stopPropagation();genererEntrainement(this)">🏋️ Générer</button>
+        </div>
+      `;
+    }
+    if (q.id === 'q13' && inPhase) {
+      coachBtn = `
+        <div style="margin-top:4px;">
+          <select class="coach-select" id="mobility-type" onclick="event.stopPropagation();">
+            <option value="general">🧘 Mobilité générale</option>
+            <option value="yoga">🧘 Yoga / étirements</option>
+            <option value="dynamic">🏃 Étirements dynamiques</option>
+            <option value="articular">🦵 Mobilité articulaire</option>
+          </select>
+          <button class="btn-coach" style="background:rgba(96,165,250,.1);border-color:rgba(96,165,250,.3);color:var(--blue);margin-left:4px;" onclick="event.stopPropagation();genererMobilite(this)">🧘 Générer</button>
+        </div>
+      `;
+    }
+    return `<div class="quest${done ? ' done' : ''}${!inPhase ? ' locked' : ''}" onclick="toggleQuete('${q.id}')" data-qid="${q.id}">
+      <div class="check">${done ? '✓' : ''}</div>
+      <div class="q-info">
+        <div class="q-name">${q.name}</div>
+        <div class="q-desc">${q.desc}</div>
+        <div class="q-tags">${minTag}${phTag}${classTag}</div>
+        ${coachBtn}
+        ${extraHtml}
+      </div>
+      <div class="q-xp">+${baseXP} XP</div>
+    </div>`;
+  }
+  document.getElementById('quetes-min').innerHTML = QUETES.min.map(q => qHTML(q, true)).join('');
+  document.getElementById('quetes-opt').innerHTML = QUETES.opt.map(q => qHTML(q, false)).join('');
+}
+async function toggleQuete(id) {
+  if (isDayLocked) {
+    toast("⚠️ Journée verrouillée. Utilise 'Modifier la journée' pour ajuster.");
+    return;
+  }
+  const all = [...QUETES.min, ...QUETES.opt];
+  const q = all.find(x => x.id === id);
+  if (!q) return;
+  const today = todayKey();
+  let extraMinutes = 0;
+  const extraField = document.getElementById('extra-time-field-' + id);
+  if (extraField && extraField.classList.contains('show')) {
+    const input = document.getElementById('extra-time-input-' + id);
+    if (input) {
+      extraMinutes = parseInt(input.value) || 0;
+    }
+  }
+  let xp;
+  if (extraMinutes > 0) {
+    xp = calculateXPWithExtraTime(q, extraMinutes);
+  } else {
+    xp = calculateBaseXP(q);
+  }
+  const finalXp = xp;
+  if (checkedToday[id]) {
+    delete checkedToday[id];
+    S.total_xp = Math.max(0, S.total_xp - finalXp);
+    S[q.pid + '_xp'] = Math.max(0, (S[q.pid + '_xp'] || 0) - finalXp);
+    const cId = getClassForPillar(q.pid);
+    classXP[cId] = Math.max(0, (classXP[cId] || 0) - finalXp);
+    weeklyClassXP[cId] = Math.max(0, (weeklyClassXP[cId] || 0) - finalXp);
+    LOG = LOG.filter(l => !(l.quest_id === id && l.created_at && l.created_at.slice(0, 10) === today));
+    sbDelete('sys_log', UID, id, today).catch(() => {});
+    toast("↩️ Quête décochée — XP retirés");
+  } else {
+    checkedToday[id] = true;
+    S.total_xp += finalXp;
+    S[q.pid + '_xp'] = Math.min(MAX_PILLIER_XP, (S[q.pid + '_xp'] || 0) + finalXp);
+    const cId = getClassForPillar(q.pid);
+    classXP[cId] = (classXP[cId] || 0) + finalXp;
+    weeklyClassXP[cId] = (weeklyClassXP[cId] || 0) + finalXp;
+    const entry = { user_id: UID, quest_id: id, quest_name: q.name, xp: finalXp, pillar_id: q.pid, created_at: new Date().toISOString() };
+    LOG.unshift(entry);
+    if (LOG.length > 60) LOG.pop();
+    sbInsert('sys_log', entry).catch(() => {});
+    toast("✅ +" + finalXp + " XP pour '" + q.name + "'" + (extraMinutes > 0 ? " (+" + extraMinutes + " min)" : ""));
+    if (id === 'q5') {
+      const select = document.getElementById('workout-type');
+      const category = select ? select.value : 'auto';
+      setTimeout(() => {
+        showWorkoutRatingPopup(category, finalXp, entry);
+      }, 300);
+    }
+    if (id === 'q13') {
+      const select = document.getElementById('mobility-type');
+      const category = select ? select.value : 'general';
+      setTimeout(() => {
+        showWorkoutRatingPopup(category, finalXp, entry);
+      }, 300);
+    }
+  }
+  scheduleSave();
+  renderQuetes();
+  updateHeader();
+  renderPiliers();
+}
+
+// ============================================================
+// SIDEQUEST
+// ============================================================
+function initSidequest() {
+  updateSidequestUI();
+}
+function updateSidequestUI() {
+  if (!currentSidequest) {
+    const local = localStorage.getItem('sys12_sidequest');
+    if (local) {
+      try {
+        const parsed = JSON.parse(local);
+        if (parsed.date === todayKey()) {
+          currentSidequest = parsed;
+        }
+      } catch (e) {}
+    }
+    if (!currentSidequest) {
+      const rand = BANQUE_SIDEQUESTS[Math.floor(Math.random() * BANQUE_SIDEQUESTS.length)];
+      currentSidequest = {
+        date: todayKey(),
+        text: rand.text,
+        pid: rand.pid || 'p5',
+        done: false,
+        isIA: false
+      };
+      localStorage.setItem('sys12_sidequest', JSON.stringify(currentSidequest));
+      saveSidequestToDB(currentSidequest);
+    }
+  }
+  const item = document.getElementById('sidequest-item');
+  const chk = document.getElementById('sq-check');
+  document.getElementById('sidequest-text').textContent = currentSidequest.text;
+  let baseXp = 30;
+  baseXp = Math.round(baseXp * 1.2);
+  const classId = getClassForPillar(currentSidequest.pid);
+  if (boostClass && classId === boostClass) {
+    baseXp = Math.round(baseXp * 1.1);
+  }
+  const finalXp = baseXp;
+  document.getElementById('sq-xp-display').textContent = '+' + finalXp + ' XP';
+  if (currentSidequest.done) {
+    item.classList.add('done');
+    chk.textContent = '✓';
+  } else {
+    item.classList.remove('done');
+    chk.textContent = '';
+  }
+}
+async function toggleSidequest() {
+  if (isDayLocked) {
+    toast("⚠️ Journée verrouillée. Utilise 'Modifier la journée' pour ajuster.");
+    return;
+  }
+  if (!currentSidequest) {
+    toast("⚠️ Sidequest non chargée.");
+    return;
+  }
+  const today = todayKey();
+  if (currentSidequest.date !== today) {
+    await loadFromSupabase();
+    updateSidequestUI();
+    return;
+  }
+  let baseXp = 30;
+  baseXp = Math.round(baseXp * 1.2);
+  const classId = getClassForPillar(currentSidequest.pid);
+  if (boostClass && classId === boostClass) {
+    baseXp = Math.round(baseXp * 1.1);
+  }
+  const finalXp = baseXp;
+  if (currentSidequest.done) {
+    currentSidequest.done = false;
+    S.total_xp = Math.max(0, S.total_xp - finalXp);
+    if (currentSidequest.pid) {
+      S[currentSidequest.pid + '_xp'] = Math.max(0, (S[currentSidequest.pid + '_xp'] || 0) - finalXp);
+    }
+    const cId = getClassForPillar(currentSidequest.pid);
+    classXP[cId] = Math.max(0, (classXP[cId] || 0) - finalXp);
+    weeklyClassXP[cId] = Math.max(0, (weeklyClassXP[cId] || 0) - finalXp);
+    LOG = LOG.filter(l => !(l.quest_id === 'sidequest' && l.created_at && l.created_at.slice(0, 10) === today));
+    sbDelete('sys_log', UID, 'sidequest', today).catch(() => {});
+    toast("↩️ Sidequest décochée — XP retirés");
+  } else {
+    currentSidequest.done = true;
+    S.total_xp += finalXp;
+    if (currentSidequest.pid) {
+      S[currentSidequest.pid + '_xp'] = Math.min(MAX_PILLIER_XP, (S[currentSidequest.pid + '_xp'] || 0) + finalXp);
+    }
+    const cId = getClassForPillar(currentSidequest.pid);
+    classXP[cId] = (classXP[cId] || 0) + finalXp;
+    weeklyClassXP[cId] = (weeklyClassXP[cId] || 0) + finalXp;
+    const entry = {
+      user_id: UID,
+      quest_id: 'sidequest',
+      quest_name: '[Sidequest] ' + currentSidequest.text.slice(0, 40) + '...',
+      xp: finalXp,
+      pillar_id: currentSidequest.pid || 'p1',
+      created_at: new Date().toISOString()
+    };
+    LOG.unshift(entry);
+    sbInsert('sys_log', entry).catch(() => {});
+    toast("✅ +" + finalXp + " XP pour la sidequest !");
+  }
+  localStorage.setItem('sys12_sidequest', JSON.stringify(currentSidequest));
+  await saveSidequestToDB(currentSidequest);
+  updateSidequestUI();
+  scheduleSave();
+  updateHeader();
+}
+async function rerollSidequestIA() {
+  if (isDayLocked) {
+    toast("⚠️ Journée verrouillée.");
+    return;
+  }
+  const btn = document.getElementById('btn-reroll');
+  btn.textContent = "Création en cours par l'IA...";
+  btn.disabled = true;
+  const prompt = buildCtx() + "\n\nGénère une 'sidequest' (quête secondaire) utile, concrète et rapide (max 15 min) pour Eliseo aujourd'hui. Thème recommandé : sors-le de sa zone de confort, fais-le pratiquer un brise-glace de sociabilité, de l'observation humaine ou un exercice d'assurance tactique. Donne uniquement l'énoncé direct en 2 lignes max. Sans markdown.";
+  const res = await callGemini(prompt);
+  const today = todayKey();
+  currentSidequest = {
+    date: today,
+    text: res,
+    pid: 'p5',
+    done: false,
+    isIA: true
+  };
+  localStorage.setItem('sys12_sidequest', JSON.stringify(currentSidequest));
+  await saveSidequestToDB(currentSidequest);
+  updateSidequestUI();
+  btn.textContent = "🎲 Relancer via le Coach (IA)";
+  btn.disabled = false;
+  toast("🔄 Nouvelle sidequest générée par l'IA !");
+}
+
+// ============================================================
+// QUÊTES FORGÉES
+// ============================================================
+function loadCustomQuests() {
+  customQuests = JSON.parse(localStorage.getItem('sys12_custom_quests') || '[]');
+  renderCustomQuests();
+}
+function saveCustomQuests() {
+  localStorage.setItem('sys12_custom_quests', JSON.stringify(customQuests));
+  saveCustomQuestsToDB();
+  renderCustomQuests();
+}
+function updateBadges() {
+  const forgeBadge = document.getElementById('forge-badge');
+  const recipeBadge = document.getElementById('recipe-badge');
+  const newForges = localStorage.getItem('newForgedQuest') === 'true';
+  const newRecipes = localStorage.getItem('newRecipe') === 'true';
+  if (forgeBadge) forgeBadge.classList.toggle('show', newForges);
+  if (recipeBadge) recipeBadge.classList.toggle('show', newRecipes);
+}
+function setNewForgedQuest() {
+  localStorage.setItem('newForgedQuest', 'true');
+  updateBadges();
+}
+function setNewRecipe() {
+  localStorage.setItem('newRecipe', 'true');
+  updateBadges();
+}
+function hideBadge(id) {
+  if (id === 'forge-badge') localStorage.setItem('newForgedQuest', 'false');
+  if (id === 'recipe-badge') localStorage.setItem('newRecipe', 'false');
+  updateBadges();
+}
+function toggleAccordion(id) {
+  const body = document.getElementById(id);
+  if (body) {
+    body.classList.toggle('open');
+    body.style.display = body.classList.contains('open') ? 'block' : 'none';
+  }
+}
+function toggleSection(id) {
+  const el = document.getElementById(id);
+  if (el) {
+    el.style.display = el.style.display === 'block' ? 'none' : 'block';
+  }
+}
+function ajouterQuetePerso() {
+  const nameEl = document.getElementById('cq-name');
+  const name = nameEl.value.trim();
+  if (!name) {
+    toast("⚠️ Donne un nom à ta quête.");
+    return;
+  }
+  const diff = document.getElementById('cq-diff').value;
+  const type = document.getElementById('cq-type').value;
+  let xp = 5;
+  if (diff === 'medium') xp = 15;
+  if (diff === 'hard') xp = 30;
+  const nq = { id: 'cq_' + Date.now(), name: name, xp: xp, type: type, done: false, total_xp: 0 };
+  customQuests.push(nq);
+  nameEl.value = '';
+  saveCustomQuests();
+  setNewForgedQuest();
+  toast("⚔️ Quête forgée : '" + name + "' (🎒 Aventurier)");
+}
+function renderCustomQuests() {
+  const listEl = document.getElementById('custom-quests-list');
+  if (!customQuests.length) {
+    listEl.innerHTML = '<div class="empty-state">Aucune quête forgée pour le moment.</div>';
+    return;
+  }
+  listEl.innerHTML = customQuests.map(q => {
+    let xp = q.xp;
+    if (boostClass && 'aventurier' === boostClass) {
+      xp = Math.round(xp * 1.1);
+    }
+    const finalXp = xp;
+    const typeTag = `<span class="tag tag-ph">${q.type === 'oneshot' ? 'One-shot' : 'Récurrente'}</span>`;
+    const aventurierTag = `<span class="tag tag-aventurier">🎒 Aventurier</span>`;
+    return `<div class="quest${q.done ? ' done' : ''}" style="position:relative;" data-quest-id="${q.id}">
+      <div class="check" onclick="event.stopPropagation();event.preventDefault();toggleCustomQuest('${q.id}')">${q.done ? '✓' : ''}</div>
+      <div class="q-info" onclick="event.stopPropagation();event.preventDefault();toggleCustomQuest('${q.id}')">
+        <div class="q-name">${q.name}</div>
+        <div class="q-tags">${typeTag}${aventurierTag}</div>
+      </div>
+      <div class="q-xp" onclick="event.stopPropagation();event.preventDefault();toggleCustomQuest('${q.id}')">+${finalXp} XP</div>
+      <div class="q-actions">
+        <button class="edit" onclick="event.stopPropagation();openEditModal('${q.id}')">✏️</button>
+        <button class="del" onclick="event.stopPropagation();deleteCustomQuest('${q.id}')">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function openEditModal(id) {
+  const q = customQuests.find(x => x.id === id);
+  if (!q) return;
+  editQuestId = id;
+  document.getElementById('edit-cq-id').value = id;
+  document.getElementById('edit-cq-name').value = q.name;
+  document.getElementById('edit-cq-diff').value = q.xp === 5 ? 'easy' : q.xp === 15 ? 'medium' : 'hard';
+  document.getElementById('edit-cq-type').value = q.type;
+  document.getElementById('edit-modal').classList.add('show');
+}
+function closeEditModal() {
+  document.getElementById('edit-modal').classList.remove('show');
+  editQuestId = null;
+}
+function saveEditQuest() {
+  const id = document.getElementById('edit-cq-id').value;
+  const q = customQuests.find(x => x.id === id);
+  if (!q) return;
+  const name = document.getElementById('edit-cq-name').value.trim();
+  if (!name) {
+    toast("⚠️ Le nom ne peut pas être vide.");
+    return;
+  }
+  const diff = document.getElementById('edit-cq-diff').value;
+  let xp = 5;
+  if (diff === 'medium') xp = 15;
+  if (diff === 'hard') xp = 30;
+  q.name = name;
+  q.xp = xp;
+  q.type = document.getElementById('edit-cq-type').value;
+  saveCustomQuests();
+  closeEditModal();
+  toast("✅ Quête modifiée !");
+}
+function deleteCustomQuest(id) {
+  if (!confirm("Supprimer cette quête définitivement ?")) return;
+  const q = customQuests.find(x => x.id === id);
+  if (!q) return;
+  if (q.done) {
+    const today = todayKey();
+    let xp = q.xp;
+    if (boostClass && 'aventurier' === boostClass) {
+      xp = Math.round(xp * 1.1);
+    }
+    const finalXp = xp;
+    S.total_xp = Math.max(0, S.total_xp - finalXp);
+    classXP.aventurier = Math.max(0, (classXP.aventurier || 0) - finalXp);
+    weeklyClassXP.aventurier = Math.max(0, (weeklyClassXP.aventurier || 0) - finalXp);
+    LOG = LOG.filter(l => !(l.quest_id === id && l.created_at && l.created_at.slice(0, 10) === today));
+    sbDelete('sys_log', UID, id, today).catch(() => {});
+  }
+  customQuests = customQuests.filter(x => x.id !== id);
+  saveCustomQuests();
+  toast("🗑️ Quête supprimée.");
+  updateHeader();
+}
+async function toggleCustomQuest(id) {
+  if (isProcessing) return;
+  isProcessing = true;
+  try {
+    if (isDayLocked) {
+      toast("⚠️ Journée verrouillée.");
+      return;
+    }
+    const q = customQuests.find(x => x.id === id);
+    if (!q) return;
+    const today = todayKey();
+    let xp = q.xp;
+    if (boostClass && 'aventurier' === boostClass) {
+      xp = Math.round(xp * 1.1);
+    }
+    const finalXp = xp;
+    if (q.done) {
+      q.done = false;
+      S.total_xp = Math.max(0, S.total_xp - finalXp);
+      classXP.aventurier = Math.max(0, (classXP.aventurier || 0) - finalXp);
+      weeklyClassXP.aventurier = Math.max(0, (weeklyClassXP.aventurier || 0) - finalXp);
+      q.total_xp = Math.max(0, (q.total_xp || 0) - finalXp);
+      LOG = LOG.filter(l => !(l.quest_id === id && l.created_at && l.created_at.slice(0, 10) === today));
+      sbDelete('sys_log', UID, id, today).catch(() => {});
+      toast("↩️ Quête forgée décochée — XP retirés");
+    } else {
+      q.done = true;
+      S.total_xp += finalXp;
+      classXP.aventurier = (classXP.aventurier || 0) + finalXp;
+      weeklyClassXP.aventurier = (weeklyClassXP.aventurier || 0) + finalXp;
+      q.total_xp = (q.total_xp || 0) + finalXp;
+      const entry = {
+        user_id: UID,
+        quest_id: id,
+        quest_name: '[Perso] ' + q.name,
+        xp: finalXp,
+        pillar_id: 'custom',
+        created_at: new Date().toISOString()
+      };
+      LOG.unshift(entry);
+      sbInsert('sys_log', entry).catch(() => {});
+      toast("✅ +" + finalXp + " XP pour '" + q.name + "' (🎒 Aventurier)");
+    }
+    saveCustomQuests();
+    scheduleSave();
+    updateHeader();
+  } catch (e) {
+    console.error('toggleCustomQuest error:', e);
+    toast("⚠️ Erreur lors de l'action");
+  } finally {
+    isProcessing = false;
+  }
+}
+
+// ============================================================
+// RECETTES
+// ============================================================
+function ajouterRecette() {
+  const name = document.getElementById('recipe-name').value.trim();
+  if (!name) {
+    toast("⚠️ Donne un nom à ta recette.");
+    return;
+  }
+  const time = parseInt(document.getElementById('recipe-time').value) || 30;
+  const people = parseInt(document.getElementById('recipe-people').value) || 2;
+  const steps = document.getElementById('recipe-steps').value.trim();
+  const ingredients = document.getElementById('recipe-ingredients').value.trim();
+  const r = {
+    id: 'rec_' + Date.now(),
+    name: name,
+    time: time,
+    people: people,
+    steps: steps,
+    ingredients: ingredients,
+    done: false,
+    total_xp: 0,
+    created_at: new Date().toISOString()
+  };
+  recipes.unshift(r);
+  document.getElementById('recipe-name').value = '';
+  document.getElementById('recipe-time').value = '30';
+  document.getElementById('recipe-people').value = '2';
+  document.getElementById('recipe-steps').value = '';
+  document.getElementById('recipe-ingredients').value = '';
+  saveRecipes();
+  setNewRecipe();
+  toast("🍳 Recette ajoutée : '" + name + "'");
+  renderRecipes();
+}
+function renderRecipes() {
+  const container = document.getElementById('recipes-list-container');
+  if (!recipes.length) {
+    container.innerHTML = '<div class="empty-state">Aucune recette pour le moment.</div>';
+    return;
+  }
+  container.innerHTML = recipes.map(r => {
+    const xp = r.total_xp || 0;
+    const done = r.done || false;
+    const formattedSteps = formatSteps(r.steps);
+    const formattedIngredients = formatIngredients(r.ingredients);
+    const hasIngredients = r.ingredients && r.ingredients.trim() !== '';
+    return `<div class="recipe-item${done ? ' done' : ''}" data-id="${r.id}">
+      <div class="check" onclick="event.stopPropagation();toggleRecipe('${r.id}')">${done ? '✓' : ''}</div>
+      <div class="recipe-info" onclick="event.stopPropagation();toggleRecipe('${r.id}')">
+        <div class="recipe-name">${r.name}</div>
+        <div class="recipe-meta">⏱️ ${r.time} min · 👥 ${r.people} pers</div>
+        ${hasIngredients ? `<div class="recipe-ingredients open" onclick="event.stopPropagation();toggleRecipeIngredients(this)">${formattedIngredients}</div>` : ''}
+        <div class="recipe-steps${formattedSteps ? ' open' : ''}" onclick="event.stopPropagation();toggleRecipeSteps(this)">${formattedSteps}</div>
+      </div>
+      <div class="recipe-xp">+${xp} XP</div>
+    </div>`;
+  }).join('');
+}
+async function toggleRecipe(id) {
+  if (isDayLocked) {
+    toast("⚠️ Journée verrouillée. Utilise 'Modifier la journée' pour ajuster.");
+    return;
+  }
+  const r = recipes.find(x => x.id === id);
+  if (!r) return;
+  const today = todayKey();
+  const xp = calculateRecipeXP(r.time, r.people);
+  if (r.done) {
+    r.done = false;
+    S.total_xp = Math.max(0, S.total_xp - xp);
+    classXP.aventurier = Math.max(0, (classXP.aventurier || 0) - xp);
+    weeklyClassXP.aventurier = Math.max(0, (weeklyClassXP.aventurier || 0) - xp);
+    r.total_xp = Math.max(0, (r.total_xp || 0) - xp);
+    LOG = LOG.filter(l => !(l.quest_id === id && l.created_at && l.created_at.slice(0, 10) === today));
+    sbDelete('sys_log', UID, id, today).catch(() => {});
+    toast("↩️ Recette décochée — XP retirés");
+  } else {
+    r.done = true;
+    S.total_xp += xp;
+    classXP.aventurier = (classXP.aventurier || 0) + xp;
+    weeklyClassXP.aventurier = (weeklyClassXP.aventurier || 0) + xp;
+    r.total_xp = (r.total_xp || 0) + xp;
+    const entry = {
+      user_id: UID,
+      quest_id: id,
+      quest_name: '[Recette] ' + r.name,
+      xp: xp,
+      pillar_id: 'custom',
+      created_at: new Date().toISOString()
+    };
+    LOG.unshift(entry);
+    sbInsert('sys_log', entry).catch(() => {});
+    toast("✅ +" + xp + " XP pour la recette '" + r.name + "' (🍳 Aventurier)");
+  }
+  saveRecipes();
+  scheduleSave();
+  updateHeader();
+  renderRecipes();
+  renderAvatar();
+}
+function toggleRecipeSteps(el) {
+  el.classList.toggle('open');
+}
+function toggleRecipeIngredients(el) {
+  el.classList.toggle('open');
+}
+
+// ============================================================
+// VALIDATION DE JOURNÉE
+// ============================================================
+async function validerJour() {
+  const today = todayKey();
+  if (isDayLocked) {
+    toast("⚠️ Journée déjà verrouillée.");
+    return;
+  }
+  if (S.last_day !== today) {
+    if (S.last_day) {
+      const diff = (new Date(today) - new Date(S.last_day)) / 86400000;
+      S.streak = diff <= 1 ? S.streak + 1 : 1;
+    } else { S.streak = 1; }
+    S.last_day = today;
+    S.days_total++;
+    const histEntry = { user_id: UID, xp: S.total_xp, created_at: new Date().toISOString() };
+    XP_HISTORY.unshift(histEntry);
+    if (XP_HISTORY.length > 60) XP_HISTORY.pop();
+    sbInsert('sys_xp_history', histEntry).catch(() => {});
+  }
+  customQuests = customQuests.filter(q => !(q.type === 'oneshot' && q.done === true));
+  customQuests.forEach(q => { if (q.type === 'recurrent') q.done = false; });
+  recipes.forEach(r => { r.done = false; });
+  iaQuests.forEach(q => { if (q.date === today) q.done = false; });
+  localStorage.setItem('sys12_custom_quests', JSON.stringify(customQuests));
+  await saveCustomQuestsToDB();
+  await saveRecipes();
+  for (const q of iaQuests) { await saveIAQuestToDB(q); }
+  renderCustomQuests();
+  renderRecipes();
+  renderIAQuests();
+  isDayLocked = true;
+  S.is_day_locked = true;
+  updateValidationButton();
+  scheduleSave();
+  updateHeader();
+  toast("🔒 Journée validée !");
+  goTab('stats', document.querySelectorAll('.tab-btn')[3]);
+}
+
+function modifierJour() {
+  if (!isDayLocked) {
+    toast("⚠️ La journée n'est pas verrouillée.");
+    return;
+  }
+  isDayLocked = false;
+  S.is_day_locked = false;
+  updateValidationButton();
+  toast("✏️ Journée déverrouillée — tu peux ajuster tes quêtes.");
+  scheduleSave();
+}
+
+function updateValidationButton() {
+  const btn = document.getElementById('btn-valider');
+  if (!btn) return;
+  if (isDayLocked) {
+    btn.textContent = "✏️ Modifier la journée";
+    btn.setAttribute('onclick', 'modifierJour()');
+    btn.style.background = "linear-gradient(135deg, #4b5563, #374151)";
+  } else {
+    btn.textContent = "✓ Valider la journée";
+    btn.setAttribute('onclick', 'validerJour()');
+    btn.style.background = "linear-gradient(135deg,var(--accent2),var(--accent))";
+  }
+}
+
+// ============================================================
+// AFFICHAGE DES PILIERS
+// ============================================================
+function renderPiliers() {
+  document.getElementById('piliers-list').innerHTML = PILLARS.map(p => {
+    const xp = S[p.id + '_xp'] || 0;
+    const rank = getPillarRank(xp);
+    const level = rank.level;
+    const title = rank.title;
+    const progress = getPillarProgress(xp);
+    const pct = progress.pct;
+    const xp_into = progress.xp_into;
+    const xp_needed = progress.xp_needed;
+    const nextLevel = progress.nextLevel;
+    const nextTitle = progress.nextTitle;
+    return `<div class="pillar">
+      <div class="pillar-top">
+        <div class="pillar-icon" style="background:${p.color}22">${p.icon}</div>
+        <div class="pillar-name">${p.name}</div>
+        <div class="pillar-lv">
+          Niv. ${level} 
+          <span class="pillar-title">${title}</span>
+        </div>
+      </div>
+      <div class="bar-wrap"><div class="bar-fill" style="width:${pct}%;background:${p.color}"></div></div>
+      <div class="bar-label">
+        <span>${xp_into} / ${xp_needed} XP</span>
+        <span>${pct}%</span>
+      </div>
+      <div class="pillar-sats">
+        Prochain palier : ${nextTitle} (Niv. ${nextLevel}) — ${xp_needed - xp_into} XP restants
+        <br>${p.satellites}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// AVATAR / CLASSES + DIAGRAMME À BARRES
+// ============================================================
+function renderClassBarChart() {
+  const canvas = document.getElementById('class-bar-chart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const data = [];
+  for (const [id, cls] of Object.entries(CLASSES)) {
+    const xp = classXP[id] || 0;
+    data.push({ id, name: cls.name, xp, color: cls.color, icon: cls.icon });
+  }
+  data.sort((a, b) => b.xp - a.xp);
+  const labels = data.map(d => d.icon + ' ' + d.name);
+  const values = data.map(d => d.xp);
+  const colors = data.map(d => d.color);
+  if (chartClassBar) chartClassBar.destroy();
+  chartClassBar = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: values,
+        backgroundColor: colors,
+        borderColor: colors.map(c => c + 'aa'),
+        borderWidth: 1,
+        borderRadius: 4,
+        barPercentage: 0.4,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return context.raw + ' XP';
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { color: '#777', font: { size: 10 } },
+          grid: { color: 'rgba(255,255,255,0.04)' }
+        },
+        x: {
+          ticks: {
+            color: '#aaa',
+            font: { size: 9, weight: 'bold' },
+            maxRotation: 0,
+            autoSkip: false,
+            padding: 8,
+            offset: true,
+            align: 'center'
+          },
+          grid: { display: false },
+          offset: true
+        }
+      },
+      animation: {
+        duration: 500
+      }
+    }
+  });
+}
+
+function renderAvatar() {
+  const banner = document.getElementById('aura-banner');
+  const icon = document.getElementById('aura-icon');
+  const name = document.getElementById('aura-name');
+  const desc = document.getElementById('aura-desc');
+  if (currentAura) {
+    icon.textContent = currentAura.icon || '⚔️';
+    name.textContent = currentAura.name || 'Aventurier';
+    if (currentAura.cssClass === 'souverain') {
+      desc.textContent = 'Équilibre parfait atteint ! Tu choisis ton boost.';
+      banner.className = 'aura-banner souverain';
+    } else if (currentAura.cssClass === 'stagnant') {
+      desc.textContent = 'Aucune activité cette semaine. Retour au front !';
+      banner.className = 'aura-banner stagnant';
+    } else {
+      desc.textContent = `Classe dominante${boostClass ? ` — Bénédiction: +10% ${CLASSES[boostClass]?.name || ''}` : ''}`;
+      banner.className = 'aura-banner ' + currentAura.cssClass;
+    }
+  } else {
+    icon.textContent = '⚔️';
+    name.textContent = 'En attente';
+    desc.textContent = 'Effectue ton premier bilan hebdomadaire';
+    banner.className = 'aura-banner';
+  }
+  for (const [id, cls] of Object.entries(CLASSES)) {
+    const xp = classXP[id] || 0;
+    const rank = getClassRank(xp);
+    const level = rank.level;
+    const title = rank.title;
+    const progress = getClassProgress(xp);
+    const pct = progress.pct;
+    const xp_into = progress.xp_into;
+    const xp_needed = progress.xp_needed;
+    const el = document.getElementById('class-' + id);
+    const levelEl = document.getElementById(id + '-level');
+    const titleEl = document.getElementById(id + '-title');
+    const bar = document.getElementById(id + '-bar');
+    const progressEl = document.getElementById(id + '-progress');
+    el.className = 'class-item';
+    if (currentAura && currentAura.cssClass === id && currentAura.cssClass !== 'souverain' && currentAura.cssClass !== 'stagnant') {
+      el.classList.add('highlight');
+    }
+    if (boostClass === id && boostClass !== null) {
+      el.classList.add('weak');
+    }
+    levelEl.textContent = 'Niv. ' + level;
+    titleEl.textContent = title;
+    bar.style.width = pct + '%';
+    progressEl.textContent = xp_into + ' / ' + xp_needed + ' XP';
+  }
+  const benedictionEl = document.getElementById('benediction-desc');
+  if (boostClass && boostClass !== null) {
+    const cls = getClassFromId(boostClass);
+    benedictionEl.textContent = '+10% XP pour le ' + (cls ? cls.name : boostClass) + ' jusqu\'au prochain bilan.';
+  } else if (isSouverain) {
+    benedictionEl.textContent = 'Équilibre parfait — choisis ta bénédiction ci-dessous.';
+  } else if (isStagnant) {
+    benedictionEl.textContent = '⚠️ Aucune bénédiction active. Reprends l\'entraînement.';
+  } else {
+    const scores = {
+      guerrier: classXP.guerrier || 0,
+      mage: classXP.mage || 0,
+      ombre: classXP.ombre || 0,
+      aventurier: classXP.aventurier || 0
+    };
+    const minScore = Math.min(...Object.values(scores));
+    let weakest = Object.keys(scores).find(key => scores[key] === minScore);
+    if (weakest && scores[weakest] < 500) {
+      const cls = getClassFromId(weakest);
+      benedictionEl.textContent = '🔴 Classe à renforcer : ' + (cls ? cls.name : weakest) + ' (' + scores[weakest] + ' XP)';
+    } else {
+      benedictionEl.textContent = 'Aucune bénédiction active.';
+    }
+  }
+  renderClassBarChart();
+  updateXPbars();
+}
+
+// ============================================================
+// STATISTIQUES - avec journal déroulant
+// ============================================================
+function renderStats() {
+  const today = todayKey();
+  const activeDays = [...new Set(LOG.map(l => l.created_at && l.created_at.slice(0, 10)).filter(Boolean))];
+  let hm = '';
+  for (let i = 59; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    const isToday = key === today;
+    const on = activeDays.includes(key);
+    hm += `<div class="hm-sq${on && !isToday ? ' on' : ''}${isToday ? ' today' : ''}"></div>`;
+  }
+  document.getElementById('heatmap').innerHTML = hm;
+
+  const maxXP = Math.max(
+    S.p1_xp || 0,
+    S.p2_xp || 0,
+    S.p3_xp || 0,
+    S.p4_xp || 0,
+    S.p5_xp || 0
+  );
+  const rData = PILLARS.map(p => {
+    const xp = S[p.id + '_xp'] || 0;
+    return maxXP > 0 ? Math.round((xp / maxXP) * 100) : 0;
+  });
+  const rCtx = document.getElementById('chart-radar').getContext('2d');
+  const rLabels = PILLARS.map(p => p.icon + ' ' + p.name.split(' ')[0]);
+  if (chartRadar) chartRadar.destroy();
+  chartRadar = new Chart(rCtx, {
+    type: 'radar',
+    data: {
+      labels: rLabels,
+      datasets: [{
+        data: rData,
+        borderColor: '#a78bfa',
+        backgroundColor: 'rgba(124,58,237,0.18)',
+        borderWidth: 2,
+        pointBackgroundColor: '#a78bfa',
+        pointRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const value = context.raw;
+              const pilier = PILLARS[context.dataIndex];
+              const xp = S[pilier.id + '_xp'] || 0;
+              return pilier.name + ' : ' + value + '% (' + xp + ' XP)';
+            }
+          }
+        }
+      },
+      scales: {
+        r: {
+          min: 0,
+          max: 100,
+          ticks: { display: false },
+          grid: { color: 'rgba(255,255,255,0.07)' },
+          pointLabels: { color: '#999', font: { size: 11 } },
+          angleLines: { color: 'rgba(255,255,255,0.06)' }
+        }
+      }
+    }
+  });
+
+  const xpCtx = document.getElementById('chart-xp').getContext('2d');
+  const sorted = [...XP_HISTORY].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).slice(-20);
+  const xpLabels = sorted.map(h => h.created_at ? h.created_at.slice(5, 10) : '');
+  const xpData = sorted.map(h => h.xp);
+  if (chartXp) chartXp.destroy();
+  chartXp = new Chart(xpCtx, {
+    type: 'line',
+    data: {
+      labels: xpLabels.length ? xpLabels : ['—'],
+      datasets: [{ data: xpData.length ? xpData : [0], borderColor: '#a78bfa', backgroundColor: 'rgba(124,58,237,0.15)', borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#a78bfa', fill: true, tension: .4 }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#555', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
+        y: { ticks: { color: '#555', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' }, beginAtZero: true }
+      }
+    }
+  });
+
+  const capCounts = {};
+  LOG.forEach(l => {
+    if (l.pillar_id && l.pillar_id !== 'custom' && l.pillar_id !== 'review') {
+      const p = PILLARS.find(p => p.id === l.pillar_id);
+      if (p) {
+        capCounts[p.name] = (capCounts[p.name] || 0) + 1;
+      }
+    }
+  });
+  document.getElementById('cap-grid').innerHTML = PILLARS.map(p => {
+    const count = capCounts[p.name] || 0;
+    const pct = Math.min(100, Math.round((count / 20) * 100));
+    return `<div class="cap-item">
+      <div class="cap-name">${p.icon} ${p.name}</div>
+      <div class="cap-count">${count} quête${count > 1 ? 's' : ''}</div>
+      <div class="cap-bar"><div class="cap-fill" style="width:${pct}%;background:${p.color}"></div></div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('milestones').innerHTML = MILESTONES.map(m => {
+    const ok = m.check(S);
+    return `<div class="ms-item${ok ? ' reached' : ''}">
+      <div class="ms-icon">${m.icon}</div>
+      <div class="ms-label">${m.lbl}</div>
+      <div class="ms-status">${ok ? '✓ Atteint' : 'En cours'}</div>
+    </div>`;
+  }).join('');
+
+  const logContainer = document.getElementById('log-list');
+  if (!LOG.length) {
+    logContainer.innerHTML = '<div class="empty-state">Aucune action enregistrée</div>';
+  } else {
+    const allEntries = LOG.slice(0, 20).map(l => `
+      <div class="log-entry">
+        <div class="log-dot" style="background:${PCOLS[l.pillar_id] || '#888'}"></div>
+        <div class="log-text">${l.quest_name}</div>
+        <span class="log-xp">+${l.xp}</span>
+        <span class="log-time">${l.created_at ? l.created_at.slice(11, 16) : ''}</span>
+      </div>
+    `).join('');
+    let html = `<div class="log-container collapsed" id="log-inner">
+      ${allEntries}
+    </div>
+    <button class="log-toggle-btn" id="log-toggle-btn" onclick="toggleLog()">Voir plus</button>`;
+    logContainer.innerHTML = html;
+    if (LOG.length <= 5) {
+      document.getElementById('log-toggle-btn').style.display = 'none';
+    } else {
+      document.getElementById('log-inner').classList.add('collapsed');
+    }
+  }
+}
+function toggleLog() {
+  const container = document.getElementById('log-inner');
+  const btn = document.getElementById('log-toggle-btn');
+  if (!container || !btn) return;
+  if (container.classList.contains('collapsed')) {
+    container.classList.remove('collapsed');
+    container.classList.add('expanded');
+    btn.textContent = 'Voir moins';
+  } else {
+    container.classList.add('collapsed');
+    container.classList.remove('expanded');
+    btn.textContent = 'Voir plus';
+  }
+}
+
+// ============================================================
+// REVUE, NAVIGATION, BILAN
+// ============================================================
+function setStar(v) {
+  starVal = v;
+  document.querySelectorAll('.star').forEach((s, i) => s.classList.toggle('on', i < v));
+}
+async function sauvegarderRevue() {
+  const rev = {
+    user_id: UID,
+    stars: starVal,
+    went_well: document.getElementById('rv-bien').value,
+    resisted: document.getElementById('rv-resist').value,
+    next_change: document.getElementById('rv-change').value,
+    created_at: new Date().toISOString()
+  };
+  S.total_xp += 100;
+  const entry = { user_id: UID, quest_id: 'review', quest_name: 'Revue hebdomadaire', xp: 100, pillar_id: 'p1', created_at: new Date().toISOString() };
+  LOG.unshift(entry);
+  sbInsert('sys_log', entry).catch(() => {});
+  sbInsert('sys_reviews', rev).catch(() => {});
+  scheduleSave();
+  updateHeader();
+  const _bien = document.getElementById('rv-bien').value;
+  const _resist = document.getElementById('rv-resist').value;
+  const _change = document.getElementById('rv-change').value;
+  const _stars = starVal;
+  ['rv-bien', 'rv-resist', 'rv-change'].forEach(id => document.getElementById(id).value = '');
+  starVal = 0;
+  document.querySelectorAll('.star').forEach(s => s.classList.remove('on'));
+  genererBilanRevue(_bien, _resist, _change, _stars);
+  toast("📝 Revue sauvegardée ! +100 XP");
+}
+function goTab(id, btn) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  if (id === 'stats') renderStats();
+  if (id === 'piliers') renderPiliers();
+  if (id === 'book') {
+    loadCustomQuestsFromDB().then(dbQuests => {
+      if (dbQuests && Array.isArray(dbQuests)) {
+        customQuests = dbQuests;
+        localStorage.setItem('sys12_custom_quests', JSON.stringify(customQuests));
+      }
+      loadRecipes().then(() => {
+        loadIAQuestsFromDB().then(() => {
+          updateSidequestUI();
+          renderCustomQuests();
+          renderRecipes();
+          renderIAQuests();
+          updateBadges();
+        });
+      });
+    }).catch(() => {
+      loadRecipes().then(() => {
+        loadIAQuestsFromDB().then(() => {
+          updateSidequestUI();
+          renderCustomQuests();
+          renderRecipes();
+          renderIAQuests();
+          updateBadges();
+        });
+      });
+    });
+  }
+  if (id === 'today') renderQuetes();
+  if (id === 'avatar') {
+    renderAvatar();
+    renderBilanHistory();
+    const today = new Date();
+    const isSunday = today.getDay() === 0;
+    const bilanBtn = document.getElementById('btn-bilan-hebdo');
+    if (bilanBtn) {
+      let bilanDejaFait = false;
+      if (lastBilanDate) {
+        const lastBilan = new Date(lastBilanDate);
+        const startOfWeek = new Date(today);
+        startOfWeek.setDate(today.getDate() - today.getDay());
+        if (lastBilan >= startOfWeek) {
+          bilanDejaFait = true;
+        }
+      }
+      if (!isSunday) {
+        bilanBtn.disabled = true;
+        bilanBtn.textContent = '📊 Bilan disponible uniquement le dimanche';
+      } else if (bilanDejaFait) {
+        bilanBtn.disabled = true;
+        bilanBtn.textContent = '📊 Bilan effectué';
+      } else {
+        bilanBtn.disabled = false;
+        bilanBtn.textContent = '📊 Lancer le Bilan Hebdomadaire';
+      }
+    }
+  }
+}
+function renderBilanHistory() {
+  const container = document.getElementById('bilan-history');
+  if (!bilanHistory.length) {
+    container.innerHTML = '<div class="empty-state">Aucun bilan enregistré</div>';
+    return;
+  }
+  container.innerHTML = bilanHistory.slice(0, 5).map(b => {
+    const aura = AURA_CONFIG[b.aura_id] || AURA_CONFIG['aventurier'];
+    return `<div class="log-entry">
+      <div class="log-dot" style="background:${aura.color || '#888'}"></div>
+      <div class="log-text">${aura.name || 'Bilan'} — ${b.week_end}</div>
+      <span class="log-xp">${(b.guerrier_xp + b.mage_xp + b.ombre_xp + b.aventurier_xp) || 0} XP</span>
+    </div>`;
+  }).join('');
+}
+function renderBoostOptions() {
+  const container = document.getElementById('choose-boost');
+  container.innerHTML = '';
+  for (const [id, cls] of Object.entries(CLASSES)) {
+    const btn = document.createElement('button');
+    btn.className = 'boost-btn';
+    btn.textContent = cls.icon + ' ' + cls.name;
+    btn.dataset.class = id;
+    btn.onclick = function() {
+      document.querySelectorAll('.boost-btn').forEach(b => b.classList.remove('selected'));
+      this.classList.add('selected');
+      document.querySelector('#choose-boost').dataset.selected = id;
+    };
+    container.appendChild(btn);
+  }
+}
+function confirmerBoost() {
+  const container = document.getElementById('choose-boost');
+  const selected = container.dataset.selected;
+  if (!selected) {
+    toast("⚠️ Choisis une classe d'abord.");
+    return;
+  }
+  boostClass = selected;
+  boostSelectionPending = false;
+  document.getElementById('choose-boost-container').style.display = 'none';
+  renderAvatar();
+  scheduleSave();
+  toast("✅ Bénédiction appliquée au " + CLASSES[selected].name);
+}
+function lancerBilanHebdo() {
+  const today = new Date();
+  if (today.getDay() !== 0) {
+    toast("📅 Le bilan n'est disponible que le dimanche.");
+    return;
+  }
+  // Vérifier si déjà fait cette semaine
+  if (lastBilanDate) {
+    const lastBilan = new Date(lastBilanDate);
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - today.getDay());
+    if (lastBilan >= startOfWeek) {
+      toast("✅ Bilan déjà effectué cette semaine.");
+      document.getElementById('btn-bilan-hebdo').disabled = true;
+      document.getElementById('btn-bilan-hebdo').textContent = '📊 Bilan effectué';
+      return;
+    }
+  }
+
+  const btn = document.getElementById('btn-bilan-hebdo');
+  btn.disabled = true;
+  btn.textContent = 'Calcul en cours...';
+
+  // Utiliser classXP (total) au lieu de weeklyClassXP
+  const totalXP = Object.values(classXP).reduce((a, b) => a + b, 0);
+  let auraId = 'stagnant';
+  let aura = null;
+  let isSouv = false;
+  let isStag = false;
+
+  if (totalXP === 0) {
+    isStag = true;
+    auraId = 'stagnant';
+  } else {
+    const sorted = Object.entries(classXP).sort((a, b) => b[1] - a[1]);
+    const top1 = sorted[0][0];
+    const top2 = sorted[1][0];
+    const top3 = sorted[2] ? sorted[2][0] : null;
+    const values = Object.values(classXP);
+    const maxDiff = Math.max(...values) - Math.min(...values);
+    const avg = totalXP / 4;
+    if (maxDiff <= 10 && Object.values(classXP).every(x => x >= avg * 0.8)) {
+      isSouv = true;
+      auraId = 'souverain';
+    } else if (sorted[0][1] - sorted[1][1] > 50) {
+      auraId = top1;
+    } else {
+      const set = new Set([top1, top2, top3].filter(Boolean));
+      if (set.has('guerrier') && set.has('mage') && set.has('ombre')) auraId = 'stratege';
+      else if (set.has('guerrier') && set.has('mage') && set.has('aventurier')) auraId = 'vagabond';
+      else if (set.has('guerrier') && set.has('ombre') && set.has('aventurier')) auraId = 'traqueur';
+      else if (set.has('mage') && set.has('ombre') && set.has('aventurier')) auraId = 'savant';
+      else auraId = top1;
+    }
+  }
+  aura = AURA_CONFIG[auraId] || AURA_CONFIG['aventurier'];
+  isSouverain = isSouv;
+  isStagnant = isStag;
+
+  const bilan = {
+    week_start: new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10),
+    week_end: new Date().toISOString().slice(0, 10),
+    aura_id: auraId,
+    aura_name: aura ? aura.name : 'Inconnu',
+    guerrier_xp: classXP.guerrier || 0,
+    mage_xp: classXP.mage || 0,
+    ombre_xp: classXP.ombre || 0,
+    aventurier_xp: classXP.aventurier || 0,
+    is_souverain: isSouv,
+    is_stagnant: isStag
+  };
+  saveBilan(bilan);
+  bilanHistory.unshift(bilan);
+  currentAura = aura;
+  lastBilanDate = new Date().toISOString().slice(0, 10);
+
+  if (isSouv) {
+    boostSelectionPending = true;
+    document.getElementById('choose-boost-container').style.display = 'block';
+    renderBoostOptions();
+    btn.textContent = '📊 Bilan effectué';
+    btn.disabled = true;
+    toast("👑 Équilibre parfait ! Choisis ta bénédiction.");
+  } else if (isStag) {
+    boostClass = null;
+    document.getElementById('choose-boost-container').style.display = 'none';
+    btn.textContent = '📊 Bilan effectué';
+    btn.disabled = true;
+    toast("💤 Bilan : Le Stagnant. Retour au front !");
+  } else {
+    // Classe la plus faible en XP total pour le boost
+    let minXP = Infinity;
+    let weakest = null;
+    for (const [cls, xp] of Object.entries(classXP)) {
+      if (xp < minXP) {
+        minXP = xp;
+        weakest = cls;
+      }
+    }
+    boostClass = weakest;
+    document.getElementById('choose-boost-container').style.display = 'none';
+    btn.textContent = '📊 Bilan effectué';
+    btn.disabled = true;
+    const cls = getClassFromId(weakest);
+    toast("📊 Bilan terminé ! " + (cls ? cls.name : '') + " reçoit +10% la semaine prochaine.");
+  }
+
+  // Réinitialiser les XP hebdomadaires pour le suivi, mais on garde classXP
+  weeklyClassXP = { guerrier: 0, mage: 0, ombre: 0, aventurier: 0 };
+
+  saveAuraToDB({
+    aura_id: currentAura ? currentAura.id : null,
+    aura_name: currentAura ? currentAura.name : null,
+    is_souverain: isSouverain,
+    is_stagnant: isStagnant,
+    boost_class: boostClass,
+    last_bilan_date: lastBilanDate
+  });
+
+  renderAvatar();
+  renderBilanHistory();
+  updateHeader();
+  scheduleSave();
+}
+
+// ============================================================
+// GENERER ENTRAINEMENT
+// ============================================================
+async function genererEntrainement(btn) {
+  const existingId = 'workout-generated';
+  const existing = document.getElementById(existingId);
+  if (existing) { existing.remove(); return; }
+  const selectEl = document.getElementById('workout-type');
+  const selectedDomain = selectEl ? selectEl.value : 'auto';
+  const ratings = await getLastWorkoutRatings(3);
+  let avgDifficulty = 3;
+  if (ratings.length > 0) {
+    const sum = ratings.reduce((acc, r) => acc + (r.difficulty || 0), 0);
+    avgDifficulty = sum / ratings.length;
+  }
+  const card = document.createElement('div');
+  card.className = 'ai-card';
+  card.id = existingId;
+  card.style.marginTop = '6px';
+  card.style.border = '0.5px solid rgba(96,165,250,.3)';
+  card.style.background = 'linear-gradient(135deg,rgba(96,165,250,.12),rgba(14,14,16,.08))';
+  card.innerHTML = '<div class="ai-header"><span style="font-size:16px">🏋️</span><span class="ai-label" style="color:var(--blue)">Séance sur-mesure</span></div><div class="ai-body" id="txt-workout">Analyse du domaine choisi et calcul du protocole adaptatif...</div>';
+  btn.closest('.quest').after(card);
+  const historiquesRecents = LOG.slice(0, 10).map(l => l.quest_name).join(', ');
+  let domaineInstructions = "";
+  if (selectedDomain === "bodyweight") {
+    domaineInstructions = "L'entraînement DOIT obligatoirement être axé sur le POIDS DU CORPS / CALISTHÉNIE (en utilisant sa bonne base en pompes, tractions, ou des variantes complexes comme du tempo ou de la pliométrie).";
+  } else if (selectedDomain === "swim") {
+    domaineInstructions = "L'entraînement DOIT obligatoirement être un protocole de NATATION en piscine (séries en mètres, nages, allures, ou exercices techniques, adapté à sa capacité de faire 3km par session).";
+  } else if (selectedDomain === "run") {
+    domaineInstructions = "L'entraînement DOIT obligatoirement être de la COURSE À PIED / CARDIO EXTÉRIEUR (axé soit sur son point faible à améliorer : le foncier en zone 2, soit du fractionné/HIIT haute intensité).";
+  } else {
+    domaineInstructions = "Laisse libre cours à ton expertise de coach pour choisir le domaine (natation, course ou poids du corps) le plus pertinent selon son historique récent.";
+  }
+  let difficultyLevel = 'moyen';
+  if (avgDifficulty <= 2) difficultyLevel = 'facile';
+  else if (avgDifficulty >= 4) difficultyLevel = 'difficile';
+  const prompt = buildCtx() + `
+  En tant que coach sportif, génère un entraînement physique précis de 30 à 45 minutes pour Eliseo.
+  CONTRAINTE DE SÉLECTION : ${domaineInstructions}
+  Prends également en compte son profil général et son historique récent d'actions: [${historiquesRecents}].
+  Suggestion basée sur les notations précédentes : la difficulté perçue moyenne est de ${avgDifficulty.toFixed(1)}/5.
+  Propose un entraînement avec une difficulté ${difficultyLevel} (légèrement plus élevée si la moyenne est basse, et inversement).
+  Format de réponse obligatoire (sois hyper concis, direct et condensé) :
+  1. Domaine et Objectif ciblé (ex: Natation - Vitesse explosive ou Calisthénie - Volume de force)
+  2. Échauffement rapide
+  3. Corps de séance : Exercices/Séries exactes, répétitions ou distances, temps de récupération très précis.
+  Maximum 7 lignes. Pas de markdown, pas de listes à puces ou tirets (sauts de ligne simples).
+  Ajoute en début de réponse la difficulté proposée (1 à 5) entre parenthèses, ex: "(3/5)".
+  `;
+  const response = await callGemini(prompt);
+  let proposedDifficulty = 3;
+  const match = response.match(/\((\d)\/5\)/);
+  if (match) proposedDifficulty = parseInt(match[1]);
+  let baseXP = 70;
+  let xpMultiplier = 1 + (proposedDifficulty - 3) * 0.15;
+  xpMultiplier = Math.max(0.8, Math.min(1.4, xpMultiplier));
+  let finalXP = Math.round(baseXP * xpMultiplier);
+  finalXP = Math.round(finalXP * 1.2);
+  const classId = getClassForPillar('p4');
+  if (boostClass && classId === boostClass) {
+    finalXP = Math.round(finalXP * 1.1);
+  }
+  const bodyEl = document.getElementById('txt-workout');
+  if (bodyEl) {
+    bodyEl.textContent = response + '\n\n🏆 XP estimé : +' + finalXP + ' XP (difficulté ' + proposedDifficulty + '/5)';
+  }
+}
+
+// ============================================================
+// GENERER MOBILITE
+// ============================================================
+async function genererMobilite(btn) {
+  const existingId = 'mobility-generated';
+  const existing = document.getElementById(existingId);
+  if (existing) { existing.remove(); return; }
+  const selectEl = document.getElementById('mobility-type');
+  const selectedDomain = selectEl ? selectEl.value : 'general';
+  const ratings = await getLastWorkoutRatings(3);
+  let avgDifficulty = 3;
+  if (ratings.length > 0) {
+    const sum = ratings.reduce((acc, r) => acc + (r.difficulty || 0), 0);
+    avgDifficulty = sum / ratings.length;
+  }
+  const card = document.createElement('div');
+  card.className = 'ai-card';
+  card.id = existingId;
+  card.style.marginTop = '6px';
+  card.style.border = '0.5px solid rgba(52,211,153,.3)';
+  card.style.background = 'linear-gradient(135deg,rgba(52,211,153,.12),rgba(14,14,16,.08))';
+  card.innerHTML = '<div class="ai-header"><span style="font-size:16px">🧘</span><span class="ai-label" style="color:var(--green)">Mobilité sur-mesure</span></div><div class="ai-body" id="txt-mobility">Analyse du domaine choisi et construction du protocole adaptatif...</div>';
+  btn.closest('.quest').after(card);
+
+  const historiquesRecents = LOG.slice(0, 10).map(l => l.quest_name).join(', ');
+  let domaineInstructions = "";
+  if (selectedDomain === "general") {
+    domaineInstructions = "Génère une séance de mobilité générale incluant des exercices pour les hanches, épaules, colonne et chevilles.";
+  } else if (selectedDomain === "yoga") {
+    domaineInstructions = "Génère une séance de yoga/étirements statiques, avec des postures tenues, la respiration et la relaxation.";
+  } else if (selectedDomain === "dynamic") {
+    domaineInstructions = "Génère une séance d'étirements dynamiques (balancements, rotations, mouvements actifs) pour préparer le corps à l'effort.";
+  } else if (selectedDomain === "articular") {
+    domaineInstructions = "Génère une séance de mobilité articulaire (rotations, cercles, flexions/extensions) pour améliorer l'amplitude et la fluidité.";
+  } else {
+    domaineInstructions = "Laisse libre cours à ton expertise pour choisir le type de mobilité le plus pertinent.";
+  }
+
+  let difficultyLevel = 'moyen';
+  if (avgDifficulty <= 2) difficultyLevel = 'facile';
+  else if (avgDifficulty >= 4) difficultyLevel = 'difficile';
+
+  const prompt = buildCtx() + `
+  En tant que coach, génère une séance de mobilité et souplesse de 15 à 25 minutes pour Eliseo.
+  TYPE DEMANDÉ : ${domaineInstructions}
+  Prends en compte son historique récent : [${historiquesRecents}].
+  La difficulté perçue moyenne est de ${avgDifficulty.toFixed(1)}/5.
+  Propose une séance de difficulté ${difficultyLevel} (plus élevée si la moyenne est basse).
+  Format de réponse (très concis) :
+  1. Objectif de la séance (ex: "Amplitude des hanches et souplesse du dos")
+  2. Échauffement (2-3 mouvements)
+  3. Corps de séance : 4-5 exercices avec consignes précises (durée, répétitions, ressenti)
+  4. Récupération (1-2 étirements)
+  Maximum 8 lignes. Pas de markdown, pas de listes à puces (sauts de ligne simples).
+  Ajoute en début la difficulté proposée (1 à 5) entre parenthèses, ex: "(3/5)".
+  `;
+  const response = await callGemini(prompt);
+  let proposedDifficulty = 3;
+  const match = response.match(/\((\d)\/5\)/);
+  if (match) proposedDifficulty = parseInt(match[1]);
+
+  let baseXP = 60;
+  let xpMultiplier = 1 + (proposedDifficulty - 3) * 0.15;
+  xpMultiplier = Math.max(0.8, Math.min(1.4, xpMultiplier));
+  let finalXP = Math.round(baseXP * xpMultiplier);
+  finalXP = Math.round(finalXP * 1.2);
+  const classId = getClassForPillar('p4');
+  if (boostClass && classId === boostClass) {
+    finalXP = Math.round(finalXP * 1.1);
+  }
+
+  const bodyEl = document.getElementById('txt-mobility');
+  if (bodyEl) {
+    bodyEl.textContent = response + '\n\n🏆 XP estimé : +' + finalXP + ' XP (difficulté ' + proposedDifficulty + '/5)';
+  }
+}
+
+// ============================================================
+// INITIALISATION
+// ============================================================
+async function init() {
+  await loadFromSupabase();
+  updateValidationButton();
+  updateHeader();
+  renderQuetes();
+  renderPiliers();
+  initSidequest();
+  loadCustomQuests();
+  renderRecipes();
+  renderIAQuests();
+  loadWelcomeMessage();
+  renderAvatar();
+  renderBilanHistory();
+  renderStats();
+  updateBadges();
+}
+if (!UID) {
+  document.getElementById('setup-overlay').style.display = 'flex';
+} else {
+  init();
+}
+
+// ============================================================
+// IA / COACH
 // ============================================================
 const WORKER_URL = 'https://evolution-ai.eliseobuti.workers.dev';
 function callGemini(prompt) {
@@ -534,644 +3377,105 @@ function callGemini(prompt) {
     } catch (e) { resolve('Erreur: ' + e.message); }
   });
 }
-
-async function analyzeQuestIA(name, desc) {
-  const prompt = `
-  Analyse la quête extérieure suivante :
-  Nom : "${name}"
-  Description : "${desc}"
-
-  Réponds au format JSON strict avec les champs :
-  {
-    "caps": ["id1", "id2"],  // IDs des capacités impactées (parmi la liste)
-    "xp": 30,               // XP total recommandé
-    "duration": 15          // durée estimée en minutes
-  }
-
-  Liste des capacités disponibles (avec leurs IDs) :
-  ${CAPACITIES_DATA.map(c => `- ${c.id}: ${c.name}`).join('\n')}
-
-  Ne renvoie que le JSON, rien d'autre.
-  `;
-  const response = await callGemini(prompt);
-  try {
-    const parsed = JSON.parse(response);
-    const validCaps = parsed.caps.filter(id => CAPACITIES_DATA.some(c => c.id === id));
-    return {
-      caps: validCaps.length ? validCaps : ['raisonnement'],
-      xp: Math.max(10, parsed.xp || 30),
-      duration: parsed.duration || 15
-    };
-  } catch (e) {
-    console.warn('Analyse IA échouée, fallback manuel', e);
-    return null;
+let _lastWorkoutRatings = [];
+async function refreshWorkoutRatings() {
+  if (UID) {
+    _lastWorkoutRatings = await getLastWorkoutRatings(3);
   }
 }
-
-// ============================================================
-// CHARGEMENT DES DONNÉES
-// ============================================================
-async function loadFromSupabase() {
-  setSyncState('syncing');
-  try {
-    const [prog, logRaw] = await Promise.all([
-      sbGet('sys_progress', UID),
-      sbGetMany('sys_log', UID, 50)
-    ]);
-    if (prog) {
-      S = { ...S, ...prog };
-      const start = new Date(S.start_date);
-      const now = new Date();
-      const diffJours = Math.floor((now - start) / (1000 * 60 * 60 * 24));
-      S.current_month = Math.max(1, Math.min(12, Math.floor(diffJours / 30.44) + 1));
-      isDayLocked = S.is_day_locked || false;
-    }
-    if (Array.isArray(logRaw)) LOG = logRaw;
-
-    // Charger les capacités depuis sys_capacities
-    const capsData = await sbGetMany('sys_capacities', UID, 30);
-    if (capsData && capsData.length) {
-      capsData.forEach(c => {
-        capacities[c.id] = { xp: c.xp || 0, level: c.current_level || 1, level_up_xp: c.level_up_xp || 100 };
-      });
-    } else {
-      // Initialiser les capacités par défaut
-      for (const cap of CAPACITIES_DATA) {
-        capacities[cap.id] = { xp: 0, level: 1, level_up_xp: 100 };
-        await sbUpsert('sys_capacities', {
-          user_id: UID,
-          id: cap.id,
-          name: cap.name,
-          pillar_id: cap.pillar,
-          description: cap.desc,
-          current_level: 1,
-          xp: 0,
-          level_up_xp: 100
-        });
-      }
-    }
-
-    // Charger les quêtes personnalisées
-    const cq = await sbGet('sys_custom_quests', UID);
-    if (cq && cq.quests) customQuests = JSON.parse(cq.quests);
-    else customQuests = [];
-
-    // Restaurer l'état du jour
-    const today = todayKey();
-    checkedToday = {};
-    LOG.forEach(l => {
-      if (l.quest_id && l.created_at && l.created_at.slice(0, 10) === today) {
-        checkedToday[l.quest_id] = true;
-      }
-    });
-
-    if (S.last_day && S.last_day !== today) {
-      isDayLocked = false;
-      S.is_day_locked = false;
-      await saveProgress();
-      toast("🔓 Nouveau jour ! La journée est déverrouillée.");
-    } else {
-      isDayLocked = S.is_day_locked || false;
-    }
-
-    updateAll();
-    setSyncState('ok');
-  } catch (e) {
-    setSyncState('error');
-    console.error('loadFromSupabase:', e);
-  }
-}
-
-async function saveProgress() {
-  setSyncState('syncing');
-  try {
-    S.is_day_locked = isDayLocked;
-    await sbUpsert('sys_progress', { ...S, user_id: UID, updated_at: new Date().toISOString() });
-    // Sauvegarder les capacités
-    for (const [id, data] of Object.entries(capacities)) {
-      await sbUpsert('sys_capacities', {
-        user_id: UID,
-        id: id,
-        current_level: data.level,
-        xp: data.xp,
-        level_up_xp: data.level_up_xp
-      });
-    }
-    await sbUpsert('sys_custom_quests', { user_id: UID, quests: JSON.stringify(customQuests) });
-    setSyncState('ok');
-  } catch (e) {
-    setSyncState('error');
-    console.error('saveProgress:', e);
-  }
-}
-
-function scheduleSave() {
-  clearTimeout(syncTimer);
-  syncTimer = setTimeout(saveProgress, 1500);
-}
-
-function todayKey() { return new Date().toISOString().slice(0, 10); }
-
-// ============================================================
-// AFFICHAGE
-// ============================================================
-function updateAll() {
-  updateHeader();
-  renderDashboard();
-  renderCapacities();
-  renderQuetes();
-  renderExternalQuests();
-  renderJournal();
-}
-
-function updateHeader() {
-  const xp = S.total_xp;
-  const lv = getLv(xp);
-  const nl = Math.min(lv + 1, LEVELS.length - 1);
-  const cur = LEVELS[lv].min, next = LEVELS[nl].min;
-  const pct = lv === LEVELS.length - 1 ? 100 : Math.round((xp - cur) / (next - cur) * 100);
-  document.getElementById('top-xp').textContent = xp + ' XP';
-  document.getElementById('xp-big').textContent = xp;
-  document.getElementById('lv-name').textContent = LEVELS[lv].name;
-  document.getElementById('lv-bar').style.width = pct + '%';
-  document.getElementById('bar-cur').textContent = (xp - cur) + ' / ' + (next - cur) + ' XP';
-  document.getElementById('bar-next').textContent = '→ ' + LEVELS[nl].name;
-  document.getElementById('streak-num').textContent = '🔥 ' + S.streak;
-  document.getElementById('days-total').textContent = S.days_total;
+setInterval(refreshWorkoutRatings, 60000);
+refreshWorkoutRatings();
+function buildCtx() {
   const ph = getCurrentPhase();
-  const banner = document.getElementById('phase-banner');
-  banner.className = 'phase-banner ' + ph.cls;
-  banner.querySelector('.phase-icon').textContent = ph.icon;
-  banner.querySelector('.phase-name').textContent = 'Phase ' + ph.id + ' — ' + ph.name;
-  banner.querySelector('.phase-desc').textContent = ph.desc;
-  document.getElementById('phase-prog').textContent = 'Mois ' + S.current_month;
-  updateValidationButton();
-}
-
-function renderDashboard() {
-  const container = document.getElementById('pillars-preview');
-  container.innerHTML = PILLARS.map(p => {
-    const caps = CAPACITIES_DATA.filter(c => c.pillar === p.id);
-    const totalXP = caps.reduce((sum, c) => sum + (capacities[c.id]?.xp || 0), 0);
-    const maxXP = 500;
-    const pct = Math.min(100, (totalXP / maxXP) * 100);
-    return `<div class="pillar" style="cursor:default;">
-      <div class="pillar-top">
-        <div class="pillar-icon" style="background:${p.color}22">${p.icon}</div>
-        <div class="pillar-name">${p.name}</div>
-        <div class="pillar-lv">${totalXP} XP</div>
-      </div>
-      <div class="bar-wrap"><div class="bar-fill" style="width:${pct}%;background:${p.color}"></div></div>
-    </div>`;
-  }).join('');
-}
-
-function renderCapacities() {
-  const container = document.getElementById('capacities-list');
-  container.innerHTML = CAPACITIES_DATA.map(c => {
-    const data = capacities[c.id] || { xp: 0, level: 1, level_up_xp: 100 };
-    const pct = Math.min(100, (data.xp / data.level_up_xp) * 100);
-    const p = PILLARS.find(p => p.id === c.pillar);
-    return `<div class="pillar" style="cursor:default;">
-      <div class="pillar-top">
-        <div class="pillar-icon" style="background:${p.color}22">${p.icon}</div>
-        <div class="pillar-name">${c.name}</div>
-        <div class="pillar-lv">Niv. ${data.level}</div>
-      </div>
-      <div class="bar-wrap"><div class="bar-fill" style="width:${pct}%;background:${p.color}"></div></div>
-      <div class="bar-label">
-        <span>${data.xp} / ${data.level_up_xp} XP</span>
-        <span>${Math.round(pct)}%</span>
-      </div>
-      <div class="pillar-sats">${c.desc}</div>
-    </div>`;
-  }).join('');
-}
-
-function renderQuetes() {
-  const phase = getCurrentPhase();
-  function qHTML(q, isMin) {
-    const done = !!checkedToday[q.id];
-    const inPhase = q.phases ? q.phases.includes(phase.id) : true;
-    const caps = q.caps || [];
-    const capTags = caps.map(id => {
-      const cap = CAPACITIES_DATA.find(c => c.id === id);
-      return cap ? `<span class="tag" style="background:rgba(255,255,255,0.05);">${cap.name}</span>` : '';
-    }).join('');
-    const minTag = isMin ? `<span class="tag tag-min">minimum</span>` : '';
-    const phTag = !inPhase ? `<span class="tag tag-ph">Phase ${q.phases ? q.phases[0] : 1}+</span>` : '';
-    return `<div class="quest${done ? ' done' : ''}${!inPhase ? ' locked' : ''}" onclick="toggleQuete('${q.id}')">
-      <div class="check">${done ? '✓' : ''}</div>
-      <div class="q-info">
-        <div class="q-name">${q.name}</div>
-        <div class="q-desc">${q.desc}</div>
-        <div class="q-tags">${minTag}${phTag}${capTags}</div>
-        ${q.time ? `<div style="font-size:11px;color:var(--muted);margin-top:2px;">⏱️ ${q.time} min</div>` : ''}
-      </div>
-      <div class="q-xp">+${q.xp} XP</div>
-    </div>`;
-  }
-  document.getElementById('quetes-min').innerHTML = QUETES.min.map(q => qHTML(q, true)).join('');
-  document.getElementById('quetes-opt').innerHTML = QUETES.opt.map(q => qHTML(q, false)).join('');
-}
-
-function renderExternalQuests() {
-  const container = document.getElementById('external-quests');
-  if (!customQuests.length) {
-    container.innerHTML = '<div class="empty-state">Aucune quête extérieure pour le moment.</div>';
-    return;
-  }
-  container.innerHTML = customQuests.map((q, idx) => {
-    const done = !!checkedToday[q.id];
-    return `<div class="quest${done ? ' done' : ''}" onclick="toggleQuete('${q.id}')">
-      <div class="check">${done ? '✓' : ''}</div>
-      <div class="q-info">
-        <div class="q-name">${q.name}</div>
-        <div class="q-desc">${q.desc || ''}</div>
-        <div class="q-tags">
-          <span class="tag">${q.type === 'one-shot' ? 'One-shot' : 'Récurrente'}</span>
-          ${(q.caps || []).map(id => {
-            const cap = CAPACITIES_DATA.find(c => c.id === id);
-            return cap ? `<span class="tag" style="background:rgba(255,255,255,0.05);">${cap.name}</span>` : '';
-          }).join('')}
-        </div>
-      </div>
-      <div class="q-xp">+${q.xp || 0} XP</div>
-      <div class="q-actions">
-        <button class="del" onclick="event.stopPropagation();deleteExternalQuest('${q.id}')">🗑️</button>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function renderJournal() {
-  const container = document.getElementById('log-list');
-  if (!LOG.length) {
-    container.innerHTML = '<div class="empty-state">Aucune action enregistrée</div>';
-    return;
-  }
-  const entries = LOG.slice(0, 20).map(l => `
-    <div class="log-entry">
-      <div class="log-dot" style="background:${l.capacity_id ? '#a78bfa' : '#888'}"></div>
-      <div class="log-text">${l.quest_name || l.quest_id}</div>
-      <span class="log-xp">+${l.xp}</span>
-      <span class="log-time">${l.created_at ? l.created_at.slice(11, 16) : ''}</span>
-    </div>
-  `).join('');
-  container.innerHTML = entries;
-}
-
-// ============================================================
-// LOGIQUE DES QUÊTES
-// ============================================================
-async function toggleQuete(id) {
-  if (isDayLocked) {
-    toast("⚠️ Journée verrouillée. Utilise 'Modifier la journée' pour ajuster.");
-    return;
-  }
-  const allQuests = [...QUETES.min, ...QUETES.opt, ...customQuests];
-  const q = allQuests.find(x => x.id === id);
-  if (!q) return;
-  const today = todayKey();
-  if (checkedToday[id]) {
-    // Décocher
-    delete checkedToday[id];
-    // Retirer les XP
-    const xp = q.xp || 0;
-    S.total_xp = Math.max(0, S.total_xp - xp);
-    // Retirer des capacités
-    if (q.caps) {
-      q.caps.forEach(capId => {
-        if (capacities[capId]) {
-          capacities[capId].xp = Math.max(0, capacities[capId].xp - Math.floor(xp / q.caps.length));
-          updateCapLevel(capId);
-        }
-      });
-    }
-    LOG = LOG.filter(l => !(l.quest_id === id && l.created_at && l.created_at.slice(0, 10) === today));
-    await sbDelete('sys_log', UID, id, today);
-    toast("↩️ Quête décochée — XP retirés");
-  } else {
-    // Cocher
-    checkedToday[id] = true;
-    const xp = q.xp || 0;
-    S.total_xp += xp;
-    if (q.caps) {
-      const perCap = Math.floor(xp / q.caps.length);
-      q.caps.forEach(capId => {
-        if (capacities[capId]) {
-          capacities[capId].xp += perCap;
-          updateCapLevel(capId);
-        }
-      });
-    }
-    const entry = {
-      user_id: UID,
-      quest_id: id,
-      quest_name: q.name || id,
-      xp: xp,
-      capacity_id: q.caps ? q.caps[0] : null,
-      sub_capacities: q.caps || [],
-      created_at: new Date().toISOString()
-    };
-    LOG.unshift(entry);
-    await sbInsert('sys_log', entry);
-    toast("✅ +" + xp + " XP pour '" + q.name + "'");
-  }
-  scheduleSave();
-  updateAll();
-}
-
-function updateCapLevel(capId) {
-  const data = capacities[capId];
-  while (data.xp >= data.level_up_xp) {
-    data.xp -= data.level_up_xp;
-    data.level++;
-    data.level_up_xp = Math.round(data.level_up_xp * 1.2);
-  }
-}
-
-async function deleteExternalQuest(id) {
-  if (!confirm("Supprimer cette quête définitivement ?")) return;
-  const q = customQuests.find(x => x.id === id);
-  if (!q) return;
-  if (checkedToday[id]) {
-    // Décocher d'abord
-    const xp = q.xp || 0;
-    S.total_xp = Math.max(0, S.total_xp - xp);
-    if (q.caps) {
-      const perCap = Math.floor(xp / q.caps.length);
-      q.caps.forEach(capId => {
-        if (capacities[capId]) {
-          capacities[capId].xp = Math.max(0, capacities[capId].xp - perCap);
-          updateCapLevel(capId);
-        }
-      });
-    }
-    LOG = LOG.filter(l => !(l.quest_id === id && l.created_at && l.created_at.slice(0, 10) === todayKey()));
-    await sbDelete('sys_log', UID, id, todayKey());
-    delete checkedToday[id];
-  }
-  customQuests = customQuests.filter(x => x.id !== id);
-  scheduleSave();
-  updateAll();
-  toast("🗑️ Quête supprimée.");
-}
-
-async function ajouterQueteExterne() {
-  const name = prompt("Nom de la quête extérieure :");
-  if (!name) return;
-  const desc = prompt("Description (optionnelle) :") || "";
-
-  // Analyse IA
-  toast("🤖 Analyse en cours par l'IA...");
-  let analysis = null;
-  if (desc) {
-    analysis = await analyzeQuestIA(name, desc);
-  }
-  if (!analysis) {
-    // Fallback manuel
-    const type = confirm("Récurrente ? (OK = oui, Annuler = one-shot)") ? 'recurrent' : 'one-shot';
-    const capList = CAPACITIES_DATA.map((c, i) => `${i+1}. ${c.name}`).join('\n');
-    const capChoice = prompt(`Capacités sollicitées (numéros séparés par des virgules) :\n${capList}`);
-    const caps = capChoice ? capChoice.split(',').map(n => parseInt(n.trim())).filter(n => n > 0 && n <= CAPACITIES_DATA.length).map(n => CAPACITIES_DATA[n-1].id) : [];
-    const xp = parseInt(prompt("XP attribué (estimation) :", "30")) || 30;
-    const duration = parseInt(prompt("Durée estimée (minutes) :", "15")) || 15;
-    const id = 'ext_' + Date.now();
-    const newQuest = { id, name, desc, type, caps, xp, duration, is_external: true };
-    customQuests.push(newQuest);
-    scheduleSave();
-    updateAll();
-    toast("✅ Quête extérieure ajoutée !");
-    return;
-  }
-
-  // Utiliser l'analyse IA
-  const { caps, xp, duration } = analysis;
-  const type = confirm("Récurrente ? (OK = oui, Annuler = one-shot)") ? 'recurrent' : 'one-shot';
-  const capNames = caps.map(id => CAPACITIES_DATA.find(c => c.id === id)?.name || id).join(', ');
-  const msg = `Résumé de l'analyse IA :
-  - Capacités : ${capNames}
-  - XP : ${xp}
-  - Durée : ${duration} min
-  
-  Confirmer l'ajout ? (OK = ajouter, Annuler = modifier)`;
-  if (!confirm(msg)) {
-    // Modifier manuellement
-    const capList = CAPACITIES_DATA.map((c, i) => `${i+1}. ${c.name}`).join('\n');
-    const capChoice = prompt(`Capacités sollicitées (numéros séparés par des virgules) :\n${capList}`, caps.map(id => CAPACITIES_DATA.findIndex(c => c.id === id)+1).join(','));
-    const newCaps = capChoice ? capChoice.split(',').map(n => parseInt(n.trim())).filter(n => n > 0 && n <= CAPACITIES_DATA.length).map(n => CAPACITIES_DATA[n-1].id) : caps;
-    const newXp = parseInt(prompt("XP attribué :", xp)) || xp;
-    const newDuration = parseInt(prompt("Durée estimée (minutes) :", duration)) || duration;
-    const id = 'ext_' + Date.now();
-    const newQuest = { id, name, desc, type, caps: newCaps, xp: newXp, duration: newDuration, is_external: true };
-    customQuests.push(newQuest);
-    scheduleSave();
-    updateAll();
-    toast("✅ Quête extérieure ajoutée (modifiée) !");
-    return;
-  }
-  const id = 'ext_' + Date.now();
-  const newQuest = { id, name, desc, type, caps, xp, duration, is_external: true };
-  customQuests.push(newQuest);
-  scheduleSave();
-  updateAll();
-  toast("✅ Quête extérieure ajoutée (IA) !");
-}
-
-// ============================================================
-// VALIDATION DE JOURNÉE
-// ============================================================
-async function validerJour() {
-  const today = todayKey();
-  if (isDayLocked) {
-    toast("⚠️ Journée déjà verrouillée.");
-    return;
-  }
-  if (S.last_day !== today) {
-    const diff = S.last_day ? (new Date(today) - new Date(S.last_day)) / 86400000 : 1;
-    S.streak = diff <= 1 ? S.streak + 1 : 1;
-    S.last_day = today;
-    S.days_total++;
-  }
-  // Nettoyer les quêtes one-shot
-  customQuests = customQuests.filter(q => q.type === 'recurrent' || !checkedToday[q.id]);
-  isDayLocked = true;
-  S.is_day_locked = true;
-  scheduleSave();
-  updateAll();
-  toast("🔒 Journée validée !");
-}
-
-function modifierJour() {
-  if (!isDayLocked) {
-    toast("⚠️ La journée n'est pas verrouillée.");
-    return;
-  }
-  isDayLocked = false;
-  S.is_day_locked = false;
-  scheduleSave();
-  updateAll();
-  toast("✏️ Journée déverrouillée.");
-}
-
-function updateValidationButton() {
-  const btn = document.getElementById('btn-valider');
-  if (!btn) return;
-  if (isDayLocked) {
-    btn.textContent = "✏️ Modifier la journée";
-    btn.onclick = modifierJour;
-    btn.style.background = "linear-gradient(135deg, #4b5563, #374151)";
-  } else {
-    btn.textContent = "✓ Valider la journée";
-    btn.onclick = validerJour;
-    btn.style.background = "linear-gradient(135deg,var(--accent2),var(--accent))";
-  }
-}
-
-// ============================================================
-// ANNULER LA DERNIÈRE ACTION
-// ============================================================
-async function annulerDerniereAction() {
-  if (!LOG.length) { toast("Aucune action à annuler."); return; }
-  const last = LOG[0];
-  if (!last) return;
-  if (!confirm(`Annuler "${last.quest_name}" ?`)) return;
-  // Retirer les XP
-  S.total_xp = Math.max(0, S.total_xp - last.xp);
-  if (last.sub_capacities && last.sub_capacities.length) {
-    const perCap = Math.floor(last.xp / last.sub_capacities.length);
-    last.sub_capacities.forEach(capId => {
-      if (capacities[capId]) {
-        capacities[capId].xp = Math.max(0, capacities[capId].xp - perCap);
-        updateCapLevel(capId);
-      }
+  const ps = PILLARS.map(p => p.name.split(' ')[0] + ': ' + (S[p.id + '_xp'] || 0) + 'XP').join(', ');
+  let ctx = 'Progression actuelle — Phase ' + ph.id + ' (' + ph.name + '), mois ' + S.current_month + '/12. XP total: ' + S.total_xp + '. Streak: ' + S.streak + ' jours consecutifs. Piliers: ' + ps + '.';
+  if (_lastWorkoutRatings.length > 0) {
+    ctx += '\n\nDernières notations d\'entraînement :\n';
+    _lastWorkoutRatings.forEach(r => {
+      ctx += '- ' + r.date + ' : ' + r.category + ' – difficulté ' + r.difficulty + '/5\n';
     });
   }
-  // Supprimer du log
-  LOG.shift();
-  await sbDelete('sys_log', UID, last.quest_id, last.created_at.slice(0, 10));
-  if (checkedToday[last.quest_id]) delete checkedToday[last.quest_id];
-  scheduleSave();
-  updateAll();
-  toast("↩️ Action annulée.");
+  return ctx;
 }
+const SYSTEM_CONTEXT = `Tu es le coach personnel d'Eliseo, 19 ans, etudiant suisse en annee sabbatique apres sa maturite gymnasiale (moyenne 5.0). Il envisage des etudes de medecine. Il a 4 mois d'armee en fevrier. Il voyage parfois.
 
-// ============================================================
-// UTILITAIRES
-// ============================================================
-function getLv(xp) {
-  let l = 0;
-  for (let i = 0; i < LEVELS.length; i++) { if (xp >= LEVELS[i].min) l = i; }
-  return l;
-}
-function getCurrentPhase() {
-  const m = S.current_month || 1;
-  return PHASES.find(p => p.months.includes(m)) || PHASES[0];
-}
-function setSyncState(st) {
-  const dot = document.getElementById('sync-dot');
-  dot.className = 'sync-dot' + (st === 'syncing' ? ' syncing' : st === 'error' ? ' error' : '');
-}
-function toast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  clearTimeout(el._timeout);
-  el._timeout = setTimeout(() => el.classList.remove('show'), 3000);
-}
-function goTab(id, btn) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById('screen-' + id).classList.add('active');
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-  if (id === 'dashboard') renderDashboard();
-  if (id === 'capacities') renderCapacities();
-  if (id === 'quests') { renderQuetes(); renderExternalQuests(); }
-  if (id === 'journal') renderJournal();
-}
+PROFIL PHYSIQUE: Nageur regulier (2x/semaine, 1h15, ~3km/session). Bonne base physique (pompes, tractions faciles). Cardio ameliorable.
 
-// ============================================================
-// EXPORT / IMPORT / RÉINITIALISATION
-// ============================================================
-function exporterDonnees() {
-  const data = { S, LOG, capacities, customQuests, checkedToday };
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `evolution_backup_${todayKey()}.json`;
-  a.click();
-  toast("📤 Données exportées !");
-}
+SYSTEME 12 MOIS — 5 PILIERS:
+1. Metacognition & apprentissage (memoire, calcul mental, bais cognitifs, methode Feynman, transfert inter-domaines)
+2. Regulation psychophysiologique (respiration, Wim Hof, sommeil, stress, controle emotionnel)
+3. Presence & observation (semiologie clinique factuelle, conscience spatiale, detection elements tactiques et environnementaux, sans psychologisation)
+4. Condition physique (force, endurance zone 2, proprioception, reflexes, coordination, mobilité)
+5. Influence & communication (rhetorique, langues, negociation, echecs/strategie)
 
-function importerDonnees() {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = '.json';
-  input.onchange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const text = await file.text();
-    try {
-      const data = JSON.parse(text);
-      if (data.S && data.LOG && data.capacities) {
-        Object.assign(S, data.S);
-        LOG = data.LOG;
-        capacities = data.capacities;
-        customQuests = data.customQuests || [];
-        checkedToday = data.checkedToday || {};
-        scheduleSave();
-        updateAll();
-        toast("📥 Données importées !");
-      } else {
-        toast("⚠️ Fichier invalide.");
-      }
-    } catch (err) {
-      toast("⚠️ Erreur de lecture.");
-    }
-  };
-  input.click();
-}
+3 PHASES:
+- Phase 1 (mois 1-3): Fondations — installer les routines a friction minimale
+- Phase 2 (mois 4-8): Intensification — integration des satellites, armee comme laboratoire social
+- Phase 3 (mois 9-12): Consolidation — mesure, ajustement, extension
 
-function reinitialiserTout() {
-  if (!confirm("⚠️ Supprimer toutes les données ? Cette action est irréversible.")) return;
-  if (!confirm("Confirmer : tout va être effacé.")) return;
-  S = { total_xp: 0, streak: 0, last_day: null, days_total: 0, start_date: todayKey(), current_month: 1, is_day_locked: false };
-  LOG = [];
-  customQuests = [];
-  checkedToday = {};
-  for (const cap of CAPACITIES_DATA) {
-    capacities[cap.id] = { xp: 0, level: 1, level_up_xp: 100 };
+PHILOSOPHIE: Pratique deliberee > repetition passive. Stress + recuperation = croissance. Identite stable bat motivation fluctuante. Seuil minimum (20 min/jour) non-negociable meme les mauvais jours.
+
+PASSIONS: Piano, dessin (decompress), cinema (Wes Anderson, Jim Jarmusch, Jake Gyllenhaal), mode streetwear/vintage/gorpcore, vie sociale.
+
+Reponds toujours en francais, de facon directe, concrete et adaptee au niveau actuel d'Eliseo. Pas de markdown.`;
+function loadWelcomeMessage() {
+  if (!UID) return;
+  const el = document.getElementById('ai-welcome');
+  const txt = document.getElementById('ai-welcome-text');
+  el.style.display = 'block';
+  txt.textContent = "Bonjour Eliseo ! Ton protocole d'observation factuelle et tes paquets d'étymologie sur Anki sont configurés pour optimiser ta préparation clinique et militaire. Prêt à passer à l'action ?";
+}
+async function envoyerMessageCoach() {
+  const input = document.getElementById('coach-free-input');
+  const chatBox = document.getElementById('coach-chat-messages');
+  const msg = input.value.trim();
+  if (!msg) return;
+  chatBox.style.display = 'flex';
+  const userEl = document.createElement('div');
+  userEl.className = 'chat-msg user';
+  userEl.textContent = '👉 Toi : ' + msg;
+  chatBox.appendChild(userEl);
+  const coachEl = document.createElement('div');
+  coachEl.className = 'chat-msg coach';
+  coachEl.textContent = '🤖 Coach : Réflexion...';
+  chatBox.appendChild(coachEl);
+  chatBox.scrollTop = chatBox.scrollHeight;
+  input.value = '';
+  await refreshWorkoutRatings();
+  const prompt = buildCtx() + '\n\nVoici le message d\'Eliseo: "' + msg + '". Réponds de manière directe, analytique et motivante. Sans markdown.';
+  const responseText = await callGemini(prompt);
+  coachEl.textContent = '🤖 Coach : ' + responseText;
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+async function coachQuete(btn) {
+  const qId = btn.getAttribute('data-qid');
+  const qName = btn.getAttribute('data-qname');
+  const qDesc = btn.getAttribute('data-qdesc');
+  const existingId = 'coach-' + qId;
+  const existing = document.getElementById(existingId);
+  if (existing) { existing.remove(); return; }
+  const card = document.createElement('div');
+  card.className = 'ai-card';
+  card.id = existingId;
+  card.style.marginTop = '6px';
+  card.innerHTML = '<div class="ai-header"><span style="font-size:16px">💡</span><span class="ai-label">Conseils</span></div><div class="ai-body" id="txt-' + qId + '">Chargement...</div>';
+  btn.closest('.quest').after(card);
+  let consigneSpecifique = "";
+  if (qId === 'q3') {
+    consigneSpecifique = " Interdiction absolue de parler de détection de mensonges, de psychologie, d'intentions ou de micro-expressions. Donne uniquement des exercices de repérage de faits anatomiques/mécaniques (asymétries, démarche, posture) et de tactique spatiale (calcul de distances à l'oeil nu, angles morts, repérage des sorties) utiles pour l'armée et la clinique.";
   }
-  isDayLocked = false;
-  scheduleSave();
-  updateAll();
-  toast("🗑️ Données réinitialisées.");
+  const prompt = buildCtx() + ' Quete: "' + qName + '" (' + qDesc + ').' + consigneSpecifique + ' Donne 3 conseils pratiques et concrets pour bien realiser cette quete aujourd hui. 4 lignes max. Pas de markdown ni tirets.';
+  const bodyEl = document.getElementById('txt-' + qId);
+  if (bodyEl) bodyEl.textContent = await callGemini(prompt);
 }
-
-// ============================================================
-// INITIALISATION
-// ============================================================
-function setupUser() {
-  const name = document.getElementById('setup-name').value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
-  const errEl = document.getElementById('setup-err');
-  if (!name || name.length < 2) { errEl.classList.add('show'); return; }
-  errEl.classList.remove('show');
-  UID = name;
-  localStorage.setItem('sys12_uid', UID);
-  document.getElementById('setup-overlay').style.display = 'none';
-  init();
-}
-
-async function init() {
-  await loadFromSupabase();
-  updateAll();
-}
-
-if (!UID) {
-  document.getElementById('setup-overlay').style.display = 'flex';
-} else {
-  init();
+async function genererBilanRevue(bien, resist, change, stars) {
+  const el = document.getElementById('ai-bilan');
+  const txt = document.getElementById('ai-bilan-text');
+  el.style.display = 'block';
+  txt.textContent = 'Analyse de ta semaine...';
+  await refreshWorkoutRatings();
+  const prompt = buildCtx() + ' Revue (' + stars + '/5). Ce qui a marche: "' + bien + '". Ce qui a resiste: "' + resist + '". Changement prevu: "' + change + '". Bilan: 1 point fort a consolider, 1 conseil sur le point de friction, 1 suggestion concrete pour la semaine prochaine. 5-6 lignes. Direct. Pas de markdown.';
+  txt.textContent = await callGemini(prompt);
 }
 </script>
 </body>
