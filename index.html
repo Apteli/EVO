@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Évolution">
-<title>Évolution v2.4</title>
+<title>Évolution v2.5</title>
 <link rel="icon" type="image/jpeg" href="favicon.jpg?v=3">
 <link rel="apple-touch-icon" href="favicon.jpg?v=3">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -310,7 +310,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 
 <!-- Top Bar -->
 <div class="topbar">
-  <div class="topbar-title">Évolution v2.4</div>
+  <div class="topbar-title">Évolution v2.5</div>
   <div class="topbar-right">
     <div class="sync-dot" id="sync-dot"></div>
     <div class="top-xp" id="top-xp">0 XP</div>
@@ -521,13 +521,13 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 </div>
 
 <div class="toast" id="toast"></div>
-<div class="version-footer">v2.4.0 – 2026-07-26</div>
+<div class="version-footer">v2.5.0 – 2026-07-26</div>
 
 <script>
 // ============================================================
 // CONFIGURATION
 // ============================================================
-const VERSION = '2.4.0';
+const VERSION = '2.5.0';
 const SB_URL = 'https://nlicstxewcrzjliyslkm.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5saWNzdHhld2NyempsaXlzbGttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1ODg1NzUsImV4cCI6MjA5ODE2NDU3NX0.CTHaV_iM50Q_sA1l8_5rVL7b4nU8XonYRcds8Z702GI';
 const HDR = {
@@ -652,12 +652,16 @@ const BANQUE_SIDEQUESTS = [
 // ============================================================
 let UID = localStorage.getItem('sys12_uid') || null;
 let S = {
-  total_xp: 0, streak: 0, last_day: null, days_total: 0,
-  start_date: new Date().toISOString().slice(0, 10), current_month: 1,
+  total_xp: 0,
+  streak: 0,
+  last_day: null,
+  days_total: 0,
+  start_date: new Date().toISOString().slice(0, 10),
+  current_month: 1,
   is_day_locked: false
 };
 let LOG = [];
-let capacities = {};
+let capacities = {}; // { id: { xp, level, xp_toward_next, next_level_xp } }
 let customQuests = [];
 let recipes = [];
 let checkedToday = {};
@@ -672,7 +676,7 @@ let touchStartX = 0;
 let touchEndX = 0;
 
 // ============================================================
-// FONCTIONS SUPABASE
+// FONCTIONS SUPABASE (simplifiées)
 // ============================================================
 async function sbGet(table, uid) {
   const r = await fetch(`${SB_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(uid)}&limit=1`, { headers: HDR });
@@ -688,25 +692,12 @@ async function sbUpsert(table, obj) {
   console.log('sbUpsert', table, obj, r.status);
   return r;
 }
-async function sbInsert(table, obj) {
-  const r = await fetch(`${SB_URL}/rest/v1/${table}`, { method: 'POST', headers: HDR, body: JSON.stringify(obj) });
-  console.log('sbInsert', table, obj, r.status);
+async function sbDelete(table, uid) {
+  const r = await fetch(`${SB_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(uid)}`, { method: 'DELETE', headers: HDR });
+  console.log('sbDelete', table, r.status);
   return r;
 }
-async function sbDelete(table, uid, questId, day) {
-  let url = `${SB_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(uid)}`;
-  if (questId) url += `&quest_id=eq.${questId}`;
-  if (day) url += `&created_at=gte.${day}T00:00:00&created_at=lte.${day}T23:59:59`;
-  const r = await fetch(url, { method: 'DELETE', headers: HDR });
-  console.log('sbDelete', table, url, r.status);
-  return r;
-}
-async function sbGetMany(table, uid, limit = 50) {
-  const r = await fetch(`${SB_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(uid)}&order=created_at.desc&limit=${limit}`, { headers: HDR });
-  const d = await r.json();
-  console.log('sbGetMany', table, d.length);
-  return d;
-}
+// On n'utilise plus sbInsert pour la table principale, tout est upsert.
 
 // ============================================================
 // IA (Gemini via Cloudflare Worker)
@@ -777,77 +768,68 @@ async function loadFromSupabase() {
   setSyncState('syncing');
   try {
     console.log('=== Chargement des données ===');
-    const [prog, logRaw, recipesData] = await Promise.all([
-      sbGet('sys_progress', UID),
-      sbGetMany('sys_log', UID, 50),
-      sbGetMany('sys_recipes', UID, 100)
-    ]);
-    if (prog) {
-      S = { ...S, ...prog };
-      const start = new Date(S.start_date);
-      const now = new Date();
-      const diffJours = Math.floor((now - start) / (1000 * 60 * 60 * 24));
-      S.current_month = Math.max(1, Math.min(12, Math.floor(diffJours / 30.44) + 1));
-      isDayLocked = S.is_day_locked || false;
-      console.log('S chargé:', S);
-    }
-    if (Array.isArray(logRaw)) LOG = logRaw;
+    const data = await sbGet('sys_progress', UID);
+    if (data) {
+      // Restaurer les champs simples
+      S.total_xp = data.total_xp || 0;
+      S.streak = data.streak || 0;
+      S.last_day = data.last_day || null;
+      S.days_total = data.days_total || 0;
+      S.start_date = data.start_date || new Date().toISOString().slice(0, 10);
+      S.current_month = data.current_month || 1;
+      S.is_day_locked = data.is_day_locked || false;
+      isDayLocked = S.is_day_locked;
 
-    // Charger les capacités
-    const capsData = await sbGetMany('sys_capacities', UID, 50);
-    if (capsData && capsData.length) {
-      capsData.forEach(c => {
-        capacities[c.id] = {
-          xp: c.xp || 0,
-          level: c.current_level || 0,
-          xp_toward_next: c.xp_toward_next || 0,
-          next_level_xp: c.next_level_xp || 100
-        };
-      });
-      console.log('Capacités chargées:', Object.keys(capacities).length);
+      // Restaurer les JSON
+      capacities = data.capacities || {};
+      // S'assurer que toutes les capacités existent
+      for (const p of PILLARS) {
+        for (const sub of p.sub) {
+          if (!capacities[sub.id]) {
+            capacities[sub.id] = { xp: 0, level: 0, xp_toward_next: 0, next_level_xp: 100 };
+          }
+        }
+      }
+      customQuests = data.custom_quests || [];
+      recipes = data.recipes || [];
+      checkedToday = data.checked_today || {};
+      if (data.sidequest) {
+        currentSidequest = data.sidequest;
+      }
+      // Les logs sont stockés séparément ou on les récupère d'une autre table
+      // Pour simplifier, on peut les stocker aussi dans sys_progress, mais on va les laisser dans sys_log pour l'instant
+      // Charger les logs depuis sys_log
+      const logData = await sbGet('sys_log', UID); // On suppose qu'il y a une table sys_log
+      // Si on veut tout dans sys_progress, on ajoute un champ logs dans la table.
+      // Je vais ajouter un champ logs dans la table, mais pour l'instant on les récupère depuis la table dédiée.
+      // On va créer une fonction pour récupérer les logs depuis sys_log.
+      // Pour simplifier, je vais les récupérer depuis la table sys_log.
+      // Comme on n'a pas encore de table sys_log, on va initialiser LOG = [].
+      // Mais on va stocker LOG dans sys_progress aussi.
+      // Je vais ajouter un champ logs dans la table sys_progress.
+      // Donc je vais modifier la table.
+      // Pour l'instant, on va juste utiliser LOG vide et le reconstruire.
+      LOG = data.logs || [];
     } else {
-      // Aucune capacité trouvée : on initialise à zéro
+      // Aucune donnée, initialiser tout à zéro
       capacities = {};
       for (const p of PILLARS) {
         for (const sub of p.sub) {
           capacities[sub.id] = { xp: 0, level: 0, xp_toward_next: 0, next_level_xp: 100 };
         }
       }
-      console.log('Capacités initialisées (vides)');
-      await saveProgress(); // sauvegarde immédiate
-    }
-
-    const cq = await sbGet('sys_custom_quests', UID);
-    if (cq && cq.quests) {
-      customQuests = JSON.parse(cq.quests);
-      customQuests.forEach(q => {
-        if (!q.is_personal && !q.is_forged) q.is_forged = true;
-        if (q.type === 'recurrent-until' && !q.completed) q.completed = false;
-      });
-    } else {
       customQuests = [];
+      recipes = [];
+      checkedToday = {};
+      LOG = [];
+      // Sauvegarde initiale
+      await saveProgress();
     }
 
-    if (Array.isArray(recipesData)) {
-      recipes = recipesData.map(r => ({
-        id: r.id,
-        name: r.name,
-        time: r.time || 30,
-        people: r.people || 2,
-        steps: r.steps || '',
-        ingredients: r.ingredients || '',
-        done: r.done || false,
-        total_xp: r.total_xp || 0,
-        created_at: r.created_at || new Date().toISOString()
-      }));
-      recipes.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-    }
-
-    const dbSq = await sbGet('sys_sidequests', UID);
-    const todayStr = todayKey();
-    if (dbSq && dbSq.date === todayStr) {
-      currentSidequest = dbSq;
-    } else {
+    // Si on a un sidequest stocké séparément, on le récupère
+    // Sinon, on en génère un nouveau
+    if (!currentSidequest) {
+      const todayStr = todayKey();
       const rand = BANQUE_SIDEQUESTS[Math.floor(Math.random() * BANQUE_SIDEQUESTS.length)];
       currentSidequest = {
         date: todayStr,
@@ -856,28 +838,29 @@ async function loadFromSupabase() {
         done: false,
         isIA: false
       };
-      await sbUpsert('sys_sidequests', { user_id: UID, ...currentSidequest });
     }
 
-    checkedToday = {};
-    LOG.forEach(l => {
-      if (l.quest_id && l.created_at && l.created_at.slice(0, 10) === todayStr) {
-        checkedToday[l.quest_id] = true;
-      }
-    });
+    // Restaurer checkedToday depuis le stockage
+    // On a déjà checkedToday restauré.
 
+    // Mise à jour du jour
+    const todayStr = todayKey();
     if (S.last_day && S.last_day !== todayStr) {
       isDayLocked = false;
       S.is_day_locked = false;
       await saveProgress();
       toast("🔓 Nouveau jour ! La journée est déverrouillée.");
-    } else {
-      isDayLocked = S.is_day_locked || false;
     }
 
+    // Compter les nouvelles quêtes forgées
     const viewed = JSON.parse(localStorage.getItem('sys12_viewed_forged') || '[]');
     newForgedCount = customQuests.filter(q => q.is_forged && !viewed.includes(q.id)).length;
     updateBadges();
+
+    // Mise à jour des niveaux des capacités
+    for (const id of Object.keys(capacities)) {
+      updateCapLevel(id);
+    }
 
     updateAll();
     setSyncState('ok');
@@ -895,22 +878,23 @@ async function saveProgress() {
   setSyncState('syncing');
   try {
     console.log('=== Sauvegarde ===');
-    S.is_day_locked = isDayLocked;
-    await sbUpsert('sys_progress', { ...S, user_id: UID, updated_at: new Date().toISOString() });
-    for (const [id, data] of Object.entries(capacities)) {
-      await sbUpsert('sys_capacities', {
-        user_id: UID,
-        id: id,
-        current_level: data.level,
-        xp: data.xp,
-        xp_toward_next: data.xp_toward_next,
-        next_level_xp: data.next_level_xp
-      });
-    }
-    await sbUpsert('sys_custom_quests', { user_id: UID, quests: JSON.stringify(customQuests) });
-    if (currentSidequest) {
-      await sbUpsert('sys_sidequests', { user_id: UID, ...currentSidequest });
-    }
+    const payload = {
+      user_id: UID,
+      total_xp: S.total_xp,
+      streak: S.streak,
+      last_day: S.last_day,
+      days_total: S.days_total,
+      start_date: S.start_date,
+      current_month: S.current_month,
+      is_day_locked: isDayLocked,
+      capacities: capacities,
+      custom_quests: customQuests,
+      recipes: recipes,
+      checked_today: checkedToday,
+      sidequest: currentSidequest,
+      logs: LOG.slice(0, 100) // on garde les 100 derniers logs
+    };
+    await sbUpsert('sys_progress', payload);
     setSyncState('ok');
     console.log('=== Sauvegarde terminée ===');
   } catch (e) {
@@ -961,20 +945,18 @@ async function reinitialiserTout() {
   if (!confirm("Confirmer : tout l'XP, les logs, les quêtes forgées et les recettes seront effacés.")) return;
   
   try {
-    await sbDelete('sys_progress', UID, null, null);
-    await sbDelete('sys_capacities', UID, null, null);
-    await sbDelete('sys_log', UID, null, null);
-    await sbDelete('sys_custom_quests', UID, null, null);
-    await sbDelete('sys_recipes', UID, null, null);
-    await sbDelete('sys_sidequests', UID, null, null);
+    await sbDelete('sys_progress', UID);
   } catch(e) { console.warn('Suppression échouée', e); }
   
   // Réinitialiser l'état local
-  S = {
-    total_xp: 0, streak: 0, last_day: null, days_total: 0,
-    start_date: todayKey(), current_month: 1,
-    is_day_locked: false
-  };
+  S.total_xp = 0;
+  S.streak = 0;
+  S.last_day = null;
+  S.days_total = 0;
+  S.start_date = todayKey();
+  S.current_month = 1;
+  S.is_day_locked = false;
+  isDayLocked = false;
   LOG = [];
   capacities = {};
   for (const p of PILLARS) {
@@ -986,7 +968,6 @@ async function reinitialiserTout() {
   recipes = [];
   checkedToday = {};
   currentSidequest = null;
-  isDayLocked = false;
   chartOffset = 0;
   localStorage.removeItem('sys12_viewed_forged');
   localStorage.removeItem('sys12_new_recipes');
@@ -1515,7 +1496,6 @@ async function toggleQuete(id) {
       });
     }
     LOG = LOG.filter(l => !(l.quest_id === id && l.created_at && l.created_at.slice(0, 10) === today));
-    await sbDelete('sys_log', UID, id, today);
     toast("↩️ Quête décochée — XP retirés");
   } else {
     checkedToday[id] = true;
@@ -1539,7 +1519,6 @@ async function toggleQuete(id) {
       created_at: new Date().toISOString()
     };
     LOG.unshift(entry);
-    await sbInsert('sys_log', entry);
     toast("✅ +" + xp + " XP pour '" + q.name + "'");
   }
   await saveProgress();
@@ -1587,7 +1566,6 @@ async function toggleSidequest() {
     currentSidequest.done = false;
     S.total_xp = Math.max(0, S.total_xp - finalXp);
     LOG = LOG.filter(l => !(l.quest_id === 'sidequest' && l.created_at && l.created_at.slice(0, 10) === today));
-    await sbDelete('sys_log', UID, 'sidequest', today);
     toast("↩️ Sidequest décochée — XP retirés");
   } else {
     currentSidequest.done = true;
@@ -1602,10 +1580,8 @@ async function toggleSidequest() {
       created_at: new Date().toISOString()
     };
     LOG.unshift(entry);
-    await sbInsert('sys_log', entry);
     toast("✅ +" + finalXp + " XP pour la sidequest !");
   }
-  await sbUpsert('sys_sidequests', { user_id: UID, ...currentSidequest });
   await saveProgress();
   updateAll();
 }
@@ -1625,7 +1601,7 @@ async function rerollSidequestIA() {
     done: false,
     isIA: true
   };
-  await sbUpsert('sys_sidequests', { user_id: UID, ...currentSidequest });
+  await saveProgress();
   updateSidequestUI();
   btn.textContent = "🎲 Relancer via le Coach (IA)";
   btn.disabled = false;
@@ -1633,7 +1609,7 @@ async function rerollSidequestIA() {
 }
 
 // ============================================================
-// QUÊTES FORGÉES
+// QUÊTES FORGÉES (création, édition, suppression)
 // ============================================================
 function ouvrirFormulaireForge() {
   const form = document.getElementById('forge-form');
@@ -1935,7 +1911,6 @@ async function marquerAccompli(id) {
     created_at: new Date().toISOString()
   };
   LOG.unshift(entry);
-  await sbInsert('sys_log', entry);
   saveCustomQuests();
   await saveProgress();
   updateAll();
@@ -1972,7 +1947,6 @@ async function deleteForgedQuest(id) {
     const xp = q.xp || 0;
     S.total_xp = Math.max(0, S.total_xp - xp);
     LOG = LOG.filter(l => !(l.quest_id === id && l.created_at && l.created_at.slice(0, 10) === todayKey()));
-    await sbDelete('sys_log', UID, id, todayKey());
     delete checkedToday[id];
   }
   customQuests = customQuests.filter(x => x.id !== id);
@@ -1983,7 +1957,7 @@ async function deleteForgedQuest(id) {
 
 function saveCustomQuests() {
   localStorage.setItem('sys12_custom_quests', JSON.stringify(customQuests));
-  sbUpsert('sys_custom_quests', { user_id: UID, quests: JSON.stringify(customQuests) });
+  // La sauvegarde dans la base se fait via saveProgress()
 }
 
 // ============================================================
@@ -2025,7 +1999,6 @@ async function toggleRecipe(id) {
     S.total_xp = Math.max(0, S.total_xp - xp);
     r.total_xp = Math.max(0, r.total_xp - xp);
     LOG = LOG.filter(l => !(l.quest_id === id && l.created_at && l.created_at.slice(0, 10) === todayKey()));
-    await sbDelete('sys_log', UID, id, todayKey());
     toast("↩️ Recette décochée — XP retirés");
   } else {
     r.done = true;
@@ -2041,7 +2014,6 @@ async function toggleRecipe(id) {
       created_at: new Date().toISOString()
     };
     LOG.unshift(entry);
-    await sbInsert('sys_log', entry);
     toast("✅ +" + xp + " XP pour la recette '" + r.name + "'");
   }
   await saveProgress();
@@ -2050,9 +2022,7 @@ async function toggleRecipe(id) {
 
 function saveRecipes() {
   localStorage.setItem('sys12_recipes', JSON.stringify(recipes));
-  for (const r of recipes) {
-    sbUpsert('sys_recipes', { user_id: UID, id: r.id, name: r.name, time: r.time, people: r.people, steps: r.steps, ingredients: r.ingredients || '', done: r.done, total_xp: r.total_xp, created_at: r.created_at });
-  }
+  // sauvegarde via saveProgress()
 }
 
 // ============================================================
