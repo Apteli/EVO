@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Évolution">
-<title>Évolution v2.0</title>
+<title>Évolution v2.1</title>
 <link rel="icon" type="image/jpeg" href="favicon.jpg?v=3">
 <link rel="apple-touch-icon" href="favicon.jpg?v=3">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -116,7 +116,6 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .chart-card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px;position:relative;overflow:hidden;}
 .chart-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
 .chart-nav{display:flex;justify-content:space-between;align-items:center;margin-top:10px;}
-.chart-nav button{background:rgba(255,255,255,0.06);border:0.5px solid var(--border);border-radius:6px;color:var(--text);padding:4px 12px;cursor:pointer;font-family:inherit;display:none;} /* caché, on utilise le swipe */
 .chart-nav span{font-size:12px;color:var(--muted);}
 .chart-swipe-area{width:100%;touch-action:none;cursor:grab;}
 .chart-swipe-area:active{cursor:grabbing;}
@@ -309,7 +308,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 
 <!-- Top Bar -->
 <div class="topbar">
-  <div class="topbar-title">Évolution v2.0</div>
+  <div class="topbar-title">Évolution v2.1</div>
   <div class="topbar-right">
     <div class="sync-dot" id="sync-dot"></div>
     <div class="top-xp" id="top-xp">0 XP</div>
@@ -400,7 +399,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
               <textarea id="forge-desc" class="form-input" placeholder="Description détaillée (objectif, contexte, etc.)" rows="3"></textarea>
             </div>
             <div class="form-row">
-              <input type="number" id="forge-duration" class="form-input" placeholder="Durée (min)" min="0" value="15" step="5">
+              <input type="number" id="forge-duration" class="form-input" placeholder="Durée (min, optionnel)" min="0" value="" step="5">
               <select id="forge-type" class="form-select">
                 <option value="oneshot">One-shot</option>
                 <option value="recurrent">Récurrente</option>
@@ -518,13 +517,13 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 </div>
 
 <div class="toast" id="toast"></div>
-<div class="version-footer">v2.0.0 – 2026-07-26</div>
+<div class="version-footer">v2.1.0 – 2026-07-26</div>
 
 <script>
 // ============================================================
 // CONFIGURATION
 // ============================================================
-const VERSION = '2.0.0';
+const VERSION = '2.1.0';
 const SB_URL = 'https://nlicstxewcrzjliyslkm.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5saWNzdHhld2NyempsaXlzbGttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1ODg1NzUsImV4cCI6MjA5ODE2NDU3NX0.CTHaV_iM50Q_sA1l8_5rVL7b4nU8XonYRcds8Z702GI';
 const HDR = {
@@ -705,7 +704,7 @@ function callGemini(prompt) {
       const xhr = new XMLHttpRequest();
       xhr.open('POST', WORKER_URL, true);
       xhr.setRequestHeader('Content-Type', 'application/json');
-      xhr.timeout = 18000; // 18s
+      xhr.timeout = 18000;
       xhr.onload = function() {
         try {
           const d = JSON.parse(xhr.responseText);
@@ -738,7 +737,8 @@ function buildCtx() {
 
 async function analyzeForgedQuest(name, desc, duration) {
   const capsList = PILLARS.flatMap(p => p.sub).map(c => `${c.id}:${c.name}`).join('; ');
-  const prompt = `Quête: "${name}" (${desc}). Durée:${duration}min. Réponds JSON: {"caps":["id"],"xp":30}. Capacités: ${capsList}. Si vague, {"needs_clarification":true,"clarification_question":"..."}`;
+  const durStr = duration > 0 ? `Durée:${duration}min.` : 'Sans durée définie.';
+  const prompt = `Quête: "${name}" (${desc}). ${durStr} Réponds JSON: {"caps":["id"],"xp":30}. Capacités: ${capsList}. Si vague, {"needs_clarification":true,"clarification_question":"..."}`;
   const response = await callGemini(prompt);
   if (response === 'Timeout') throw new Error('timeout');
   try {
@@ -777,6 +777,7 @@ async function loadFromSupabase() {
     }
     if (Array.isArray(logRaw)) LOG = logRaw;
 
+    // Charger les capacités
     const capsData = await sbGetMany('sys_capacities', UID, 50);
     if (capsData && capsData.length) {
       capsData.forEach(c => {
@@ -788,22 +789,14 @@ async function loadFromSupabase() {
         };
       });
     } else {
+      // Initialisation à vide (reset)
+      capacities = {};
       for (const p of PILLARS) {
         for (const sub of p.sub) {
           capacities[sub.id] = { xp: 0, level: 0, xp_toward_next: 0, next_level_xp: 100 };
-          await sbUpsert('sys_capacities', {
-            user_id: UID,
-            id: sub.id,
-            name: sub.name,
-            pillar_id: p.id,
-            description: sub.desc,
-            current_level: 0,
-            xp: 0,
-            xp_toward_next: 0,
-            next_level_xp: 100
-          });
         }
       }
+      // Ne pas sauvegarder automatiquement pour éviter d'écraser si erreur de chargement
     }
 
     const cq = await sbGet('sys_custom_quests', UID);
@@ -939,6 +932,36 @@ function markForgedViewed() {
 function markRecipesViewed() {
   localStorage.setItem('sys12_new_recipes', '0');
   updateBadges();
+}
+
+// ============================================================
+// RÉINITIALISATION DES XP
+// ============================================================
+function resetAllXP() {
+  if (!confirm("⚠️ Réinitialiser toutes les données XP ? Cette action est irréversible.")) return;
+  if (!confirm("Confirmer : tout l'XP et les logs seront effacés.")) return;
+  S.total_xp = 0;
+  S.streak = 0;
+  S.last_day = null;
+  S.days_total = 0;
+  S.start_date = todayKey();
+  S.current_month = 1;
+  LOG = [];
+  capacities = {};
+  for (const p of PILLARS) {
+    for (const sub of p.sub) {
+      capacities[sub.id] = { xp: 0, level: 0, xp_toward_next: 0, next_level_xp: 100 };
+    }
+  }
+  checkedToday = {};
+  customQuests = customQuests.filter(q => q.is_forged && q.type === 'recurrent-until' ? !q.completed : true);
+  recipes.forEach(r => r.done = false);
+  isDayLocked = false;
+  S.is_day_locked = false;
+  chartOffset = 0;
+  scheduleSave();
+  updateAll();
+  toast("🗑️ Données XP réinitialisées.");
 }
 
 // ============================================================
@@ -1297,17 +1320,17 @@ function renderXpChart() {
   const labels = [];
   const data = [];
   
-  // Générer les 7 derniers jours (incluant aujourd'hui)
+  // Générer les 7 derniers jours avec décalage (offset)
   for (let i = 6; i >= 0; i--) {
     const d = new Date(today);
-    d.setDate(d.getDate() - i);
+    d.setDate(d.getDate() - i - chartOffset);
     const key = d.toISOString().slice(0, 10);
     days.push(key);
-    labels.push(key.slice(5, 10)); // MM-DD
+    labels.push(key.slice(5, 10));
     data.push(0);
   }
   
-  // Remplir les données avec les XP des logs
+  // Remplir avec les logs
   LOG.forEach(l => {
     if (l.created_at) {
       const day = l.created_at.slice(0, 10);
@@ -1369,42 +1392,13 @@ function renderXpChart() {
     touchEndX = e.changedTouches[0].screenX;
     const diff = touchStartX - touchEndX;
     if (Math.abs(diff) > 50) {
-      // Swipe horizontal
-      const delta = diff > 0 ? 1 : -1;
-      // Décaler l'offset pour faire défiler les jours (ici on ne peut pas vraiment défiler au-delà des 7 jours actuels, on change la plage)
-      // On va plutôt faire défiler les 7 jours dans le passé (au lieu de l'offset)
-      // On utilise un offset pour décaler la fenêtre de 7 jours
+      // Swipe gauche (diff > 0) => avancer dans le temps (diminuer offset)
+      // Swipe droite (diff < 0) => reculer dans le temps (augmenter offset)
+      const delta = diff > 0 ? -1 : 1;
       const newOffset = Math.max(0, chartOffset + delta);
       if (newOffset !== chartOffset) {
         chartOffset = newOffset;
-        // Recalculer les 7 jours avec l'offset
-        const shiftedDays = [];
-        const shiftedLabels = [];
-        const shiftedData = [];
-        for (let i = 6; i >= 0; i--) {
-          const d = new Date(today);
-          d.setDate(d.getDate() - i - chartOffset);
-          const key = d.toISOString().slice(0, 10);
-          shiftedDays.push(key);
-          shiftedLabels.push(key.slice(5, 10));
-          shiftedData.push(0);
-        }
-        // Remplir avec les logs
-        LOG.forEach(l => {
-          if (l.created_at) {
-            const day = l.created_at.slice(0, 10);
-            const index = shiftedDays.indexOf(day);
-            if (index !== -1) {
-              shiftedData[index] += l.xp || 0;
-            }
-          }
-        });
-        document.getElementById('chart-range').textContent = `${shiftedDays[0].slice(5,10)} → ${shiftedDays[shiftedDays.length-1].slice(5,10)}`;
-        if (chartXp) {
-          chartXp.data.labels = shiftedLabels;
-          chartXp.data.datasets[0].data = shiftedData;
-          chartXp.update();
-        }
+        renderXpChart(); // Re-render avec le nouvel offset
       }
     }
   };
@@ -1621,7 +1615,7 @@ function ouvrirFormulaireForge() {
   form.style.display = 'block';
   document.getElementById('forge-name').value = '';
   document.getElementById('forge-desc').value = '';
-  document.getElementById('forge-duration').value = '15';
+  document.getElementById('forge-duration').value = '';
   document.getElementById('forge-target').value = '';
   document.getElementById('forge-bonus').value = '50';
   document.getElementById('forge-target-group').style.display = 'none';
@@ -1646,7 +1640,7 @@ document.addEventListener('change', function(e) {
   }
 });
 
-// Fonction de création manuelle (fallback)
+// Création manuelle (fallback)
 function creerManuellement(name, desc, duration) {
   const type = document.getElementById('forge-type').value;
   const target = document.getElementById('forge-target').value.trim();
@@ -1656,7 +1650,7 @@ function creerManuellement(name, desc, duration) {
   const caps = capChoice ? capChoice.split(',').map(n => parseInt(n.trim())).filter(n => n > 0 && n <= PILLARS.flatMap(p => p.sub).length).map(n => PILLARS.flatMap(p => p.sub)[n-1].id) : ['raisonnement'];
   const xp = parseInt(prompt("XP par session :", "20")) || 20;
   const id = 'forge_' + Date.now();
-  const quest = { id, name, desc, duration, xp, caps, type, is_forged: true, done: false, completed: false };
+  const quest = { id, name, desc, duration: duration || 0, xp, caps, type, is_forged: true, done: false, completed: false };
   if (type === 'recurrent-until') {
     quest.target = target || 'Accomplissement';
     quest.bonus_xp = bonus;
@@ -1674,7 +1668,7 @@ function creerManuellement(name, desc, duration) {
 async function analyserForgeIA() {
   const name = document.getElementById('forge-name').value.trim();
   const desc = document.getElementById('forge-desc').value.trim();
-  const duration = parseInt(document.getElementById('forge-duration').value) || 15;
+  const duration = parseInt(document.getElementById('forge-duration').value) || 0;
   if (!name) { toast("⚠️ Donne un nom à la quête."); return; }
   if (!desc) { toast("⚠️ Décris la quête pour que l'IA puisse l'analyser."); return; }
 
@@ -1686,7 +1680,7 @@ async function analyserForgeIA() {
   try {
     const analysisPromise = analyzeForgedQuest(name, desc, duration);
     const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 15000));
-    let analysis = await Promise.race([analysisPromise, timeoutPromise]);
+    const analysis = await Promise.race([analysisPromise, timeoutPromise]);
 
     if (analysis.needs_clarification) {
       resultDiv.innerHTML = `
@@ -1716,7 +1710,7 @@ async function analyserForgeIA() {
         <div class="ai-body">
           Capacités : ${capNames}<br>
           XP par session : ${analysis.xp}<br>
-          Durée : ${duration} min
+          ${duration > 0 ? 'Durée : '+duration+' min' : 'Sans durée définie'}
           ${bonusInfo}
         </div>
       </div>
@@ -1793,7 +1787,7 @@ async function repondreClarification(name, desc, duration) {
         <div class="ai-body">
           Capacités : ${capNames}<br>
           XP par session : ${analysis.xp}<br>
-          Durée : ${duration} min
+          ${duration > 0 ? 'Durée : '+duration+' min' : 'Sans durée définie'}
           ${bonusInfo}
         </div>
       </div>
@@ -1840,7 +1834,7 @@ async function repondreClarification2(name, desc, duration) {
         <div class="ai-body">
           Capacités : ${capNames}<br>
           XP par session : ${analysis.xp}<br>
-          Durée : ${duration} min
+          ${duration > 0 ? 'Durée : '+duration+' min' : 'Sans durée définie'}
           ${bonusInfo}
         </div>
       </div>
@@ -1867,7 +1861,7 @@ function confirmerForge() {
   const { name, desc, duration, caps, xp, type, target, bonus_xp } = forgePending;
   const id = 'forge_' + Date.now();
   const quest = {
-    id, name, desc, duration, xp, caps, type,
+    id, name, desc, duration: duration || 0, xp, caps, type,
     is_forged: true,
     done: false,
     completed: false
@@ -1925,7 +1919,7 @@ async function reevaluerForge(id) {
   if (!q) return;
   const name = q.name;
   const desc = q.desc || '';
-  const duration = q.duration || 15;
+  const duration = q.duration || 0;
   toast("🤖 Réévaluation par l'IA...");
   try {
     const analysis = await analyzeForgedQuest(name, desc, duration);
