@@ -6,12 +6,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Évolution">
-<title>Évolution v2.5</title>
+<title>Évolution v2.6</title>
 <link rel="icon" type="image/jpeg" href="favicon.jpg?v=3">
 <link rel="apple-touch-icon" href="favicon.jpg?v=3">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-/* ===== STYLES (identique à la v2.4) ===== */
+/* ===== STYLES ===== */
 :root{--bg:#0e0e10;--card:#18181c;--card2:#222228;--border:rgba(255,255,255,0.07);--text:#f0f0f0;--muted:#777;--accent:#a78bfa;--accent2:#7c3aed;--green:#34d399;--amber:#fbbf24;--coral:#f87171;--blue:#60a5fa;--orange:#fb923c;--r:14px;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;font-size:15px;min-height:100dvh;padding-bottom:calc(76px + env(safe-area-inset-bottom));}
@@ -310,7 +310,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 
 <!-- Top Bar -->
 <div class="topbar">
-  <div class="topbar-title">Évolution v2.5</div>
+  <div class="topbar-title">Évolution v2.6</div>
   <div class="topbar-right">
     <div class="sync-dot" id="sync-dot"></div>
     <div class="top-xp" id="top-xp">0 XP</div>
@@ -519,13 +519,13 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 </div>
 
 <div class="toast" id="toast"></div>
-<div class="version-footer">v2.5.0 – 2026-07-26</div>
+<div class="version-footer">v2.6.0 – 2026-07-26</div>
 
 <script>
 // ============================================================
 // CONFIGURATION
 // ============================================================
-const VERSION = '2.5.0';
+const VERSION = '2.6.0';
 const SB_URL = 'https://nlicstxewcrzjliyslkm.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5saWNzdHhld2NyempsaXlzbGttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1ODg1NzUsImV4cCI6MjA5ODE2NDU3NX0.CTHaV_iM50Q_sA1l8_5rVL7b4nU8XonYRcds8Z702GI';
 const HDR = {
@@ -536,7 +536,7 @@ const HDR = {
 };
 
 // ============================================================
-// DONNÉES STATIQUES
+// DONNÉES STATIQUES (identiques à v2.5)
 // ============================================================
 const LEVELS = [
   { min: 0, name: 'Initié' }, { min: 500, name: 'Apprenti' }, { min: 1200, name: 'Praticien' },
@@ -670,12 +670,12 @@ let touchStartX = 0;
 let touchEndX = 0;
 
 // ============================================================
-// FONCTIONS SUPABASE (avec logs)
+// FONCTIONS SUPABASE (avec logs détaillés)
 // ============================================================
 async function sbGet(table, uid) {
   const r = await fetch(`${SB_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(uid)}&limit=1`, { headers: HDR });
   const d = await r.json();
-  console.log(`sbGet ${table}:`, d);
+  console.log(`📥 sbGet ${table}:`, d);
   return d && d[0] ? d[0] : null;
 }
 async function sbUpsert(table, obj) {
@@ -684,12 +684,16 @@ async function sbUpsert(table, obj) {
     headers: { ...HDR, 'Prefer': 'resolution=merge-duplicates,return=representation' },
     body: JSON.stringify(obj)
   });
-  console.log(`sbUpsert ${table}:`, r.status, await r.text());
+  const text = await r.text();
+  console.log(`📤 sbUpsert ${table}:`, r.status, text.slice(0, 200));
+  if (r.status >= 400) console.error('❌ Erreur Supabase:', text);
   return r;
 }
 async function sbInsert(table, obj) {
   const r = await fetch(`${SB_URL}/rest/v1/${table}`, { method: 'POST', headers: HDR, body: JSON.stringify(obj) });
-  console.log(`sbInsert ${table}:`, r.status, await r.text());
+  const text = await r.text();
+  console.log(`📤 sbInsert ${table}:`, r.status, text.slice(0, 200));
+  if (r.status >= 400) console.error('❌ Erreur Supabase:', text);
   return r;
 }
 async function sbDelete(table, uid, questId, day) {
@@ -697,14 +701,33 @@ async function sbDelete(table, uid, questId, day) {
   if (questId) url += `&quest_id=eq.${questId}`;
   if (day) url += `&created_at=gte.${day}T00:00:00&created_at=lte.${day}T23:59:59`;
   const r = await fetch(url, { method: 'DELETE', headers: HDR });
-  console.log(`sbDelete ${table}:`, r.status);
+  console.log(`🗑️ sbDelete ${table}:`, r.status);
   return r;
 }
 async function sbGetMany(table, uid, limit = 50) {
   const r = await fetch(`${SB_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(uid)}&order=created_at.desc&limit=${limit}`, { headers: HDR });
   const d = await r.json();
-  console.log(`sbGetMany ${table}:`, d.length);
+  console.log(`📥 sbGetMany ${table}:`, d.length);
   return d;
+}
+
+// ============================================================
+// SAUVEGARDE LOCALE (fallback)
+// ============================================================
+function saveLocal() {
+  const data = { S, LOG, capacities, customQuests, recipes, checkedToday, currentSidequest, isDayLocked };
+  localStorage.setItem('sys12_fallback_' + UID, JSON.stringify(data));
+  console.log('💾 Sauvegarde locale effectuée');
+}
+
+function loadLocal() {
+  const raw = localStorage.getItem('sys12_fallback_' + UID);
+  if (!raw) return null;
+  try {
+    const data = JSON.parse(raw);
+    console.log('📂 Données locales chargées');
+    return data;
+  } catch (e) { return null; }
 }
 
 // ============================================================
@@ -770,17 +793,20 @@ async function analyzeForgedQuest(name, desc, duration) {
 }
 
 // ============================================================
-// CHARGEMENT DES DONNÉES
+// CHARGEMENT DES DONNÉES (Supabase + fallback local)
 // ============================================================
 async function loadFromSupabase() {
   setSyncState('syncing');
   try {
-    console.log('=== Chargement des données ===');
+    console.log('=== Chargement des données depuis Supabase ===');
     const [prog, logRaw, recipesData] = await Promise.all([
       sbGet('sys_progress', UID),
       sbGetMany('sys_log', UID, 50),
       sbGetMany('sys_recipes', UID, 100)
     ]);
+    
+    let useLocal = false;
+    
     if (prog) {
       S = { ...S, ...prog };
       const start = new Date(S.start_date);
@@ -788,12 +814,14 @@ async function loadFromSupabase() {
       const diffJours = Math.floor((now - start) / (1000 * 60 * 60 * 24));
       S.current_month = Math.max(1, Math.min(12, Math.floor(diffJours / 30.44) + 1));
       isDayLocked = S.is_day_locked || false;
-      console.log('S chargé:', S);
+      console.log('✅ S chargé depuis Supabase:', S);
     } else {
-      console.log('Aucun prog trouvé, initialisation par défaut');
+      console.warn('⚠️ Aucun prog trouvé dans Supabase');
+      useLocal = true;
     }
+    
     if (Array.isArray(logRaw)) LOG = logRaw;
-
+    
     // Charger les capacités
     const capsData = await sbGetMany('sys_capacities', UID, 50);
     if (capsData && capsData.length) {
@@ -805,17 +833,10 @@ async function loadFromSupabase() {
           next_level_xp: c.next_level_xp || 100
         };
       });
-      console.log('Capacités chargées:', Object.keys(capacities).length);
+      console.log('✅ Capacités chargées:', Object.keys(capacities).length);
     } else {
-      // Aucune capacité trouvée : initialiser et sauvegarder
-      capacities = {};
-      for (const p of PILLARS) {
-        for (const sub of p.sub) {
-          capacities[sub.id] = { xp: 0, level: 0, xp_toward_next: 0, next_level_xp: 100 };
-        }
-      }
-      console.log('Capacités initialisées (vides)');
-      await saveProgress(); // sauvegarde immédiate
+      console.warn('⚠️ Aucune capacité trouvée dans Supabase');
+      useLocal = true;
     }
 
     const cq = await sbGet('sys_custom_quests', UID);
@@ -826,7 +847,7 @@ async function loadFromSupabase() {
         if (q.type === 'recurrent-until' && !q.completed) q.completed = false;
       });
     } else {
-      customQuests = [];
+      useLocal = true;
     }
 
     if (Array.isArray(recipesData)) {
@@ -860,6 +881,33 @@ async function loadFromSupabase() {
       await sbUpsert('sys_sidequests', { user_id: UID, ...currentSidequest });
     }
 
+    // Si Supabase n'a rien, on essaie de restaurer depuis localStorage
+    if (useLocal) {
+      const localData = loadLocal();
+      if (localData) {
+        console.log('🔄 Restauration depuis localStorage');
+        S = { ...S, ...localData.S };
+        LOG = localData.LOG || [];
+        capacities = localData.capacities || {};
+        customQuests = localData.customQuests || [];
+        recipes = localData.recipes || [];
+        checkedToday = localData.checkedToday || {};
+        currentSidequest = localData.currentSidequest || null;
+        isDayLocked = localData.isDayLocked || false;
+        // Sauvegarder immédiatement sur Supabase
+        await saveProgress();
+      } else {
+        // Initialisation à vide
+        capacities = {};
+        for (const p of PILLARS) {
+          for (const sub of p.sub) {
+            capacities[sub.id] = { xp: 0, level: 0, xp_toward_next: 0, next_level_xp: 100 };
+          }
+        }
+        await saveProgress();
+      }
+    }
+
     checkedToday = {};
     LOG.forEach(l => {
       if (l.quest_id && l.created_at && l.created_at.slice(0, 10) === todayStr) {
@@ -885,25 +933,36 @@ async function loadFromSupabase() {
     console.log('=== Chargement terminé ===');
   } catch (e) {
     setSyncState('error');
-    console.error('loadFromSupabase:', e);
+    console.error('❌ loadFromSupabase:', e);
+    // Fallback : essayer de charger depuis localStorage
+    const localData = loadLocal();
+    if (localData) {
+      console.log('🔄 Restauration d\'urgence depuis localStorage');
+      S = { ...S, ...localData.S };
+      LOG = localData.LOG || [];
+      capacities = localData.capacities || {};
+      customQuests = localData.customQuests || [];
+      recipes = localData.recipes || [];
+      checkedToday = localData.checkedToday || {};
+      currentSidequest = localData.currentSidequest || null;
+      isDayLocked = localData.isDayLocked || false;
+      updateAll();
+      toast("⚠️ Données restaurées depuis le cache local");
+    }
   }
 }
 
 // ============================================================
-// SAUVEGARDE (appelée après chaque action)
+// SAUVEGARDE (Supabase + local)
 // ============================================================
 async function saveProgress() {
   setSyncState('syncing');
   try {
-    console.log('=== Sauvegarde ===');
+    console.log('=== Sauvegarde vers Supabase ===');
     S.is_day_locked = isDayLocked;
-    const progRes = await sbUpsert('sys_progress', { ...S, user_id: UID, updated_at: new Date().toISOString() });
-    if (progRes.status !== 200 && progRes.status !== 201) {
-      console.error('Erreur sauvegarde progress:', await progRes.text());
-    }
-
+    await sbUpsert('sys_progress', { ...S, user_id: UID, updated_at: new Date().toISOString() });
     for (const [id, data] of Object.entries(capacities)) {
-      const capRes = await sbUpsert('sys_capacities', {
+      await sbUpsert('sys_capacities', {
         user_id: UID,
         id: id,
         current_level: data.level,
@@ -911,20 +970,21 @@ async function saveProgress() {
         xp_toward_next: data.xp_toward_next,
         next_level_xp: data.next_level_xp
       });
-      if (capRes.status !== 200 && capRes.status !== 201) {
-        console.error('Erreur sauvegarde capacité', id, await capRes.text());
-      }
     }
-
     await sbUpsert('sys_custom_quests', { user_id: UID, quests: JSON.stringify(customQuests) });
     if (currentSidequest) {
       await sbUpsert('sys_sidequests', { user_id: UID, ...currentSidequest });
     }
+    // Sauvegarde locale de secours
+    saveLocal();
     setSyncState('ok');
     console.log('=== Sauvegarde terminée ===');
   } catch (e) {
     setSyncState('error');
-    console.error('saveProgress:', e);
+    console.error('❌ saveProgress:', e);
+    // En cas d'erreur, on sauvegarde au moins localement
+    saveLocal();
+    toast("⚠️ Erreur de synchronisation, données sauvegardées localement");
   }
 }
 
@@ -1000,6 +1060,7 @@ async function reinitialiserTout() {
   localStorage.removeItem('sys12_new_recipes');
   localStorage.removeItem('sys12_custom_quests');
   localStorage.removeItem('sys12_recipes');
+  localStorage.removeItem('sys12_fallback_' + UID);
   
   await saveProgress();
   updateAll();
@@ -1641,7 +1702,7 @@ async function rerollSidequestIA() {
 }
 
 // ============================================================
-// QUÊTES FORGÉES
+// QUÊTES FORGÉES (création, édition, suppression)
 // ============================================================
 function ouvrirFormulaireForge() {
   const form = document.getElementById('forge-form');
