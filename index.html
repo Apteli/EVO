@@ -6,12 +6,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Évolution">
-<title>Évolution v1.7</title>
+<title>Évolution v1.8</title>
 <link rel="icon" type="image/jpeg" href="favicon.jpg?v=3">
 <link rel="apple-touch-icon" href="favicon.jpg?v=3">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-/* ===== STYLES ===== */
+/* ===== STYLES (repris de la v1.7) ===== */
 :root{--bg:#0e0e10;--card:#18181c;--card2:#222228;--border:rgba(255,255,255,0.07);--text:#f0f0f0;--muted:#777;--accent:#a78bfa;--accent2:#7c3aed;--green:#34d399;--amber:#fbbf24;--coral:#f87171;--blue:#60a5fa;--orange:#fb923c;--r:14px;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;font-size:15px;min-height:100dvh;padding-bottom:calc(76px + env(safe-area-inset-bottom));}
@@ -73,6 +73,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .tag-min{background:rgba(167,139,250,.15);color:var(--accent);}
 .tag-ph{background:rgba(255,255,255,.07);color:var(--muted);}
 .tag-cap{background:rgba(255,255,255,0.05);color:var(--text);}
+.tag-forged{background:rgba(251,191,36,.15);color:var(--amber);}
 .tag-personal{background:rgba(251,191,36,.15);color:var(--amber);}
 .q-xp{font-size:13px;font-weight:700;color:var(--accent);flex-shrink:0;cursor:default;}
 .q-actions{display:flex;gap:4px;flex-shrink:0;}
@@ -273,6 +274,14 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 .coach-panel .chat-input-wrap input { flex:1; background:rgba(255,255,255,0.06); border:0.5px solid var(--border); border-radius:8px; padding:6px 10px; color:var(--text); font-size:13px; outline:none; }
 .coach-panel .chat-input-wrap input:focus { border-color:var(--accent); }
 .coach-panel .chat-input-wrap button { background:var(--accent2); color:#fff; border:none; border-radius:8px; padding:6px 14px; font-size:13px; font-weight:600; cursor:pointer; }
+
+/* ---- Accordéons personnalisés pour le journal ---- */
+.journal-accordion .accordion-item { margin-bottom:6px; }
+.journal-accordion .accordion-header { padding:12px 16px; }
+.journal-accordion .accordion-body { padding:0 16px 16px; }
+.forge-form { background:var(--card2); border-radius:10px; padding:12px; margin-top:8px; }
+.forge-form .form-group { margin-bottom:8px; }
+.forge-form textarea { min-height:60px; }
 </style>
 </head>
 <body>
@@ -292,7 +301,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 
 <!-- Top Bar -->
 <div class="topbar">
-  <div class="topbar-title">Évolution v1.7</div>
+  <div class="topbar-title">Évolution v1.8</div>
   <div class="topbar-right">
     <div class="sync-dot" id="sync-dot"></div>
     <div class="top-xp" id="top-xp">0 XP</div>
@@ -334,58 +343,102 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
   <div class="section-title">⚡ Optimal</div>
   <div id="quetes-opt"></div>
 
-  <!-- Quêtes personnelles -->
-  <div class="section-title">📋 Quêtes personnelles</div>
-  <div id="personal-quests"></div>
-  <button class="btn-sm btn-accent" onclick="ajouterQuetePersonnelle()" style="width:100%;margin-top:6px;">➕ Ajouter une quête personnelle</button>
-
   <button class="btn-main" id="btn-valider" onclick="validerJour()">✓ Valider la journée</button>
 </div>
 
-<!-- Écran Bibliothèque (Sidequest, Quêtes forgées, Recettes) -->
-<div id="screen-library" class="screen">
-  <!-- Sidequest -->
-  <div class="section-title">🎲 Sidequest du Jour</div>
-  <div class="sidequest-box" style="margin-bottom:12px;">
-    <div class="sidequest-header">
-      <div class="sidequest-title">🎲 Sidequest du Jour</div>
-      <div class="sidequest-xp" id="sq-xp-display">+30 XP</div>
-    </div>
-    <div class="quest" id="sidequest-item" onclick="toggleSidequest()" style="margin-bottom:8px;">
-      <div class="check" id="sq-check"></div>
-      <div class="q-info">
-        <div class="q-name" id="sidequest-text">Chargement du défi...</div>
-        <div class="q-desc" id="sidequest-sub">Zone de confort, sociabilité et observation de terrain.</div>
+<!-- Écran Journal (Sidequest, Quêtes forgées, Recettes) -->
+<div id="screen-journal" class="screen">
+  <div class="journal-accordion accordion">
+    <!-- Section Sidequest -->
+    <div class="accordion-item">
+      <button class="accordion-header" onclick="toggleAccordion('sidequest-block')">
+        <span>🎲 Sidequest du Jour</span>
+        <span>▼</span>
+      </button>
+      <div class="accordion-body open" id="sidequest-block">
+        <div class="sidequest-box" style="margin-bottom:0;">
+          <div class="sidequest-header">
+            <div class="sidequest-title">🎲 Sidequest du Jour</div>
+            <div class="sidequest-xp" id="sq-xp-display">+30 XP</div>
+          </div>
+          <div class="quest" id="sidequest-item" onclick="toggleSidequest()" style="margin-bottom:8px;">
+            <div class="check" id="sq-check"></div>
+            <div class="q-info">
+              <div class="q-name" id="sidequest-text">Chargement du défi...</div>
+              <div class="q-desc" id="sidequest-sub">Zone de confort, sociabilité et observation de terrain.</div>
+            </div>
+          </div>
+          <button class="btn-sm btn-muted" id="btn-reroll" onclick="rerollSidequestIA()" style="width:100%;">🎲 Relancer via le Coach (IA)</button>
+        </div>
       </div>
     </div>
-    <button class="btn-sm btn-muted" id="btn-reroll" onclick="rerollSidequestIA()" style="width:100%;">🎲 Relancer via le Coach (IA)</button>
-  </div>
 
-  <!-- Quêtes forgées -->
-  <div class="section-title">🔨 Quêtes forgées</div>
-  <div id="forged-quests"></div>
-  <button class="btn-sm btn-accent" onclick="ajouterQueteForgee()" style="width:100%;margin-top:6px;">➕ Forger une quête</button>
+    <!-- Section Quêtes forgées -->
+    <div class="accordion-item">
+      <button class="accordion-header" onclick="toggleAccordion('forged-block')">
+        <span>🔨 Quêtes forgées <span class="badge" id="forge-badge"></span></span>
+        <span>▼</span>
+      </button>
+      <div class="accordion-body" id="forged-block">
+        <div id="forged-quests-list"></div>
+        <button class="btn-sm btn-accent" onclick="ouvrirFormulaireForge()" style="width:100%;margin-top:10px;">➕ Forger une quête (IA)</button>
+        <!-- Formulaire de création (caché par défaut) -->
+        <div id="forge-form" style="display:none;margin-top:10px;">
+          <div class="forge-form">
+            <div class="form-group">
+              <input type="text" id="forge-name" class="form-input" placeholder="Nom de la quête..." autocomplete="off">
+            </div>
+            <div class="form-group">
+              <textarea id="forge-desc" class="form-input" placeholder="Description détaillée (objectif, contexte, etc.)" rows="3"></textarea>
+            </div>
+            <div class="form-row">
+              <input type="number" id="forge-duration" class="form-input" placeholder="Durée estimée (min)" min="1" value="15">
+              <select id="forge-type" class="form-select">
+                <option value="oneshot">One-shot</option>
+                <option value="recurrent">Récurrente</option>
+              </select>
+            </div>
+            <div class="btn-group" style="display:flex;gap:8px;margin-top:8px;">
+              <button class="btn-sm btn-accent" onclick="analyserForgeIA()" style="flex:1;">🤖 Analyser par l'IA</button>
+              <button class="btn-sm btn-muted" onclick="annulerForge()" style="flex:0.5;">Annuler</button>
+            </div>
+            <div id="forge-analysis-result" style="margin-top:8px;display:none;"></div>
+            <div id="forge-actions" style="margin-top:8px;display:none;">
+              <button class="btn-sm btn-accent" onclick="confirmerForge()" style="width:100%;">✅ Confirmer et ajouter</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-  <!-- Recettes -->
-  <div class="section-title">🍳 Recettes</div>
-  <div id="recipes-list"></div>
-  <button class="btn-sm btn-muted" onclick="toggleSection('recipe-form')" style="width:100%;margin-top:6px;">➕ Ajouter une recette</button>
-  <div id="recipe-form" style="display:none;margin-top:8px;">
-    <div class="rev-card" style="margin-bottom:8px;">
-      <div class="form-group">
-        <input type="text" id="recipe-name" class="form-input" placeholder="Nom de la recette..." autocomplete="off">
+    <!-- Section Recettes -->
+    <div class="accordion-item">
+      <button class="accordion-header" onclick="toggleAccordion('recipes-block')">
+        <span>🍳 Recettes <span class="badge" id="recipe-badge"></span></span>
+        <span>▼</span>
+      </button>
+      <div class="accordion-body" id="recipes-block">
+        <div id="recipes-list"></div>
+        <button class="btn-sm btn-muted" onclick="toggleSection('recipe-form')" style="width:100%;margin-top:10px;">➕ Ajouter une recette</button>
+        <div id="recipe-form" style="display:none;margin-top:8px;">
+          <div class="forge-form">
+            <div class="form-group">
+              <input type="text" id="recipe-name" class="form-input" placeholder="Nom de la recette..." autocomplete="off">
+            </div>
+            <div class="form-row">
+              <input type="number" id="recipe-time" class="form-input" placeholder="Temps (min)" min="1" value="30">
+              <input type="number" id="recipe-people" class="form-input" placeholder="Personnes" min="1" value="2">
+            </div>
+            <div class="form-group">
+              <textarea id="recipe-ingredients" class="form-input" placeholder="Ingrédients (un par ligne)" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+              <textarea id="recipe-steps" class="form-input" placeholder="Étapes (une par ligne)" rows="4"></textarea>
+            </div>
+            <button class="btn-sm btn-accent" onclick="ajouterRecette()" style="width:100%;">+ Ajouter</button>
+          </div>
+        </div>
       </div>
-      <div class="form-row">
-        <input type="number" id="recipe-time" class="form-input" placeholder="Temps (min)" min="1" value="30">
-        <input type="number" id="recipe-people" class="form-input" placeholder="Personnes" min="1" value="2">
-      </div>
-      <div class="form-group">
-        <textarea id="recipe-ingredients" class="form-input" placeholder="Ingrédients (un par ligne)" rows="3"></textarea>
-      </div>
-      <div class="form-group">
-        <textarea id="recipe-steps" class="form-input" placeholder="Étapes (une par ligne)" rows="4"></textarea>
-      </div>
-      <button class="btn-sm btn-accent" onclick="ajouterRecette()" style="width:100%;">+ Ajouter</button>
     </div>
   </div>
 </div>
@@ -427,7 +480,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 <!-- Tab Bar -->
 <div class="tab-bar">
   <button class="tab-btn active" onclick="goTab('today',this)"><span class="tab-icon">☀️</span>Quêtes</button>
-  <button class="tab-btn" onclick="goTab('library',this)"><span class="tab-icon">📚</span>Bibliothèque</button>
+  <button class="tab-btn" onclick="goTab('journal',this)"><span class="tab-icon">📖</span>Journal</button>
   <button class="tab-btn" onclick="goTab('piliers',this)"><span class="tab-icon">🧱</span>Piliers</button>
   <button class="tab-btn" onclick="goTab('stats',this)"><span class="tab-icon">📈</span>Stats</button>
 </div>
@@ -452,13 +505,13 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 </div>
 
 <div class="toast" id="toast"></div>
-<div class="version-footer">v1.7.0 – 2026-07-26</div>
+<div class="version-footer">v1.8.0 – 2026-07-26</div>
 
 <script>
 // ============================================================
 // CONFIGURATION
 // ============================================================
-const VERSION = '1.7.0';
+const VERSION = '1.8.0';
 const SB_URL = 'https://nlicstxewcrzjliyslkm.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5saWNzdHhld2NyempsaXlzbGttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1ODg1NzUsImV4cCI6MjA5ODE2NDU3NX0.CTHaV_iM50Q_sA1l8_5rVL7b4nU8XonYRcds8Z702GI';
 const HDR = {
@@ -589,7 +642,7 @@ let S = {
 };
 let LOG = [];
 let capacities = {};
-let customQuests = []; // quêtes forgées + personnelles
+let customQuests = []; // toutes les quêtes forgées (is_forged = true) et personnelles (is_personal = true)
 let recipes = [];
 let checkedToday = {};
 let currentSidequest = null;
@@ -598,6 +651,7 @@ let syncTimer = null;
 let chartXp = null;
 let chartRadar = null;
 let chartOffset = 0;
+let forgePending = null; // stocke les données de la quête en cours d'analyse
 
 // ============================================================
 // FONCTIONS SUPABASE
@@ -666,37 +720,48 @@ function buildCtx() {
   return ctx;
 }
 
-async function analyzeQuestIA(name, desc) {
+// Analyse IA pour quête forgée
+async function analyzeForgedQuest(name, desc, duration) {
   const capsList = PILLARS.flatMap(p => p.sub).map(c => `- ${c.id}: ${c.name}`).join('\n');
   const prompt = `
-  Analyse la quête personnelle suivante :
+  Analyse la quête suivante pour l'intégrer dans un système de suivi de développement personnel.
   Nom : "${name}"
   Description : "${desc}"
+  Durée estimée : ${duration} minutes.
 
   Réponds au format JSON strict avec les champs :
   {
-    "caps": ["id1", "id2"],
-    "xp": 30,
-    "duration": 15
+    "caps": ["id1", "id2"],        // IDs des capacités impactées (minimum 1, maximum 3)
+    "xp": 30,                     // XP total recommandé (basé sur la durée et la difficulté)
+    "needs_clarification": false, // true si la description est trop vague
+    "clarification_question": ""  // question à poser si besoin de précision
   }
 
   Liste des capacités disponibles :
   ${capsList}
 
+  Si la description est insuffisante pour identifier les capacités, mets "needs_clarification" à true et propose une question précise.
   Ne renvoie que le JSON, rien d'autre.
   `;
   const response = await callGemini(prompt);
   try {
     const parsed = JSON.parse(response);
-    const validCaps = parsed.caps.filter(id => PILLARS.some(p => p.sub.some(c => c.id === id)));
+    // Validation
+    const validCaps = parsed.caps ? parsed.caps.filter(id => PILLARS.some(p => p.sub.some(c => c.id === id))) : [];
     return {
       caps: validCaps.length ? validCaps : ['raisonnement'],
       xp: Math.max(10, parsed.xp || 30),
-      duration: parsed.duration || 15
+      needs_clarification: parsed.needs_clarification || false,
+      clarification_question: parsed.clarification_question || ''
     };
   } catch (e) {
-    console.warn('Analyse IA échouée, fallback manuel', e);
-    return null;
+    console.warn('Analyse IA échouée, fallback', e);
+    return {
+      caps: ['raisonnement'],
+      xp: 20,
+      needs_clarification: false,
+      clarification_question: ''
+    };
   }
 }
 
@@ -751,7 +816,7 @@ async function loadFromSupabase() {
       }
     }
 
-    // Charger les quêtes personnelles (forgées + extérieures)
+    // Charger les quêtes personnelles (forgées et personnelles)
     const cq = await sbGet('sys_custom_quests', UID);
     if (cq && cq.quests) customQuests = JSON.parse(cq.quests);
     else customQuests = [];
@@ -853,7 +918,6 @@ function todayKey() { return new Date().toISOString().slice(0, 10); }
 function updateAll() {
   updateHeader();
   renderQuetes();
-  renderPersonalQuests();
   renderForgedQuests();
   renderRecipes();
   renderPiliers();
@@ -920,6 +984,7 @@ function renderQuetes() {
             <option value="run">🏃 Course à pied</option>
             <option value="auto">🎲 Choix du coach</option>
           </select>
+          <input type="number" id="workout-time-${q.id}" placeholder="Durée (min)" style="width:60px;background:rgba(255,255,255,0.06);border:0.5px solid var(--border);border-radius:4px;padding:2px 4px;color:var(--text);font-size:12px;margin-left:4px;" value="30" min="10" max="120" onclick="event.stopPropagation();">
           <button class="btn-coach" style="background:rgba(96,165,250,.1);border-color:rgba(96,165,250,.3);color:var(--blue);margin-left:4px;" onclick="event.stopPropagation();genererEntrainement(this, '${q.id}')">🏋️ Générer</button>
         </div>
       `;
@@ -933,6 +998,7 @@ function renderQuetes() {
             <option value="dynamic">🏃 Étirements dynamiques</option>
             <option value="articular">🦵 Mobilité articulaire</option>
           </select>
+          <input type="number" id="mobility-time-${q.id}" placeholder="Durée (min)" style="width:60px;background:rgba(255,255,255,0.06);border:0.5px solid var(--border);border-radius:4px;padding:2px 4px;color:var(--text);font-size:12px;margin-left:4px;" value="15" min="5" max="60" onclick="event.stopPropagation();">
           <button class="btn-coach" style="background:rgba(96,165,250,.1);border-color:rgba(96,165,250,.3);color:var(--blue);margin-left:4px;" onclick="event.stopPropagation();genererMobilite(this, '${q.id}')">🧘 Générer</button>
         </div>
       `;
@@ -954,20 +1020,23 @@ function renderQuetes() {
   document.getElementById('quetes-opt').innerHTML = QUETES.opt.map(q => qHTML(q, false)).join('');
 }
 
-function renderPersonalQuests() {
-  const container = document.getElementById('personal-quests');
-  const personal = customQuests.filter(q => q.is_personal === true);
-  if (!personal.length) {
-    container.innerHTML = '<div class="empty-state">Aucune quête personnelle.</div>';
+// Suppression des quêtes personnelles de l'onglet "Quêtes"
+// (la fonction renderPersonalQuests est supprimée)
+
+function renderForgedQuests() {
+  const container = document.getElementById('forged-quests-list');
+  const forged = customQuests.filter(q => q.is_forged === true);
+  if (!forged.length) {
+    container.innerHTML = '<div class="empty-state">Aucune quête forgée. Créez-en une avec l\'IA !</div>';
     return;
   }
-  container.innerHTML = personal.map(q => {
+  container.innerHTML = forged.map(q => {
     const done = !!checkedToday[q.id];
     const capTags = (q.caps || []).map(id => {
       const cap = PILLARS.flatMap(p => p.sub).find(c => c.id === id);
       return cap ? `<span class="tag tag-cap">${cap.name}</span>` : '';
     }).join('');
-    const typeTag = `<span class="tag tag-personal">${q.type === 'oneshot' ? 'One-shot' : 'Récurrente'}</span>`;
+    const typeTag = `<span class="tag tag-forged">${q.type === 'oneshot' ? 'One-shot' : 'Récurrente'}</span>`;
     return `<div class="quest${done ? ' done' : ''}" onclick="toggleQuete('${q.id}')">
       <div class="check">${done ? '✓' : ''}</div>
       <div class="q-info">
@@ -978,34 +1047,7 @@ function renderPersonalQuests() {
       </div>
       <div class="q-xp">+${q.xp || 0} XP</div>
       <div class="q-actions">
-        <button class="del" onclick="event.stopPropagation();deletePersonalQuest('${q.id}')">🗑️</button>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function renderForgedQuests() {
-  const container = document.getElementById('forged-quests');
-  const forged = customQuests.filter(q => !q.is_personal);
-  if (!forged.length) {
-    container.innerHTML = '<div class="empty-state">Aucune quête forgée.</div>';
-    return;
-  }
-  container.innerHTML = forged.map(q => {
-    const done = !!checkedToday[q.id];
-    const capTags = (q.caps || []).map(id => {
-      const cap = PILLARS.flatMap(p => p.sub).find(c => c.id === id);
-      return cap ? `<span class="tag tag-cap">${cap.name}</span>` : '';
-    }).join('');
-    const typeTag = `<span class="tag tag-personal">${q.type === 'oneshot' ? 'One-shot' : 'Récurrente'}</span>`;
-    return `<div class="quest${done ? ' done' : ''}" onclick="toggleQuete('${q.id}')">
-      <div class="check">${done ? '✓' : ''}</div>
-      <div class="q-info">
-        <div class="q-name">${q.name}</div>
-        <div class="q-tags">${typeTag}${capTags}</div>
-      </div>
-      <div class="q-xp">+${q.xp || 0} XP</div>
-      <div class="q-actions">
+        <button class="edit" onclick="event.stopPropagation();reevaluerForge('${q.id}')">🔄</button>
         <button class="del" onclick="event.stopPropagation();deleteForgedQuest('${q.id}')">🗑️</button>
       </div>
     </div>`;
@@ -1040,7 +1082,7 @@ function renderPiliers() {
   const container = document.getElementById('piliers-list');
   container.innerHTML = PILLARS.map(p => {
     const totalXP = p.sub.reduce((sum, s) => sum + (capacities[s.id]?.xp || 0), 0);
-    const maxXP = 5000; // seuil pour la barre globale
+    const maxXP = 5000;
     const pctGlobal = Math.min(100, (totalXP / maxXP) * 100);
     const subHtml = p.sub.map(sub => {
       const data = capacities[sub.id] || { xp: 0, level: 0, xp_toward_next: 0, next_level_xp: 100 };
@@ -1476,90 +1518,179 @@ async function rerollSidequestIA() {
 }
 
 // ============================================================
-// QUÊTES PERSONNELLES (extérieures)
+// QUÊTES FORGÉES (création via IA)
 // ============================================================
-async function ajouterQuetePersonnelle() {
-  const name = prompt("Nom de la quête :");
-  if (!name) return;
-  const desc = prompt("Description (optionnelle) :") || "";
-  const type = confirm("Récurrente ? (OK = oui)") ? 'recurrent' : 'oneshot';
-  const useIA = desc.length > 5;
-  let caps = ['raisonnement'];
-  let xp = 20;
-  let duration = 15;
-  if (useIA) {
-    toast("🤖 Analyse en cours par l'IA...");
-    const analysis = await analyzeQuestIA(name, desc);
-    if (analysis) {
-      caps = analysis.caps;
-      xp = analysis.xp;
-      duration = analysis.duration;
-      const capNames = caps.map(id => PILLARS.flatMap(p => p.sub).find(c => c.id === id)?.name || id).join(', ');
-      if (!confirm(`Résumé IA :\n- Capacités : ${capNames}\n- XP : ${xp}\n- Durée : ${duration} min\n\nAjouter ?`)) {
-        const capList = PILLARS.flatMap(p => p.sub).map((c, i) => `${i+1}. ${c.name}`).join('\n');
-        const capChoice = prompt(`Capacités (numéros) :\n${capList}`, caps.map(id => PILLARS.flatMap(p => p.sub).findIndex(c => c.id === id)+1).join(','));
-        caps = capChoice ? capChoice.split(',').map(n => parseInt(n.trim())).filter(n => n > 0 && n <= PILLARS.flatMap(p => p.sub).length).map(n => PILLARS.flatMap(p => p.sub)[n-1].id) : caps;
-        xp = parseInt(prompt("XP :", xp)) || xp;
-        duration = parseInt(prompt("Durée (min) :", duration)) || duration;
-      }
-    } else {
-      // fallback manuel
-      const capList = PILLARS.flatMap(p => p.sub).map((c, i) => `${i+1}. ${c.name}`).join('\n');
-      const capChoice = prompt(`Capacités (numéros) :\n${capList}`);
-      caps = capChoice ? capChoice.split(',').map(n => parseInt(n.trim())).filter(n => n > 0 && n <= PILLARS.flatMap(p => p.sub).length).map(n => PILLARS.flatMap(p => p.sub)[n-1].id) : ['raisonnement'];
-      xp = parseInt(prompt("XP :", "20")) || 20;
-      duration = parseInt(prompt("Durée (min) :", "15")) || 15;
-    }
-  } else {
-    const capList = PILLARS.flatMap(p => p.sub).map((c, i) => `${i+1}. ${c.name}`).join('\n');
-    const capChoice = prompt(`Capacités (numéros) :\n${capList}`);
-    caps = capChoice ? capChoice.split(',').map(n => parseInt(n.trim())).filter(n => n > 0 && n <= PILLARS.flatMap(p => p.sub).length).map(n => PILLARS.flatMap(p => p.sub)[n-1].id) : ['raisonnement'];
-    xp = parseInt(prompt("XP :", "20")) || 20;
-    duration = parseInt(prompt("Durée (min) :", "15")) || 15;
+function ouvrirFormulaireForge() {
+  const form = document.getElementById('forge-form');
+  if (form.style.display === 'block') {
+    form.style.display = 'none';
+    return;
   }
-  const id = 'pers_' + Date.now();
-  customQuests.push({ id, name, desc, type, caps, xp, duration, is_personal: true });
-  saveCustomQuests();
-  updateAll();
-  toast("✅ Quête personnelle ajoutée !");
+  form.style.display = 'block';
+  document.getElementById('forge-name').value = '';
+  document.getElementById('forge-desc').value = '';
+  document.getElementById('forge-duration').value = '15';
+  document.getElementById('forge-analysis-result').style.display = 'none';
+  document.getElementById('forge-actions').style.display = 'none';
+  forgePending = null;
 }
 
-async function deletePersonalQuest(id) {
-  if (!confirm("Supprimer cette quête ?")) return;
-  const q = customQuests.find(x => x.id === id);
-  if (q && checkedToday[id]) {
-    const xp = q.xp || 0;
-    S.total_xp = Math.max(0, S.total_xp - xp);
-    LOG = LOG.filter(l => !(l.quest_id === id && l.created_at && l.created_at.slice(0, 10) === todayKey()));
-    await sbDelete('sys_log', UID, id, todayKey());
-    delete checkedToday[id];
-  }
-  customQuests = customQuests.filter(x => x.id !== id);
-  saveCustomQuests();
-  updateAll();
-  toast("🗑️ Quête supprimée.");
+function annulerForge() {
+  document.getElementById('forge-form').style.display = 'none';
+  forgePending = null;
 }
 
-// ============================================================
-// QUÊTES FORGÉES
-// ============================================================
-function ajouterQueteForgee() {
-  const name = prompt("Nom de la quête forgée :");
-  if (!name) return;
-  const diff = prompt("Difficulté : facile (5 XP), moyen (15 XP), difficile (30 XP)").toLowerCase();
-  let xp = 5;
-  if (diff.includes('moyen')) xp = 15;
-  else if (diff.includes('difficile')) xp = 30;
-  const type = confirm("Récurrente ? (OK = oui)") ? 'recurrent' : 'oneshot';
-  // Sélection des capacités (optionnel)
-  const capList = PILLARS.flatMap(p => p.sub).map((c, i) => `${i+1}. ${c.name}`).join('\n');
-  const capChoice = prompt(`Capacités (numéros) :\n${capList}`);
-  const caps = capChoice ? capChoice.split(',').map(n => parseInt(n.trim())).filter(n => n > 0 && n <= PILLARS.flatMap(p => p.sub).length).map(n => PILLARS.flatMap(p => p.sub)[n-1].id) : ['coordination'];
+async function analyserForgeIA() {
+  const name = document.getElementById('forge-name').value.trim();
+  const desc = document.getElementById('forge-desc').value.trim();
+  const duration = parseInt(document.getElementById('forge-duration').value) || 15;
+  if (!name) { toast("⚠️ Donne un nom à la quête."); return; }
+  if (!desc) { toast("⚠️ Décris la quête pour que l'IA puisse l'analyser."); return; }
+
+  toast("🤖 Analyse par l'IA en cours...");
+  const analysis = await analyzeForgedQuest(name, desc, duration);
+  const resultDiv = document.getElementById('forge-analysis-result');
+  resultDiv.style.display = 'block';
+
+  if (analysis.needs_clarification) {
+    // L'IA demande une clarification
+    resultDiv.innerHTML = `
+      <div class="ai-card" style="border-color:var(--amber);">
+        <div class="ai-header"><span style="font-size:16px">🤔</span><span class="ai-label">Précision nécessaire</span></div>
+        <div class="ai-body">${analysis.clarification_question}</div>
+        <div style="margin-top:8px;display:flex;gap:6px;">
+          <input type="text" id="clarification-input" class="form-input" placeholder="Ta réponse..." style="flex:1;">
+          <button class="btn-sm btn-accent" onclick="repondreClarification('${name}', '${desc}', ${duration})">Envoyer</button>
+        </div>
+      </div>
+    `;
+    document.getElementById('forge-actions').style.display = 'none';
+    forgePending = { name, desc, duration, step: 'clarification' };
+    return;
+  }
+
+  // Résultat de l'analyse
+  const capNames = analysis.caps.map(id => PILLARS.flatMap(p => p.sub).find(c => c.id === id)?.name || id).join(', ');
+  resultDiv.innerHTML = `
+    <div class="ai-card" style="border-color:var(--green);">
+      <div class="ai-header"><span style="font-size:16px">✅</span><span class="ai-label">Analyse IA</span></div>
+      <div class="ai-body">
+        Capacités : ${capNames}<br>
+        XP recommandé : ${analysis.xp}<br>
+        Durée : ${duration} min
+      </div>
+    </div>
+  `;
+  document.getElementById('forge-actions').style.display = 'block';
+  forgePending = { name, desc, duration, caps: analysis.caps, xp: analysis.xp };
+}
+
+async function repondreClarification(name, desc, duration) {
+  const input = document.getElementById('clarification-input');
+  const reponse = input.value.trim();
+  if (!reponse) { toast("⚠️ Réponds à la question."); return; }
+  toast("🤖 Analyse en cours avec les précisions...");
+  const newDesc = desc + "\nPrécision : " + reponse;
+  const analysis = await analyzeForgedQuest(name, newDesc, duration);
+  const resultDiv = document.getElementById('forge-analysis-result');
+  if (analysis.needs_clarification) {
+    // Encore besoin de clarification (cas rare)
+    resultDiv.innerHTML = `
+      <div class="ai-card" style="border-color:var(--amber);">
+        <div class="ai-header"><span style="font-size:16px">🤔</span><span class="ai-label">Encore une précision</span></div>
+        <div class="ai-body">${analysis.clarification_question}</div>
+        <div style="margin-top:8px;display:flex;gap:6px;">
+          <input type="text" id="clarification-input-2" class="form-input" placeholder="Ta réponse..." style="flex:1;">
+          <button class="btn-sm btn-accent" onclick="repondreClarification2('${name}', '${newDesc}', ${duration})">Envoyer</button>
+        </div>
+      </div>
+    `;
+    return;
+  }
+  // Affichage du résultat final
+  const capNames = analysis.caps.map(id => PILLARS.flatMap(p => p.sub).find(c => c.id === id)?.name || id).join(', ');
+  resultDiv.innerHTML = `
+    <div class="ai-card" style="border-color:var(--green);">
+      <div class="ai-header"><span style="font-size:16px">✅</span><span class="ai-label">Analyse IA</span></div>
+      <div class="ai-body">
+        Capacités : ${capNames}<br>
+        XP recommandé : ${analysis.xp}<br>
+        Durée : ${duration} min
+      </div>
+    </div>
+  `;
+  document.getElementById('forge-actions').style.display = 'block';
+  forgePending = { name, desc: newDesc, duration, caps: analysis.caps, xp: analysis.xp };
+}
+
+async function repondreClarification2(name, desc, duration) {
+  const input = document.getElementById('clarification-input-2');
+  const reponse = input.value.trim();
+  if (!reponse) { toast("⚠️ Réponds à la question."); return; }
+  const newDesc = desc + "\nPrécision : " + reponse;
+  const analysis = await analyzeForgedQuest(name, newDesc, duration);
+  const resultDiv = document.getElementById('forge-analysis-result');
+  if (analysis.needs_clarification) {
+    // Dernier recours : on force
+    toast("⚠️ L'IA n'arrive pas à cerner. Utilisation de valeurs par défaut.");
+    analysis.caps = ['raisonnement'];
+    analysis.xp = 20;
+  }
+  const capNames = analysis.caps.map(id => PILLARS.flatMap(p => p.sub).find(c => c.id === id)?.name || id).join(', ');
+  resultDiv.innerHTML = `
+    <div class="ai-card" style="border-color:var(--green);">
+      <div class="ai-header"><span style="font-size:16px">✅</span><span class="ai-label">Analyse IA (finale)</span></div>
+      <div class="ai-body">
+        Capacités : ${capNames}<br>
+        XP recommandé : ${analysis.xp}<br>
+        Durée : ${duration} min
+      </div>
+    </div>
+  `;
+  document.getElementById('forge-actions').style.display = 'block';
+  forgePending = { name, desc: newDesc, duration, caps: analysis.caps, xp: analysis.xp };
+}
+
+function confirmerForge() {
+  if (!forgePending) return;
+  const { name, desc, duration, caps, xp } = forgePending;
+  const type = document.getElementById('forge-type').value;
   const id = 'forge_' + Date.now();
-  customQuests.push({ id, name, xp, type, caps, is_personal: false });
+  customQuests.push({
+    id,
+    name,
+    desc,
+    duration,
+    xp,
+    caps,
+    type,
+    is_forged: true,
+    done: false
+  });
   saveCustomQuests();
+  document.getElementById('forge-form').style.display = 'none';
+  forgePending = null;
   updateAll();
   toast("⚔️ Quête forgée ajoutée !");
+}
+
+async function reevaluerForge(id) {
+  const q = customQuests.find(x => x.id === id);
+  if (!q) return;
+  const name = q.name;
+  const desc = q.desc || '';
+  const duration = q.duration || 15;
+  toast("🤖 Réévaluation par l'IA...");
+  const analysis = await analyzeForgedQuest(name, desc, duration);
+  if (analysis.needs_clarification) {
+    toast("⚠️ L'IA a besoin de précisions. Modifie la description manuellement.");
+    return;
+  }
+  q.caps = analysis.caps;
+  q.xp = analysis.xp;
+  saveCustomQuests();
+  updateAll();
+  toast("✅ Quête réévaluée !");
 }
 
 async function deleteForgedQuest(id) {
@@ -1652,7 +1783,7 @@ function saveRecipes() {
 }
 
 // ============================================================
-// GÉNÉRATEUR D'ENTRAÎNEMENT (IA)
+// GÉNÉRATEUR D'ENTRAÎNEMENT (IA) avec paramètre de temps
 // ============================================================
 async function genererEntrainement(btn, qId) {
   const existingId = 'workout-generated-' + qId;
@@ -1660,6 +1791,8 @@ async function genererEntrainement(btn, qId) {
   if (existing) { existing.remove(); return; }
   const select = document.getElementById('workout-type-' + qId);
   const domain = select ? select.value : 'auto';
+  const timeInput = document.getElementById('workout-time-' + qId);
+  const duree = timeInput ? parseInt(timeInput.value) || 30 : 30;
   const card = document.createElement('div');
   card.className = 'ai-card';
   card.id = existingId;
@@ -1669,7 +1802,7 @@ async function genererEntrainement(btn, qId) {
   card.innerHTML = '<div class="ai-header"><span style="font-size:16px">🏋️</span><span class="ai-label" style="color:var(--blue)">Séance sur-mesure</span></div><div class="ai-body" id="txt-' + qId + '">Analyse du domaine choisi...</div>';
   btn.closest('.q-info').after(card);
   const prompt = buildCtx() + `
-  En tant que coach sportif, génère un entraînement physique précis de 30 à 45 minutes.
+  En tant que coach sportif, génère un entraînement physique précis de ${duree} minutes.
   Domaine : ${domain}. 
   Format (très concis) : 
   1. Objectif
@@ -1688,6 +1821,8 @@ async function genererMobilite(btn, qId) {
   if (existing) { existing.remove(); return; }
   const select = document.getElementById('mobility-type-' + qId);
   const domain = select ? select.value : 'general';
+  const timeInput = document.getElementById('mobility-time-' + qId);
+  const duree = timeInput ? parseInt(timeInput.value) || 15 : 15;
   const card = document.createElement('div');
   card.className = 'ai-card';
   card.id = existingId;
@@ -1697,7 +1832,7 @@ async function genererMobilite(btn, qId) {
   card.innerHTML = '<div class="ai-header"><span style="font-size:16px">🧘</span><span class="ai-label" style="color:var(--green)">Mobilité sur-mesure</span></div><div class="ai-body" id="txtmob-' + qId + '">Analyse du domaine choisi...</div>';
   btn.closest('.q-info').after(card);
   const prompt = buildCtx() + `
-  Génère une séance de mobilité/souplesse de 15-25 minutes.
+  Génère une séance de mobilité/souplesse de ${duree} minutes.
   Type : ${domain}.
   Format : 
   1. Objectif
@@ -1796,6 +1931,14 @@ function toggleSection(id) {
   if (el) el.style.display = el.style.display === 'block' ? 'none' : 'block';
 }
 
+function toggleAccordion(id) {
+  const body = document.getElementById(id);
+  if (body) {
+    body.classList.toggle('open');
+    body.style.display = body.classList.contains('open') ? 'block' : 'none';
+  }
+}
+
 // ============================================================
 // UTILITAIRES
 // ============================================================
@@ -1834,7 +1977,7 @@ function goTab(id, btn) {
   if (btn) btn.classList.add('active');
   if (id === 'stats') renderStats();
   if (id === 'piliers') renderPiliers();
-  if (id === 'today' || id === 'library') updateAll();
+  if (id === 'today' || id === 'journal') updateAll();
 }
 
 // ============================================================
