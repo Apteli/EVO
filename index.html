@@ -6,12 +6,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Évolution">
-<title>Évolution v2.2</title>
+<title>Évolution v2.3</title>
 <link rel="icon" type="image/jpeg" href="favicon.jpg?v=3">
 <link rel="apple-touch-icon" href="favicon.jpg?v=3">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-/* === STYLES (repris de la v2.1 avec ajustements) === */
+/* ===== STYLES (identique à v2.2) ===== */
 :root{--bg:#0e0e10;--card:#18181c;--card2:#222228;--border:rgba(255,255,255,0.07);--text:#f0f0f0;--muted:#777;--accent:#a78bfa;--accent2:#7c3aed;--green:#34d399;--amber:#fbbf24;--coral:#f87171;--blue:#60a5fa;--orange:#fb923c;--r:14px;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;font-size:15px;min-height:100dvh;padding-bottom:calc(76px + env(safe-area-inset-bottom));}
@@ -230,6 +230,8 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 .log-toggle-btn { background: none; border: none; color: var(--muted); font-size: 12px; cursor: pointer; padding: 4px 8px; margin-top: 8px; font-family: inherit; }
 .log-toggle-btn:hover { color: var(--text); }
 .version-footer { text-align: center; font-size: 11px; color: var(--muted); padding: 20px 0 10px; border-top: 0.5px solid var(--border); margin-top: 20px; }
+.reset-link { color: var(--muted); text-decoration: underline; cursor: pointer; font-size: 11px; margin-top: 4px; display: inline-block; }
+.reset-link:hover { color: var(--coral); }
 
 /* ===== COACH FAB ===== */
 .coach-fab {
@@ -289,10 +291,6 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 .forge-form .form-group { margin-bottom:8px; }
 .forge-form textarea { min-height:60px; }
 .forge-form .form-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-
-/* Bouton reset dans paramètres */
-.reset-btn { background:rgba(248,113,113,0.15); border:0.5px solid var(--coral); color:var(--coral); }
-.reset-btn:active{opacity:0.7;}
 </style>
 </head>
 <body>
@@ -312,7 +310,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 
 <!-- Top Bar -->
 <div class="topbar">
-  <div class="topbar-title">Évolution v2.2</div>
+  <div class="topbar-title">Évolution v2.3</div>
   <div class="topbar-right">
     <div class="sync-dot" id="sync-dot"></div>
     <div class="top-xp" id="top-xp">0 XP</div>
@@ -490,16 +488,8 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
   <div class="ms-grid" id="milestones"></div>
   <div class="section-title">Journal des actions</div>
   <div class="chart-card" id="log-list"><div class="empty-state">Aucune action enregistrée</div></div>
-</div>
-
-<!-- Écran Paramètres -->
-<div id="screen-settings" class="screen">
-  <div class="avatar-card">
-    <div class="avatar-title">⚙️ Paramètres</div>
-    <div class="avatar-subtitle">Gestion des données</div>
-    <button class="bilan-btn reset-btn" onclick="reinitialiserTout()">🗑️ Réinitialiser toutes les données</button>
-    <button class="bilan-btn" onclick="exporterDonnees()">📤 Exporter les données</button>
-    <button class="bilan-btn" onclick="importerDonnees()">📥 Importer les données</button>
+  <div style="text-align:center;margin-top:12px;">
+    <span class="reset-link" onclick="reinitialiserTout()">🗑️ Réinitialiser toutes les données</span>
   </div>
 </div>
 
@@ -509,7 +499,6 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
   <button class="tab-btn" onclick="goTab('journal',this)"><span class="tab-icon">📖</span>Journal</button>
   <button class="tab-btn" onclick="goTab('piliers',this)"><span class="tab-icon">🧱</span>Piliers</button>
   <button class="tab-btn" onclick="goTab('stats',this)"><span class="tab-icon">📈</span>Stats</button>
-  <button class="tab-btn" onclick="goTab('settings',this)"><span class="tab-icon">⚙️</span>Param.</button>
 </div>
 
 <!-- Coach IA -->
@@ -532,13 +521,13 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 </div>
 
 <div class="toast" id="toast"></div>
-<div class="version-footer">v2.2.0 – 2026-07-26</div>
+<div class="version-footer">v2.3.0 – 2026-07-26</div>
 
 <script>
 // ============================================================
 // CONFIGURATION
 // ============================================================
-const VERSION = '2.2.0';
+const VERSION = '2.3.0';
 const SB_URL = 'https://nlicstxewcrzjliyslkm.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5saWNzdHhld2NyempsaXlzbGttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1ODg1NzUsImV4cCI6MjA5ODE2NDU3NX0.CTHaV_iM50Q_sA1l8_5rVL7b4nU8XonYRcds8Z702GI';
 const HDR = {
@@ -674,7 +663,6 @@ let recipes = [];
 let checkedToday = {};
 let currentSidequest = null;
 let isDayLocked = false;
-let syncTimer = null;
 let chartXp = null;
 let chartRadar = null;
 let chartOffset = 0;
@@ -804,14 +792,14 @@ async function loadFromSupabase() {
         };
       });
     } else {
-      // Initialisation à vide (reset)
+      // Aucune capacité trouvée : on initialise à zéro
       capacities = {};
       for (const p of PILLARS) {
         for (const sub of p.sub) {
           capacities[sub.id] = { xp: 0, level: 0, xp_toward_next: 0, next_level_xp: 100 };
         }
       }
-      // Sauvegarder immédiatement l'initialisation
+      // Sauvegarde immédiate des capacités vides (pour la première connexion)
       await saveProgress();
     }
 
@@ -907,16 +895,12 @@ async function saveProgress() {
     if (currentSidequest) {
       await sbUpsert('sys_sidequests', { user_id: UID, ...currentSidequest });
     }
+    // Les recettes sont sauvegardées via saveRecipes() appelé séparément
     setSyncState('ok');
   } catch (e) {
     setSyncState('error');
     console.error('saveProgress:', e);
   }
-}
-
-function scheduleSave() {
-  clearTimeout(syncTimer);
-  syncTimer = setTimeout(saveProgress, 1500);
 }
 
 function todayKey() { return new Date().toISOString().slice(0, 10); }
@@ -960,7 +944,6 @@ async function reinitialiserTout() {
   if (!confirm("⚠️ Supprimer toutes les données ? Cette action est irréversible.")) return;
   if (!confirm("Confirmer : tout l'XP, les logs, les quêtes forgées et les recettes seront effacés.")) return;
   
-  // Supprimer toutes les données de l'utilisateur
   try {
     await sbDelete('sys_progress', UID, null, null);
     await sbDelete('sys_capacities', UID, null, null);
@@ -1543,7 +1526,8 @@ async function toggleQuete(id) {
     await sbInsert('sys_log', entry);
     toast("✅ +" + xp + " XP pour '" + q.name + "'");
   }
-  scheduleSave();
+  // Sauvegarde immédiate
+  await saveProgress();
   updateAll();
 }
 
@@ -1607,7 +1591,7 @@ async function toggleSidequest() {
     toast("✅ +" + finalXp + " XP pour la sidequest !");
   }
   await sbUpsert('sys_sidequests', { user_id: UID, ...currentSidequest });
-  scheduleSave();
+  await saveProgress();
   updateAll();
 }
 
@@ -1634,7 +1618,7 @@ async function rerollSidequestIA() {
 }
 
 // ============================================================
-// QUÊTES FORGÉES (création, édition, suppression)
+// QUÊTES FORGÉES
 // ============================================================
 function ouvrirFormulaireForge() {
   const form = document.getElementById('forge-form');
@@ -1670,7 +1654,6 @@ document.addEventListener('change', function(e) {
   }
 });
 
-// Création manuelle avec sélection multiple de capacités
 function creerManuellement(name, desc, duration) {
   const type = document.getElementById('forge-type').value;
   const target = document.getElementById('forge-target').value.trim();
@@ -1939,7 +1922,7 @@ async function marquerAccompli(id) {
   LOG.unshift(entry);
   await sbInsert('sys_log', entry);
   saveCustomQuests();
-  scheduleSave();
+  await saveProgress();
   updateAll();
   toast("🏆 Accompli ! +" + bonus + " XP bonus !");
 }
@@ -2046,8 +2029,7 @@ async function toggleRecipe(id) {
     await sbInsert('sys_log', entry);
     toast("✅ +" + xp + " XP pour la recette '" + r.name + "'");
   }
-  saveRecipes();
-  scheduleSave();
+  await saveProgress();
   updateAll();
 }
 
@@ -2174,7 +2156,7 @@ async function validerJour() {
   recipes.forEach(r => { r.done = false; });
   isDayLocked = true;
   S.is_day_locked = true;
-  scheduleSave();
+  await saveProgress();
   updateAll();
   toast("🔒 Journée validée !");
 }
@@ -2183,7 +2165,7 @@ function modifierJour() {
   if (!isDayLocked) { toast("⚠️ La journée n'est pas verrouillée."); return; }
   isDayLocked = false;
   S.is_day_locked = false;
-  scheduleSave();
+  saveProgress();
   updateAll();
   toast("✏️ Journée déverrouillée.");
 }
@@ -2213,49 +2195,6 @@ function toggleAccordion(id) {
     body.classList.toggle('open');
     body.style.display = body.classList.contains('open') ? 'block' : 'none';
   }
-}
-
-// ============================================================
-// EXPORT / IMPORT
-// ============================================================
-function exporterDonnees() {
-  const data = { S, LOG, capacities, customQuests, recipes, checkedToday };
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `evolution_backup_${todayKey()}.json`;
-  a.click();
-  toast("📤 Données exportées !");
-}
-
-function importerDonnees() {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = '.json';
-  input.onchange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const text = await file.text();
-    try {
-      const data = JSON.parse(text);
-      if (data.S && data.LOG && data.capacities) {
-        Object.assign(S, data.S);
-        LOG = data.LOG;
-        capacities = data.capacities;
-        customQuests = data.customQuests || [];
-        recipes = data.recipes || [];
-        checkedToday = data.checkedToday || {};
-        scheduleSave();
-        updateAll();
-        toast("📥 Données importées !");
-      } else {
-        toast("⚠️ Fichier invalide.");
-      }
-    } catch (err) {
-      toast("⚠️ Erreur de lecture.");
-    }
-  };
-  input.click();
 }
 
 // ============================================================
