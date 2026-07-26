@@ -6,12 +6,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Évolution">
-<title>Évolution v1.6</title>
+<title>Évolution v1.7</title>
 <link rel="icon" type="image/jpeg" href="favicon.jpg?v=3">
 <link rel="apple-touch-icon" href="favicon.jpg?v=3">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-/* ===== STYLES (reprise de la v1 avec ajustements) ===== */
+/* ===== STYLES ===== */
 :root{--bg:#0e0e10;--card:#18181c;--card2:#222228;--border:rgba(255,255,255,0.07);--text:#f0f0f0;--muted:#777;--accent:#a78bfa;--accent2:#7c3aed;--green:#34d399;--amber:#fbbf24;--coral:#f87171;--blue:#60a5fa;--orange:#fb923c;--r:14px;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;font-size:15px;min-height:100dvh;padding-bottom:calc(76px + env(safe-area-inset-bottom));}
@@ -92,12 +92,13 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .pillar:hover{background:var(--card2);}
 .pillar .sub-pillars{display:none;margin-top:10px;padding-top:10px;border-top:0.5px solid var(--border);}
 .pillar .sub-pillars.open{display:block;}
+.pillar .pillar-global-bar{margin-top:6px;}
 .sub-pillar{display:flex;align-items:center;gap:8px;margin-bottom:6px;padding:4px 0;}
 .sub-pillar .sub-label{font-size:11px;font-weight:600;color:var(--muted);min-width:70px;}
 .sub-pillar .sub-track{flex:1;background:rgba(255,255,255,0.06);border-radius:4px;height:4px;overflow:hidden;}
 .sub-pillar .sub-fill{height:100%;border-radius:4px;transition:width .5s;}
 .sub-pillar .sub-value{font-size:10px;color:var(--muted);min-width:40px;text-align:right;}
-.pillar-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.pillar-top{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
 .pillar-icon{font-size:20px;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .pillar-name{font-size:14px;font-weight:600;flex:1;}
 .pillar-lv{font-size:12px;color:var(--muted);}
@@ -191,10 +192,9 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 .recipe-item .recipe-name{font-weight:500;}
 .recipe-item .recipe-meta{font-size:11px;color:var(--muted);}
 .recipe-item .recipe-xp{font-size:12px;font-weight:700;color:var(--accent);}
-.recipe-item .recipe-steps{font-size:13px;color:var(--muted);margin-top:4px;padding-left:12px;border-left:2px solid var(--border);display:none;white-space:pre-wrap;}
-.recipe-item .recipe-steps.open{display:block;}
-.recipe-item .recipe-ingredients{font-size:12px;color:var(--text);margin-top:4px;padding-left:12px;border-left:2px solid var(--border);display:none;}
-.recipe-item .recipe-ingredients.open{display:block;}
+.recipe-item .recipe-details{font-size:12px;color:var(--muted);margin-top:4px;padding-left:12px;border-left:2px solid var(--border);display:none;}
+.recipe-item .recipe-details.open{display:block;}
+.recipe-item .recipe-details .detail-line{padding:2px 0;white-space:pre-wrap;}
 .recipe-item.done{opacity:0.4;}
 .recipe-item.done .recipe-name{text-decoration:line-through;}
 .rating-popup{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:400;display:none;align-items:center;justify-content:center;padding:20px;}
@@ -224,7 +224,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 .log-toggle-btn:hover { color: var(--text); }
 .version-footer { text-align: center; font-size: 11px; color: var(--muted); padding: 20px 0 10px; border-top: 0.5px solid var(--border); margin-top: 20px; }
 
-/* ===== BOUTON COACH IA FLOTTANT ===== */
+/* ===== COACH FAB ===== */
 .coach-fab {
   position: fixed;
   bottom: 80px;
@@ -292,14 +292,14 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 
 <!-- Top Bar -->
 <div class="topbar">
-  <div class="topbar-title">Évolution v1.6</div>
+  <div class="topbar-title">Évolution v1.7</div>
   <div class="topbar-right">
     <div class="sync-dot" id="sync-dot"></div>
     <div class="top-xp" id="top-xp">0 XP</div>
   </div>
 </div>
 
-<!-- Écran Aujourd'hui (Quêtes) -->
+<!-- Écran Aujourd'hui (Quêtes du jour) -->
 <div id="screen-today" class="screen active">
   <div id="phase-banner" class="phase-banner ph1">
     <div class="phase-icon">🌱</div>
@@ -334,6 +334,16 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
   <div class="section-title">⚡ Optimal</div>
   <div id="quetes-opt"></div>
 
+  <!-- Quêtes personnelles -->
+  <div class="section-title">📋 Quêtes personnelles</div>
+  <div id="personal-quests"></div>
+  <button class="btn-sm btn-accent" onclick="ajouterQuetePersonnelle()" style="width:100%;margin-top:6px;">➕ Ajouter une quête personnelle</button>
+
+  <button class="btn-main" id="btn-valider" onclick="validerJour()">✓ Valider la journée</button>
+</div>
+
+<!-- Écran Bibliothèque (Sidequest, Quêtes forgées, Recettes) -->
+<div id="screen-library" class="screen">
   <!-- Sidequest -->
   <div class="section-title">🎲 Sidequest du Jour</div>
   <div class="sidequest-box" style="margin-bottom:12px;">
@@ -351,14 +361,14 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
     <button class="btn-sm btn-muted" id="btn-reroll" onclick="rerollSidequestIA()" style="width:100%;">🎲 Relancer via le Coach (IA)</button>
   </div>
 
-  <!-- Quêtes personnelles (forgées + extérieures) -->
-  <div class="section-title">📋 Quêtes personnelles</div>
-  <div id="personal-quests"></div>
-  <button class="btn-sm btn-accent" onclick="ajouterQuetePersonnelle()" style="width:100%;margin-top:6px;">➕ Ajouter une quête personnelle</button>
+  <!-- Quêtes forgées -->
+  <div class="section-title">🔨 Quêtes forgées</div>
+  <div id="forged-quests"></div>
+  <button class="btn-sm btn-accent" onclick="ajouterQueteForgee()" style="width:100%;margin-top:6px;">➕ Forger une quête</button>
 
   <!-- Recettes -->
   <div class="section-title">🍳 Recettes</div>
-  <div id="recipes-list-short"></div>
+  <div id="recipes-list"></div>
   <button class="btn-sm btn-muted" onclick="toggleSection('recipe-form')" style="width:100%;margin-top:6px;">➕ Ajouter une recette</button>
   <div id="recipe-form" style="display:none;margin-top:8px;">
     <div class="rev-card" style="margin-bottom:8px;">
@@ -378,8 +388,6 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
       <button class="btn-sm btn-accent" onclick="ajouterRecette()" style="width:100%;">+ Ajouter</button>
     </div>
   </div>
-
-  <button class="btn-main" id="btn-valider" onclick="validerJour()">✓ Valider la journée</button>
 </div>
 
 <!-- Écran Piliers -->
@@ -419,6 +427,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 <!-- Tab Bar -->
 <div class="tab-bar">
   <button class="tab-btn active" onclick="goTab('today',this)"><span class="tab-icon">☀️</span>Quêtes</button>
+  <button class="tab-btn" onclick="goTab('library',this)"><span class="tab-icon">📚</span>Bibliothèque</button>
   <button class="tab-btn" onclick="goTab('piliers',this)"><span class="tab-icon">🧱</span>Piliers</button>
   <button class="tab-btn" onclick="goTab('stats',this)"><span class="tab-icon">📈</span>Stats</button>
 </div>
@@ -443,13 +452,13 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 </div>
 
 <div class="toast" id="toast"></div>
-<div class="version-footer">v1.6.0 – 2026-07-26</div>
+<div class="version-footer">v1.7.0 – 2026-07-26</div>
 
 <script>
 // ============================================================
 // CONFIGURATION
 // ============================================================
-const VERSION = '1.6.0';
+const VERSION = '1.7.0';
 const SB_URL = 'https://nlicstxewcrzjliyslkm.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5saWNzdHhld2NyempsaXlzbGttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1ODg1NzUsImV4cCI6MjA5ODE2NDU3NX0.CTHaV_iM50Q_sA1l8_5rVL7b4nU8XonYRcds8Z702GI';
 const HDR = {
@@ -517,7 +526,6 @@ const PILLARS = [
   }
 ];
 
-// Quêtes prédéfinies
 const QUETES = {
   min: [
     { id: 'q1', name: 'Respiration / cohérence cardiaque', desc: '5 min box breathing ou cohérence cardiaque', xp: 30, caps: ['stress'], time: 5, phases: [1,2,3] },
@@ -581,7 +589,7 @@ let S = {
 };
 let LOG = [];
 let capacities = {};
-let customQuests = [];
+let customQuests = []; // quêtes forgées + personnelles
 let recipes = [];
 let checkedToday = {};
 let currentSidequest = null;
@@ -846,7 +854,8 @@ function updateAll() {
   updateHeader();
   renderQuetes();
   renderPersonalQuests();
-  renderRecipesShort();
+  renderForgedQuests();
+  renderRecipes();
   renderPiliers();
   renderStats();
   updateSidequestUI();
@@ -901,7 +910,6 @@ function renderQuetes() {
         <span class="extra-xp" id="extra-xp-${q.id}"></span>
       </div>
     ` : '';
-    // Générer entraînement (pour q5 et q13)
     let coachBtn = '';
     if (q.id === 'q5' && inPhase) {
       coachBtn = `
@@ -948,11 +956,12 @@ function renderQuetes() {
 
 function renderPersonalQuests() {
   const container = document.getElementById('personal-quests');
-  if (!customQuests.length) {
-    container.innerHTML = '<div class="empty-state">Aucune quête personnelle pour le moment.</div>';
+  const personal = customQuests.filter(q => q.is_personal === true);
+  if (!personal.length) {
+    container.innerHTML = '<div class="empty-state">Aucune quête personnelle.</div>';
     return;
   }
-  container.innerHTML = customQuests.map(q => {
+  container.innerHTML = personal.map(q => {
     const done = !!checkedToday[q.id];
     const capTags = (q.caps || []).map(id => {
       const cap = PILLARS.flatMap(p => p.sub).find(c => c.id === id);
@@ -975,31 +984,64 @@ function renderPersonalQuests() {
   }).join('');
 }
 
-function renderRecipesShort() {
-  const container = document.getElementById('recipes-list-short');
+function renderForgedQuests() {
+  const container = document.getElementById('forged-quests');
+  const forged = customQuests.filter(q => !q.is_personal);
+  if (!forged.length) {
+    container.innerHTML = '<div class="empty-state">Aucune quête forgée.</div>';
+    return;
+  }
+  container.innerHTML = forged.map(q => {
+    const done = !!checkedToday[q.id];
+    const capTags = (q.caps || []).map(id => {
+      const cap = PILLARS.flatMap(p => p.sub).find(c => c.id === id);
+      return cap ? `<span class="tag tag-cap">${cap.name}</span>` : '';
+    }).join('');
+    const typeTag = `<span class="tag tag-personal">${q.type === 'oneshot' ? 'One-shot' : 'Récurrente'}</span>`;
+    return `<div class="quest${done ? ' done' : ''}" onclick="toggleQuete('${q.id}')">
+      <div class="check">${done ? '✓' : ''}</div>
+      <div class="q-info">
+        <div class="q-name">${q.name}</div>
+        <div class="q-tags">${typeTag}${capTags}</div>
+      </div>
+      <div class="q-xp">+${q.xp || 0} XP</div>
+      <div class="q-actions">
+        <button class="del" onclick="event.stopPropagation();deleteForgedQuest('${q.id}')">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderRecipes() {
+  const container = document.getElementById('recipes-list');
   if (!recipes.length) {
     container.innerHTML = '<div class="empty-state">Aucune recette.</div>';
     return;
   }
-  container.innerHTML = recipes.slice(0, 3).map(r => {
+  container.innerHTML = recipes.map(r => {
     const done = r.done || false;
-    return `<div class="recipe-item${done ? ' done' : ''}" onclick="toggleRecipe('${r.id}')" style="margin-bottom:4px;">
+    const details = [];
+    if (r.ingredients) details.push(`Ingrédients :\n${formatIngredients(r.ingredients)}`);
+    if (r.steps) details.push(`Étapes :\n${formatSteps(r.steps)}`);
+    const detailHtml = details.map(d => `<div class="detail-line">${d}</div>`).join('');
+    return `<div class="recipe-item${done ? ' done' : ''}" onclick="toggleRecipe('${r.id}')">
       <div class="check">${done ? '✓' : ''}</div>
       <div class="recipe-info">
         <div class="recipe-name">${r.name}</div>
-        <div class="recipe-meta">⏱️ ${r.time} min</div>
+        <div class="recipe-meta">⏱️ ${r.time} min · 👥 ${r.people} pers</div>
+        <div class="recipe-details open">${detailHtml}</div>
       </div>
       <div class="recipe-xp">+${r.total_xp || 0}</div>
     </div>`;
   }).join('');
-  if (recipes.length > 3) {
-    container.innerHTML += `<div style="font-size:11px;color:var(--muted);text-align:center;padding:4px;">+ ${recipes.length-3} autres recettes</div>`;
-  }
 }
 
 function renderPiliers() {
   const container = document.getElementById('piliers-list');
   container.innerHTML = PILLARS.map(p => {
+    const totalXP = p.sub.reduce((sum, s) => sum + (capacities[s.id]?.xp || 0), 0);
+    const maxXP = 5000; // seuil pour la barre globale
+    const pctGlobal = Math.min(100, (totalXP / maxXP) * 100);
     const subHtml = p.sub.map(sub => {
       const data = capacities[sub.id] || { xp: 0, level: 0, xp_toward_next: 0, next_level_xp: 100 };
       const pct = data.next_level_xp > 0 ? Math.min(100, (data.xp_toward_next / data.next_level_xp) * 100) : 0;
@@ -1010,13 +1052,16 @@ function renderPiliers() {
         <span style="font-size:10px;color:var(--muted);min-width:30px;">Niv.${data.level}</span>
       </div>`;
     }).join('');
-    const totalXP = p.sub.reduce((sum, s) => sum + (capacities[s.id]?.xp || 0), 0);
     return `<div class="pillar" onclick="toggleSubPillars('${p.id}')">
       <div class="pillar-top">
         <div class="pillar-icon" style="background:${p.color}22">${p.icon}</div>
         <div class="pillar-name">${p.name}</div>
         <div class="pillar-lv">${totalXP} XP</div>
         <span class="pillar-arrow" id="arrow-${p.id}">▼</span>
+      </div>
+      <div class="pillar-global-bar">
+        <div class="bar-wrap"><div class="bar-fill" style="width:${pctGlobal}%;background:${p.color}"></div></div>
+        <div class="bar-label"><span>Global</span><span>${Math.round(pctGlobal)}%</span></div>
       </div>
       <div class="sub-pillars" id="sub-${p.id}">
         ${subHtml}
@@ -1118,7 +1163,7 @@ function renderStats() {
     </div>`;
   }).join('');
 
-  // Journal (déroulant)
+  // Journal
   const logContainer = document.getElementById('log-list');
   if (!LOG.length) {
     logContainer.innerHTML = '<div class="empty-state">Aucune action enregistrée</div>';
@@ -1431,7 +1476,7 @@ async function rerollSidequestIA() {
 }
 
 // ============================================================
-// QUÊTES PERSONNELLES (forgées + extérieures)
+// QUÊTES PERSONNELLES (extérieures)
 // ============================================================
 async function ajouterQuetePersonnelle() {
   const name = prompt("Nom de la quête :");
@@ -1495,6 +1540,44 @@ async function deletePersonalQuest(id) {
   toast("🗑️ Quête supprimée.");
 }
 
+// ============================================================
+// QUÊTES FORGÉES
+// ============================================================
+function ajouterQueteForgee() {
+  const name = prompt("Nom de la quête forgée :");
+  if (!name) return;
+  const diff = prompt("Difficulté : facile (5 XP), moyen (15 XP), difficile (30 XP)").toLowerCase();
+  let xp = 5;
+  if (diff.includes('moyen')) xp = 15;
+  else if (diff.includes('difficile')) xp = 30;
+  const type = confirm("Récurrente ? (OK = oui)") ? 'recurrent' : 'oneshot';
+  // Sélection des capacités (optionnel)
+  const capList = PILLARS.flatMap(p => p.sub).map((c, i) => `${i+1}. ${c.name}`).join('\n');
+  const capChoice = prompt(`Capacités (numéros) :\n${capList}`);
+  const caps = capChoice ? capChoice.split(',').map(n => parseInt(n.trim())).filter(n => n > 0 && n <= PILLARS.flatMap(p => p.sub).length).map(n => PILLARS.flatMap(p => p.sub)[n-1].id) : ['coordination'];
+  const id = 'forge_' + Date.now();
+  customQuests.push({ id, name, xp, type, caps, is_personal: false });
+  saveCustomQuests();
+  updateAll();
+  toast("⚔️ Quête forgée ajoutée !");
+}
+
+async function deleteForgedQuest(id) {
+  if (!confirm("Supprimer cette quête forgée ?")) return;
+  const q = customQuests.find(x => x.id === id);
+  if (q && checkedToday[id]) {
+    const xp = q.xp || 0;
+    S.total_xp = Math.max(0, S.total_xp - xp);
+    LOG = LOG.filter(l => !(l.quest_id === id && l.created_at && l.created_at.slice(0, 10) === todayKey()));
+    await sbDelete('sys_log', UID, id, todayKey());
+    delete checkedToday[id];
+  }
+  customQuests = customQuests.filter(x => x.id !== id);
+  saveCustomQuests();
+  updateAll();
+  toast("🗑️ Quête forgée supprimée.");
+}
+
 function saveCustomQuests() {
   localStorage.setItem('sys12_custom_quests', JSON.stringify(customQuests));
   sbUpsert('sys_custom_quests', { user_id: UID, quests: JSON.stringify(customQuests) });
@@ -1523,6 +1606,7 @@ function ajouterRecette() {
   document.getElementById('recipe-steps').value = '';
   document.getElementById('recipe-ingredients').value = '';
   saveRecipes();
+  updateAll();
   toast("🍳 Recette ajoutée : '" + name + "'");
 }
 
@@ -1582,7 +1666,7 @@ async function genererEntrainement(btn, qId) {
   card.style.marginTop = '6px';
   card.style.border = '0.5px solid rgba(96,165,250,.3)';
   card.style.background = 'linear-gradient(135deg,rgba(96,165,250,.12),rgba(14,14,16,.08))';
-  card.innerHTML = '<div class="ai-header"><span style="font-size:16px">🏋️</span><span class="ai-label" style="color:var(--blue)">Séance sur-mesure</span></div><div class="ai-body" id="txt-' + qId + '">Analyse du domaine choisi et calcul du protocole adaptatif...</div>';
+  card.innerHTML = '<div class="ai-header"><span style="font-size:16px">🏋️</span><span class="ai-label" style="color:var(--blue)">Séance sur-mesure</span></div><div class="ai-body" id="txt-' + qId + '">Analyse du domaine choisi...</div>';
   btn.closest('.q-info').after(card);
   const prompt = buildCtx() + `
   En tant que coach sportif, génère un entraînement physique précis de 30 à 45 minutes.
@@ -1650,7 +1734,6 @@ async function envoyerMessageCoach() {
   input.value = '';
   messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
-  // Réponse du coach
   const coachDiv = document.createElement('div');
   coachDiv.className = 'msg coach';
   coachDiv.textContent = '🤖 Réflexion...';
@@ -1736,6 +1819,14 @@ function toast(msg) {
   clearTimeout(el._timeout);
   el._timeout = setTimeout(() => el.classList.remove('show'), 3000);
 }
+function formatSteps(text) {
+  if (!text) return '';
+  return text.split('\n').filter(l => l.trim()).map((l, i) => (i+1) + '. ' + l.trim()).join('\n');
+}
+function formatIngredients(text) {
+  if (!text) return '';
+  return text.split('\n').filter(l => l.trim()).map(l => '• ' + l.trim()).join('\n');
+}
 function goTab(id, btn) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-' + id).classList.add('active');
@@ -1743,7 +1834,7 @@ function goTab(id, btn) {
   if (btn) btn.classList.add('active');
   if (id === 'stats') renderStats();
   if (id === 'piliers') renderPiliers();
-  if (id === 'today') updateAll();
+  if (id === 'today' || id === 'library') updateAll();
 }
 
 // ============================================================
