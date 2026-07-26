@@ -6,12 +6,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Évolution">
-<title>Évolution v1.9.1</title>
+<title>Évolution v2.0</title>
 <link rel="icon" type="image/jpeg" href="favicon.jpg?v=3">
 <link rel="apple-touch-icon" href="favicon.jpg?v=3">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-/* ===== STYLES (repris de v1.9 avec ajustements) ===== */
+/* ===== STYLES (repris et ajustés) ===== */
 :root{--bg:#0e0e10;--card:#18181c;--card2:#222228;--border:rgba(255,255,255,0.07);--text:#f0f0f0;--muted:#777;--accent:#a78bfa;--accent2:#7c3aed;--green:#34d399;--amber:#fbbf24;--coral:#f87171;--blue:#60a5fa;--orange:#fb923c;--r:14px;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;font-size:15px;min-height:100dvh;padding-bottom:calc(76px + env(safe-area-inset-bottom));}
@@ -113,12 +113,13 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .pillar-sats{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;}
 .pillar-arrow{font-size:12px;color:var(--muted);transition:transform .3s;}
 .pillar-arrow.open{transform:rotate(180deg);}
-.chart-card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px;}
+.chart-card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px;position:relative;overflow:hidden;}
 .chart-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
 .chart-nav{display:flex;justify-content:space-between;align-items:center;margin-top:10px;}
-.chart-nav button{background:rgba(255,255,255,0.06);border:0.5px solid var(--border);border-radius:6px;color:var(--text);padding:4px 12px;cursor:pointer;font-family:inherit;display:none;} /* caché, remplacé par swipe */
+.chart-nav button{background:rgba(255,255,255,0.06);border:0.5px solid var(--border);border-radius:6px;color:var(--text);padding:4px 12px;cursor:pointer;font-family:inherit;display:none;} /* caché, on utilise le swipe */
 .chart-nav span{font-size:12px;color:var(--muted);}
-.chart-swipe-container{position:relative;touch-action:pan-y;}
+.chart-swipe-area{width:100%;touch-action:none;cursor:grab;}
+.chart-swipe-area:active{cursor:grabbing;}
 .cap-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
 .cap-item{background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:10px 12px;}
 .cap-name{font-size:11px;color:var(--muted);margin-bottom:4px;}
@@ -289,8 +290,6 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 .forge-form .form-group { margin-bottom:8px; }
 .forge-form textarea { min-height:60px; }
 .forge-form .form-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-.forge-form .checkbox-group { display:flex; align-items:center; gap:8px; margin-top:4px; }
-.forge-form .checkbox-group input[type="checkbox"] { width:18px; height:18px; accent-color:var(--accent); cursor:pointer; }
 </style>
 </head>
 <body>
@@ -310,14 +309,14 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 
 <!-- Top Bar -->
 <div class="topbar">
-  <div class="topbar-title">Évolution v1.9.1</div>
+  <div class="topbar-title">Évolution v2.0</div>
   <div class="topbar-right">
     <div class="sync-dot" id="sync-dot"></div>
     <div class="top-xp" id="top-xp">0 XP</div>
   </div>
 </div>
 
-<!-- Écran Aujourd'hui -->
+<!-- Écran Aujourd'hui (Quêtes du jour) -->
 <div id="screen-today" class="screen active">
   <div id="phase-banner" class="phase-banner ph1">
     <div class="phase-icon">🌱</div>
@@ -355,7 +354,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
   <button class="btn-main" id="btn-valider" onclick="validerJour()">✓ Valider la journée</button>
 </div>
 
-<!-- Écran Journal -->
+<!-- Écran Journal (Sidequest, Quêtes forgées, Recettes) -->
 <div id="screen-journal" class="screen">
   <div class="journal-accordion accordion">
     <!-- Sidequest -->
@@ -391,7 +390,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
       <div class="accordion-body" id="forged-block">
         <div id="forged-quests-list"></div>
         <button class="btn-sm btn-accent" onclick="ouvrirFormulaireForge()" style="width:100%;margin-top:10px;">➕ Forger une quête (IA)</button>
-        <!-- Formulaire de forge -->
+        <!-- Formulaire -->
         <div id="forge-form" style="display:none;margin-top:10px;">
           <div class="forge-form">
             <div class="form-group">
@@ -401,19 +400,16 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
               <textarea id="forge-desc" class="form-input" placeholder="Description détaillée (objectif, contexte, etc.)" rows="3"></textarea>
             </div>
             <div class="form-row">
-              <input type="number" id="forge-duration" class="form-input" placeholder="Durée (min)" min="1" value="15">
+              <input type="number" id="forge-duration" class="form-input" placeholder="Durée (min)" min="0" value="15" step="5">
               <select id="forge-type" class="form-select">
                 <option value="oneshot">One-shot</option>
                 <option value="recurrent">Récurrente</option>
                 <option value="recurrent-until">Récurrente jusqu'à accomplissement</option>
               </select>
             </div>
-            <div class="checkbox-group">
-              <input type="checkbox" id="forge-time-independent">
-              <label for="forge-time-independent">La durée n'est pas pertinente (XP forfaitaire)</label>
-            </div>
-            <div id="forge-target-group" style="display:none;margin-top:8px;">
+            <div id="forge-target-group" style="display:none;margin-bottom:8px;">
               <input type="text" id="forge-target" class="form-input" placeholder="Objectif final (ex: obtenir le permis)">
+              <input type="number" id="forge-bonus" class="form-input" placeholder="XP bonus final" min="10" value="50" style="margin-top:6px;">
             </div>
             <div class="btn-group" style="display:flex;gap:8px;margin-top:8px;">
               <button class="btn-sm btn-accent" onclick="analyserForgeIA()" style="flex:1;">🤖 Analyser par l'IA</button>
@@ -469,7 +465,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 <div id="screen-stats" class="screen">
   <div class="chart-card">
     <div class="chart-title">XP gagnés — 7 derniers jours</div>
-    <div class="chart-swipe-container" id="chart-swipe-container">
+    <div class="chart-swipe-area" id="chart-swipe-area">
       <canvas id="chart-xp" height="130"></canvas>
     </div>
     <div class="chart-nav">
@@ -522,13 +518,13 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 </div>
 
 <div class="toast" id="toast"></div>
-<div class="version-footer">v1.9.1 – 2026-07-26</div>
+<div class="version-footer">v2.0.0 – 2026-07-26</div>
 
 <script>
 // ============================================================
 // CONFIGURATION
 // ============================================================
-const VERSION = '1.9.1';
+const VERSION = '2.0.0';
 const SB_URL = 'https://nlicstxewcrzjliyslkm.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5saWNzdHhld2NyempsaXlzbGttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1ODg1NzUsImV4cCI6MjA5ODE2NDU3NX0.CTHaV_iM50Q_sA1l8_5rVL7b4nU8XonYRcds8Z702GI';
 const HDR = {
@@ -540,8 +536,6 @@ const HDR = {
 
 // ============================================================
 // DONNÉES STATIQUES
-// ============================================================
-// ... (inchangé, voir v1.9)
 // ============================================================
 const LEVELS = [
   { min: 0, name: 'Initié' }, { min: 500, name: 'Apprenti' }, { min: 1200, name: 'Praticien' },
@@ -673,7 +667,7 @@ let chartOffset = 0;
 let forgePending = null;
 let newForgedCount = 0;
 let touchStartX = 0;
-let touchStartY = 0;
+let touchEndX = 0;
 
 // ============================================================
 // FONCTIONS SUPABASE
@@ -702,7 +696,7 @@ async function sbGetMany(table, uid, limit = 50) {
 }
 
 // ============================================================
-// IA
+// IA (Gemini via Cloudflare Worker) - version optimisée
 // ============================================================
 const WORKER_URL = 'https://evolution-ai.eliseobuti.workers.dev';
 function callGemini(prompt) {
@@ -711,7 +705,7 @@ function callGemini(prompt) {
       const xhr = new XMLHttpRequest();
       xhr.open('POST', WORKER_URL, true);
       xhr.setRequestHeader('Content-Type', 'application/json');
-      xhr.timeout = 20000;
+      xhr.timeout = 18000; // 18s
       xhr.onload = function() {
         try {
           const d = JSON.parse(xhr.responseText);
@@ -719,7 +713,7 @@ function callGemini(prompt) {
         } catch (e) { resolve('Erreur parsing: ' + xhr.responseText.slice(0, 80)); }
       };
       xhr.onerror = function() { resolve('Erreur réseau XHR.'); };
-      xhr.ontimeout = function() { resolve('Timeout — réessaie.'); };
+      xhr.ontimeout = function() { resolve('Timeout'); };
       xhr.send(JSON.stringify({ prompt: prompt }));
     } catch (e) { resolve('Erreur: ' + e.message); }
   });
@@ -742,56 +736,23 @@ function buildCtx() {
   return ctx;
 }
 
-async function analyzeForgedQuest(name, desc, duration, timeIndependent, questType) {
-  const capsList = PILLARS.flatMap(p => p.sub).map(c => `- ${c.id}: ${c.name} (pilier ${p.id})`).join('\n');
-  let typeInstruction = '';
-  let bonusInstruction = '';
-  if (questType === 'recurrent-until') {
-    typeInstruction = 'Il s\'agit d\'une quête "récurrente jusqu\'à accomplissement". L\'utilisateur devra réaliser cette quête plusieurs fois, et recevra un bonus XP supplémentaire lorsqu\'il aura atteint l\'objectif final.';
-    bonusInstruction = 'Propose un bonus XP (champ "bonus_xp") pour l\'accomplissement final, en plus de l\'XP par session.';
-  }
-  let timeInstruction = '';
-  if (timeIndependent) {
-    timeInstruction = 'La durée n\'est pas pertinente pour cette quête. Propose un XP forfaitaire (indépendant du temps).';
-  } else {
-    timeInstruction = `Durée estimée : ${duration} minutes. Propose un XP proportionnel à la durée et à la difficulté.`;
-  }
-  const prompt = `
-  Analyse la quête suivante pour l'intégrer dans un système de suivi de développement personnel.
-  Nom : "${name}"
-  Description : "${desc}"
-  ${timeInstruction}
-  ${typeInstruction}
-
-  Réponds au format JSON strict avec les champs :
-  {
-    "caps": ["id1", "id2", ...],  // IDs des capacités impactées (peuvent être de différents piliers, 1 à 3)
-    "xp": 30,                     // XP par session (ou forfaitaire si temps non pertinent)
-    "bonus_xp": 50,               // (optionnel) Bonus pour les quêtes "recurrent-until"
-    "needs_clarification": false,
-    "clarification_question": ""
-  }
-
-  Liste des capacités disponibles (avec leur pilier) :
-  ${capsList}
-
-  Si la description est insuffisante pour identifier les capacités, mets "needs_clarification" à true.
-  Ne renvoie que le JSON, rien d'autre.
-  `;
+async function analyzeForgedQuest(name, desc, duration) {
+  const capsList = PILLARS.flatMap(p => p.sub).map(c => `${c.id}:${c.name}`).join('; ');
+  const prompt = `Quête: "${name}" (${desc}). Durée:${duration}min. Réponds JSON: {"caps":["id"],"xp":30}. Capacités: ${capsList}. Si vague, {"needs_clarification":true,"clarification_question":"..."}`;
   const response = await callGemini(prompt);
+  if (response === 'Timeout') throw new Error('timeout');
   try {
     const parsed = JSON.parse(response);
     const validCaps = parsed.caps ? parsed.caps.filter(id => PILLARS.some(p => p.sub.some(c => c.id === id))) : [];
     return {
       caps: validCaps.length ? validCaps : ['raisonnement'],
       xp: Math.max(10, parsed.xp || 30),
-      bonus_xp: parsed.bonus_xp || (questType === 'recurrent-until' ? 50 : 0),
       needs_clarification: parsed.needs_clarification || false,
       clarification_question: parsed.clarification_question || ''
     };
   } catch (e) {
     console.warn('Analyse IA échouée', e);
-    return { caps: ['raisonnement'], xp: 20, bonus_xp: 0, needs_clarification: false, clarification_question: '' };
+    return { caps: ['raisonnement'], xp: 20, needs_clarification: false, clarification_question: '' };
   }
 }
 
@@ -957,8 +918,8 @@ function updateBadges() {
     forgeBadge.classList.toggle('show', newForgedCount > 0);
     forgeBadge.textContent = newForgedCount > 0 ? newForgedCount : '';
   }
-  const newRecipes = parseInt(localStorage.getItem('sys12_new_recipes') || '0');
   const recipeBadge = document.getElementById('recipe-badge');
+  const newRecipes = parseInt(localStorage.getItem('sys12_new_recipes') || '0');
   if (recipeBadge) {
     recipeBadge.classList.toggle('show', newRecipes > 0);
     recipeBadge.textContent = newRecipes > 0 ? newRecipes : '';
@@ -1099,7 +1060,6 @@ function renderForgedQuests() {
   container.innerHTML = forged.map(q => {
     const done = !!checkedToday[q.id] && !q.completed;
     const completed = q.completed === true;
-    const isLocked = completed && q.type === 'recurrent-until';
     const caps = q.caps || [];
     const capTags = caps.map(id => {
       const cap = PILLARS.flatMap(p => p.sub).find(c => c.id === id);
@@ -1127,8 +1087,7 @@ function renderForgedQuests() {
         <div class="q-name">${q.name}</div>
         <div class="q-desc">${q.desc || ''}</div>
         <div class="q-tags">${typeTag}${capTags}</div>
-        ${q.duration && !q.timeIndependent ? `<div style="font-size:11px;color:var(--muted);margin-top:2px;">⏱️ ${q.duration} min</div>` : ''}
-        ${q.timeIndependent ? `<div style="font-size:11px;color:var(--muted);margin-top:2px;">⏱️ Durée non pertinente</div>` : ''}
+        ${q.duration ? `<div style="font-size:11px;color:var(--muted);margin-top:2px;">⏱️ ${q.duration} min</div>` : ''}
         ${bonusHtml}
       </div>
       <div class="q-xp">+${xpDisplay} XP</div>
@@ -1212,7 +1171,6 @@ function toggleSubPillars(pId) {
 }
 
 function renderStats() {
-  // Heatmap
   const today = todayKey();
   const activeDays = [...new Set(LOG.map(l => l.created_at && l.created_at.slice(0, 10)).filter(Boolean))];
   let hm = '';
@@ -1225,7 +1183,6 @@ function renderStats() {
   }
   document.getElementById('heatmap').innerHTML = hm;
 
-  // Radar
   const maxXP = Math.max(...PILLARS.map(p => p.sub.reduce((sum, s) => sum + (capacities[s.id]?.xp || 0), 0)));
   const rData = PILLARS.map(p => {
     const total = p.sub.reduce((sum, s) => sum + (capacities[s.id]?.xp || 0), 0);
@@ -1335,30 +1292,41 @@ function toggleLog() {
 
 function renderXpChart() {
   const ctx = document.getElementById('chart-xp').getContext('2d');
-  const dailyXP = {};
+  const today = new Date();
+  const days = [];
+  const labels = [];
+  const data = [];
+  
+  // Générer les 7 derniers jours (incluant aujourd'hui)
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    days.push(key);
+    labels.push(key.slice(5, 10)); // MM-DD
+    data.push(0);
+  }
+  
+  // Remplir les données avec les XP des logs
   LOG.forEach(l => {
     if (l.created_at) {
       const day = l.created_at.slice(0, 10);
-      dailyXP[day] = (dailyXP[day] || 0) + l.xp;
+      const index = days.indexOf(day);
+      if (index !== -1) {
+        data[index] += l.xp || 0;
+      }
     }
   });
-  const sortedDays = Object.keys(dailyXP).sort();
-  const endIndex = sortedDays.length - 1 - chartOffset;
-  const startIndex = Math.max(0, endIndex - 6);
-  const windowDays = sortedDays.slice(startIndex, endIndex + 1);
-  const labels = windowDays.map(d => d.slice(5, 10));
-  const data = windowDays.map(d => dailyXP[d] || 0);
-
-  const rangeText = windowDays.length ? `${windowDays[0].slice(5,10)} → ${windowDays[windowDays.length-1].slice(5,10)}` : '...';
-  document.getElementById('chart-range').textContent = rangeText;
-
+  
+  document.getElementById('chart-range').textContent = `${days[0].slice(5,10)} → ${days[days.length-1].slice(5,10)}`;
+  
   if (chartXp) chartXp.destroy();
   chartXp = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: labels.length ? labels : ['—'],
+      labels: labels,
       datasets: [{
-        data: data.length ? data : [0],
+        data: data,
         backgroundColor: 'rgba(167,139,250,0.6)',
         borderColor: '#a78bfa',
         borderWidth: 1,
@@ -1392,56 +1360,54 @@ function renderXpChart() {
     }
   });
 
-  // Gestion du swipe tactile
-  const container = document.getElementById('chart-swipe-container');
-  if (container) {
-    container.addEventListener('touchstart', function(e) {
-      touchStartX = e.changedTouches[0].screenX;
-      touchStartY = e.changedTouches[0].screenY;
-    }, { passive: true });
-    container.addEventListener('touchmove', function(e) {
-      // Empêcher le scroll vertical si le swipe est horizontal
-      const dx = e.changedTouches[0].screenX - touchStartX;
-      const dy = e.changedTouches[0].screenY - touchStartY;
-      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 30) {
-        e.preventDefault();
-        if (dx > 0) {
-          // swipe droit → reculer dans le temps (ajouter offset)
-          const newOffset = Math.min(chartOffset + 1, sortedDays.length - 1);
-          if (newOffset !== chartOffset) {
-            chartOffset = newOffset;
-            renderXpChart();
-          }
-        } else {
-          // swipe gauche → avancer dans le temps (réduire offset)
-          const newOffset = Math.max(0, chartOffset - 1);
-          if (newOffset !== chartOffset) {
-            chartOffset = newOffset;
-            renderXpChart();
-          }
+  // Gestion du swipe
+  const swipeArea = document.getElementById('chart-swipe-area');
+  swipeArea.ontouchstart = function(e) {
+    touchStartX = e.changedTouches[0].screenX;
+  };
+  swipeArea.ontouchend = function(e) {
+    touchEndX = e.changedTouches[0].screenX;
+    const diff = touchStartX - touchEndX;
+    if (Math.abs(diff) > 50) {
+      // Swipe horizontal
+      const delta = diff > 0 ? 1 : -1;
+      // Décaler l'offset pour faire défiler les jours (ici on ne peut pas vraiment défiler au-delà des 7 jours actuels, on change la plage)
+      // On va plutôt faire défiler les 7 jours dans le passé (au lieu de l'offset)
+      // On utilise un offset pour décaler la fenêtre de 7 jours
+      const newOffset = Math.max(0, chartOffset + delta);
+      if (newOffset !== chartOffset) {
+        chartOffset = newOffset;
+        // Recalculer les 7 jours avec l'offset
+        const shiftedDays = [];
+        const shiftedLabels = [];
+        const shiftedData = [];
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date(today);
+          d.setDate(d.getDate() - i - chartOffset);
+          const key = d.toISOString().slice(0, 10);
+          shiftedDays.push(key);
+          shiftedLabels.push(key.slice(5, 10));
+          shiftedData.push(0);
         }
-        touchStartX = e.changedTouches[0].screenX;
-        touchStartY = e.changedTouches[0].screenY;
+        // Remplir avec les logs
+        LOG.forEach(l => {
+          if (l.created_at) {
+            const day = l.created_at.slice(0, 10);
+            const index = shiftedDays.indexOf(day);
+            if (index !== -1) {
+              shiftedData[index] += l.xp || 0;
+            }
+          }
+        });
+        document.getElementById('chart-range').textContent = `${shiftedDays[0].slice(5,10)} → ${shiftedDays[shiftedDays.length-1].slice(5,10)}`;
+        if (chartXp) {
+          chartXp.data.labels = shiftedLabels;
+          chartXp.data.datasets[0].data = shiftedData;
+          chartXp.update();
+        }
       }
-    }, { passive: false });
-  }
-}
-
-function decalerGraphique(delta) {
-  // Déprécié : remplacé par le swipe, mais gardé pour compatibilité
-  const dailyXP = {};
-  LOG.forEach(l => {
-    if (l.created_at) {
-      const day = l.created_at.slice(0, 10);
-      dailyXP[day] = (dailyXP[day] || 0) + l.xp;
     }
-  });
-  const sortedDays = Object.keys(dailyXP).sort();
-  const newOffset = Math.max(0, Math.min(sortedDays.length - 1, chartOffset + delta));
-  if (newOffset !== chartOffset) {
-    chartOffset = newOffset;
-    renderXpChart();
-  }
+  };
 }
 
 function updateSidequestUI() {
@@ -1644,7 +1610,7 @@ async function rerollSidequestIA() {
 }
 
 // ============================================================
-// QUÊTES FORGÉES
+// QUÊTES FORGÉES (création, édition, suppression)
 // ============================================================
 function ouvrirFormulaireForge() {
   const form = document.getElementById('forge-form');
@@ -1657,8 +1623,8 @@ function ouvrirFormulaireForge() {
   document.getElementById('forge-desc').value = '';
   document.getElementById('forge-duration').value = '15';
   document.getElementById('forge-target').value = '';
+  document.getElementById('forge-bonus').value = '50';
   document.getElementById('forge-target-group').style.display = 'none';
-  document.getElementById('forge-time-independent').checked = false;
   document.getElementById('forge-analysis-result').style.display = 'none';
   document.getElementById('forge-actions').style.display = 'none';
   forgePending = null;
@@ -1680,163 +1646,233 @@ document.addEventListener('change', function(e) {
   }
 });
 
+// Fonction de création manuelle (fallback)
+function creerManuellement(name, desc, duration) {
+  const type = document.getElementById('forge-type').value;
+  const target = document.getElementById('forge-target').value.trim();
+  const bonus = parseInt(document.getElementById('forge-bonus').value) || 50;
+  const capList = PILLARS.flatMap(p => p.sub).map((c, i) => `${i+1}. ${c.name}`).join('\n');
+  const capChoice = prompt(`Choisis les capacités (numéros séparés par des virgules) :\n${capList}`);
+  const caps = capChoice ? capChoice.split(',').map(n => parseInt(n.trim())).filter(n => n > 0 && n <= PILLARS.flatMap(p => p.sub).length).map(n => PILLARS.flatMap(p => p.sub)[n-1].id) : ['raisonnement'];
+  const xp = parseInt(prompt("XP par session :", "20")) || 20;
+  const id = 'forge_' + Date.now();
+  const quest = { id, name, desc, duration, xp, caps, type, is_forged: true, done: false, completed: false };
+  if (type === 'recurrent-until') {
+    quest.target = target || 'Accomplissement';
+    quest.bonus_xp = bonus;
+  }
+  customQuests.push(quest);
+  saveCustomQuests();
+  newForgedCount++;
+  updateBadges();
+  document.getElementById('forge-form').style.display = 'none';
+  forgePending = null;
+  updateAll();
+  toast("⚔️ Quête forgée ajoutée manuellement !");
+}
+
 async function analyserForgeIA() {
   const name = document.getElementById('forge-name').value.trim();
   const desc = document.getElementById('forge-desc').value.trim();
   const duration = parseInt(document.getElementById('forge-duration').value) || 15;
-  const timeIndependent = document.getElementById('forge-time-independent').checked;
-  const questType = document.getElementById('forge-type').value;
   if (!name) { toast("⚠️ Donne un nom à la quête."); return; }
   if (!desc) { toast("⚠️ Décris la quête pour que l'IA puisse l'analyser."); return; }
 
-  toast("🤖 Analyse par l'IA en cours...");
-  const analysis = await analyzeForgedQuest(name, desc, duration, timeIndependent, questType);
+  toast("🤖 Analyse par l'IA en cours (cela peut prendre jusqu'à 15 secondes)...");
   const resultDiv = document.getElementById('forge-analysis-result');
   resultDiv.style.display = 'block';
+  resultDiv.innerHTML = `<div class="ai-card" style="border-color:var(--amber);"><div class="ai-header"><span style="font-size:16px">⏳</span><span class="ai-label">Analyse en cours...</span></div><div class="ai-body">L'IA analyse ta quête. Cela peut prendre quelques secondes.</div></div>`;
 
-  if (analysis.needs_clarification) {
+  try {
+    const analysisPromise = analyzeForgedQuest(name, desc, duration);
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 15000));
+    let analysis = await Promise.race([analysisPromise, timeoutPromise]);
+
+    if (analysis.needs_clarification) {
+      resultDiv.innerHTML = `
+        <div class="ai-card" style="border-color:var(--amber);">
+          <div class="ai-header"><span style="font-size:16px">🤔</span><span class="ai-label">Précision nécessaire</span></div>
+          <div class="ai-body">${analysis.clarification_question}</div>
+          <div style="margin-top:8px;display:flex;gap:6px;">
+            <input type="text" id="clarification-input" class="form-input" placeholder="Ta réponse..." style="flex:1;">
+            <button class="btn-sm btn-accent" onclick="repondreClarification('${name}', '${desc}', ${duration})">Envoyer</button>
+          </div>
+        </div>
+      `;
+      document.getElementById('forge-actions').style.display = 'none';
+      forgePending = { name, desc, duration, step: 'clarification' };
+      return;
+    }
+
+    const capNames = analysis.caps.map(id => PILLARS.flatMap(p => p.sub).find(c => c.id === id)?.name || id).join(', ');
+    const type = document.getElementById('forge-type').value;
+    let bonusInfo = '';
+    if (type === 'recurrent-until') {
+      bonusInfo = `<br>🎯 Objectif final : ${document.getElementById('forge-target').value || 'non défini'}<br>🏆 Bonus final : ${document.getElementById('forge-bonus').value || 50} XP`;
+    }
     resultDiv.innerHTML = `
-      <div class="ai-card" style="border-color:var(--amber);">
-        <div class="ai-header"><span style="font-size:16px">🤔</span><span class="ai-label">Précision nécessaire</span></div>
-        <div class="ai-body">${analysis.clarification_question}</div>
-        <div style="margin-top:8px;display:flex;gap:6px;">
-          <input type="text" id="clarification-input" class="form-input" placeholder="Ta réponse..." style="flex:1;">
-          <button class="btn-sm btn-accent" onclick="repondreClarification('${name}', '${desc}', ${duration}, ${timeIndependent}, '${questType}')">Envoyer</button>
+      <div class="ai-card" style="border-color:var(--green);">
+        <div class="ai-header"><span style="font-size:16px">✅</span><span class="ai-label">Analyse IA</span></div>
+        <div class="ai-body">
+          Capacités : ${capNames}<br>
+          XP par session : ${analysis.xp}<br>
+          Durée : ${duration} min
+          ${bonusInfo}
         </div>
       </div>
     `;
-    document.getElementById('forge-actions').style.display = 'none';
-    forgePending = { name, desc, duration, timeIndependent, questType, step: 'clarification' };
-    return;
-  }
+    document.getElementById('forge-actions').style.display = 'block';
+    const target = document.getElementById('forge-target').value.trim();
+    const bonus = parseInt(document.getElementById('forge-bonus').value) || 50;
+    forgePending = { 
+      name, desc, duration, 
+      caps: analysis.caps, 
+      xp: analysis.xp,
+      type: type,
+      target: target,
+      bonus_xp: bonus
+    };
 
-  const capNames = analysis.caps.map(id => PILLARS.flatMap(p => p.sub).find(c => c.id === id)?.name || id).join(', ');
-  let bonusInfo = '';
-  if (questType === 'recurrent-until' && analysis.bonus_xp) {
-    bonusInfo = `<br>🏆 Bonus final : ${analysis.bonus_xp} XP`;
+  } catch (error) {
+    if (error.message === 'timeout') {
+      toast("⏱️ L'analyse a pris trop de temps. Utilise la création manuelle.");
+      resultDiv.innerHTML = `
+        <div class="ai-card" style="border-color:var(--coral);">
+          <div class="ai-header"><span style="font-size:16px">⏱️</span><span class="ai-label">Délai dépassé</span></div>
+          <div class="ai-body">L'IA n'a pas répondu assez vite. Tu peux créer la quête manuellement.</div>
+          <button class="btn-sm btn-accent" onclick="creerManuellement('${name}', '${desc}', ${duration})" style="margin-top:8px;">✏️ Créer manuellement</button>
+        </div>
+      `;
+      document.getElementById('forge-actions').style.display = 'none';
+    } else {
+      console.error('Erreur analyse:', error);
+      toast("⚠️ Erreur lors de l'analyse. Réessaie ou crée manuellement.");
+      resultDiv.innerHTML = `
+        <div class="ai-card" style="border-color:var(--coral);">
+          <div class="ai-header"><span style="font-size:16px">❌</span><span class="ai-label">Erreur</span></div>
+          <div class="ai-body">L'analyse a échoué. Tu peux créer la quête manuellement.</div>
+          <button class="btn-sm btn-accent" onclick="creerManuellement('${name}', '${desc}', ${duration})" style="margin-top:8px;">✏️ Créer manuellement</button>
+        </div>
+      `;
+      document.getElementById('forge-actions').style.display = 'none';
+    }
   }
-  resultDiv.innerHTML = `
-    <div class="ai-card" style="border-color:var(--green);">
-      <div class="ai-header"><span style="font-size:16px">✅</span><span class="ai-label">Analyse IA</span></div>
-      <div class="ai-body">
-        Capacités : ${capNames}<br>
-        XP par session : ${analysis.xp}
-        ${timeIndependent ? ' (forfaitaire)' : ''}
-        ${bonusInfo}
-      </div>
-    </div>
-  `;
-  document.getElementById('forge-actions').style.display = 'block';
-  const target = document.getElementById('forge-target').value.trim();
-  forgePending = { 
-    name, desc, duration, timeIndependent, questType,
-    caps: analysis.caps, 
-    xp: analysis.xp,
-    bonus_xp: analysis.bonus_xp || 0,
-    target: target
-  };
 }
 
-async function repondreClarification(name, desc, duration, timeIndependent, questType) {
+async function repondreClarification(name, desc, duration) {
   const input = document.getElementById('clarification-input');
   const reponse = input.value.trim();
   if (!reponse) { toast("⚠️ Réponds à la question."); return; }
   toast("🤖 Analyse en cours avec les précisions...");
   const newDesc = desc + "\nPrécision : " + reponse;
-  const analysis = await analyzeForgedQuest(name, newDesc, duration, timeIndependent, questType);
-  const resultDiv = document.getElementById('forge-analysis-result');
-  if (analysis.needs_clarification) {
+  try {
+    const analysis = await analyzeForgedQuest(name, newDesc, duration);
+    const resultDiv = document.getElementById('forge-analysis-result');
+    if (analysis.needs_clarification) {
+      resultDiv.innerHTML = `
+        <div class="ai-card" style="border-color:var(--amber);">
+          <div class="ai-header"><span style="font-size:16px">🤔</span><span class="ai-label">Encore une précision</span></div>
+          <div class="ai-body">${analysis.clarification_question}</div>
+          <div style="margin-top:8px;display:flex;gap:6px;">
+            <input type="text" id="clarification-input-2" class="form-input" placeholder="Ta réponse..." style="flex:1;">
+            <button class="btn-sm btn-accent" onclick="repondreClarification2('${name}', '${newDesc}', ${duration})">Envoyer</button>
+          </div>
+        </div>
+      `;
+      return;
+    }
+    const capNames = analysis.caps.map(id => PILLARS.flatMap(p => p.sub).find(c => c.id === id)?.name || id).join(', ');
+    const type = document.getElementById('forge-type').value;
+    let bonusInfo = '';
+    if (type === 'recurrent-until') {
+      bonusInfo = `<br>🎯 Objectif final : ${document.getElementById('forge-target').value || 'non défini'}<br>🏆 Bonus final : ${document.getElementById('forge-bonus').value || 50} XP`;
+    }
     resultDiv.innerHTML = `
-      <div class="ai-card" style="border-color:var(--amber);">
-        <div class="ai-header"><span style="font-size:16px">🤔</span><span class="ai-label">Encore une précision</span></div>
-        <div class="ai-body">${analysis.clarification_question}</div>
-        <div style="margin-top:8px;display:flex;gap:6px;">
-          <input type="text" id="clarification-input-2" class="form-input" placeholder="Ta réponse..." style="flex:1;">
-          <button class="btn-sm btn-accent" onclick="repondreClarification2('${name}', '${newDesc}', ${duration}, ${timeIndependent}, '${questType}')">Envoyer</button>
+      <div class="ai-card" style="border-color:var(--green);">
+        <div class="ai-header"><span style="font-size:16px">✅</span><span class="ai-label">Analyse IA (finale)</span></div>
+        <div class="ai-body">
+          Capacités : ${capNames}<br>
+          XP par session : ${analysis.xp}<br>
+          Durée : ${duration} min
+          ${bonusInfo}
         </div>
       </div>
     `;
-    return;
+    document.getElementById('forge-actions').style.display = 'block';
+    const target = document.getElementById('forge-target').value.trim();
+    const bonus = parseInt(document.getElementById('forge-bonus').value) || 50;
+    forgePending = { 
+      name, desc: newDesc, duration, 
+      caps: analysis.caps, 
+      xp: analysis.xp,
+      type: type,
+      target: target,
+      bonus_xp: bonus
+    };
+  } catch (error) {
+    toast("⚠️ Erreur. Création manuelle.");
+    creerManuellement(name, desc, duration);
   }
-  const capNames = analysis.caps.map(id => PILLARS.flatMap(p => p.sub).find(c => c.id === id)?.name || id).join(', ');
-  let bonusInfo = '';
-  if (questType === 'recurrent-until' && analysis.bonus_xp) {
-    bonusInfo = `<br>🏆 Bonus final : ${analysis.bonus_xp} XP`;
-  }
-  resultDiv.innerHTML = `
-    <div class="ai-card" style="border-color:var(--green);">
-      <div class="ai-header"><span style="font-size:16px">✅</span><span class="ai-label">Analyse IA (finale)</span></div>
-      <div class="ai-body">
-        Capacités : ${capNames}<br>
-        XP par session : ${analysis.xp}
-        ${timeIndependent ? ' (forfaitaire)' : ''}
-        ${bonusInfo}
-      </div>
-    </div>
-  `;
-  document.getElementById('forge-actions').style.display = 'block';
-  const target = document.getElementById('forge-target').value.trim();
-  forgePending = { 
-    name, desc: newDesc, duration, timeIndependent, questType,
-    caps: analysis.caps, 
-    xp: analysis.xp,
-    bonus_xp: analysis.bonus_xp || 0,
-    target: target
-  };
 }
 
-async function repondreClarification2(name, desc, duration, timeIndependent, questType) {
+async function repondreClarification2(name, desc, duration) {
   const input = document.getElementById('clarification-input-2');
   const reponse = input.value.trim();
   if (!reponse) { toast("⚠️ Réponds à la question."); return; }
   const newDesc = desc + "\nPrécision : " + reponse;
-  const analysis = await analyzeForgedQuest(name, newDesc, duration, timeIndependent, questType);
-  const resultDiv = document.getElementById('forge-analysis-result');
-  if (analysis.needs_clarification) {
-    toast("⚠️ L'IA n'arrive pas à cerner. Utilisation de valeurs par défaut.");
-    analysis.caps = ['raisonnement'];
-    analysis.xp = 20;
-    analysis.bonus_xp = 0;
-  }
-  const capNames = analysis.caps.map(id => PILLARS.flatMap(p => p.sub).find(c => c.id === id)?.name || id).join(', ');
-  let bonusInfo = '';
-  if (questType === 'recurrent-until' && analysis.bonus_xp) {
-    bonusInfo = `<br>🏆 Bonus final : ${analysis.bonus_xp} XP`;
-  }
-  resultDiv.innerHTML = `
-    <div class="ai-card" style="border-color:var(--green);">
-      <div class="ai-header"><span style="font-size:16px">✅</span><span class="ai-label">Analyse IA (finale)</span></div>
-      <div class="ai-body">
-        Capacités : ${capNames}<br>
-        XP par session : ${analysis.xp}
-        ${timeIndependent ? ' (forfaitaire)' : ''}
-        ${bonusInfo}
+  try {
+    const analysis = await analyzeForgedQuest(name, newDesc, duration);
+    const resultDiv = document.getElementById('forge-analysis-result');
+    if (analysis.needs_clarification) {
+      toast("⚠️ L'IA n'arrive pas à cerner. Utilisation de valeurs par défaut.");
+      analysis.caps = ['raisonnement'];
+      analysis.xp = 20;
+    }
+    const capNames = analysis.caps.map(id => PILLARS.flatMap(p => p.sub).find(c => c.id === id)?.name || id).join(', ');
+    const type = document.getElementById('forge-type').value;
+    let bonusInfo = '';
+    if (type === 'recurrent-until') {
+      bonusInfo = `<br>🎯 Objectif final : ${document.getElementById('forge-target').value || 'non défini'}<br>🏆 Bonus final : ${document.getElementById('forge-bonus').value || 50} XP`;
+    }
+    resultDiv.innerHTML = `
+      <div class="ai-card" style="border-color:var(--green);">
+        <div class="ai-header"><span style="font-size:16px">✅</span><span class="ai-label">Analyse IA (finale)</span></div>
+        <div class="ai-body">
+          Capacités : ${capNames}<br>
+          XP par session : ${analysis.xp}<br>
+          Durée : ${duration} min
+          ${bonusInfo}
+        </div>
       </div>
-    </div>
-  `;
-  document.getElementById('forge-actions').style.display = 'block';
-  const target = document.getElementById('forge-target').value.trim();
-  forgePending = { 
-    name, desc: newDesc, duration, timeIndependent, questType,
-    caps: analysis.caps, 
-    xp: analysis.xp,
-    bonus_xp: analysis.bonus_xp || 0,
-    target: target
-  };
+    `;
+    document.getElementById('forge-actions').style.display = 'block';
+    const target = document.getElementById('forge-target').value.trim();
+    const bonus = parseInt(document.getElementById('forge-bonus').value) || 50;
+    forgePending = { 
+      name, desc: newDesc, duration, 
+      caps: analysis.caps, 
+      xp: analysis.xp,
+      type: type,
+      target: target,
+      bonus_xp: bonus
+    };
+  } catch (error) {
+    toast("⚠️ Erreur. Création manuelle.");
+    creerManuellement(name, desc, duration);
+  }
 }
 
 function confirmerForge() {
   if (!forgePending) return;
-  const { name, desc, duration, timeIndependent, questType, caps, xp, bonus_xp, target } = forgePending;
+  const { name, desc, duration, caps, xp, type, target, bonus_xp } = forgePending;
   const id = 'forge_' + Date.now();
   const quest = {
-    id, name, desc, duration, xp, caps, type: questType,
+    id, name, desc, duration, xp, caps, type,
     is_forged: true,
     done: false,
-    completed: false,
-    timeIndependent: timeIndependent || false
+    completed: false
   };
-  if (questType === 'recurrent-until') {
+  if (type === 'recurrent-until') {
     quest.target = target || 'Accomplissement';
     quest.bonus_xp = bonus_xp || 50;
   }
@@ -1854,9 +1890,9 @@ async function marquerAccompli(id) {
   const q = customQuests.find(x => x.id === id);
   if (!q) return;
   if (q.completed) { toast("🏆 Déjà accomplie !"); return; }
-  const bonus = q.bonus_xp || 50;
-  if (!confirm(`Marquer "${q.name}" comme accomplie ?\nVous recevrez ${bonus} XP bonus.`)) return;
+  if (!confirm(`Marquer "${q.name}" comme accomplie ?\nVous recevrez ${q.bonus_xp || 50} XP bonus.`)) return;
   q.completed = true;
+  const bonus = q.bonus_xp || 50;
   S.total_xp += bonus;
   if (q.caps) {
     const perCap = Math.floor(bonus / q.caps.length);
@@ -1890,22 +1926,21 @@ async function reevaluerForge(id) {
   const name = q.name;
   const desc = q.desc || '';
   const duration = q.duration || 15;
-  const timeIndependent = q.timeIndependent || false;
-  const questType = q.type || 'recurrent';
   toast("🤖 Réévaluation par l'IA...");
-  const analysis = await analyzeForgedQuest(name, desc, duration, timeIndependent, questType);
-  if (analysis.needs_clarification) {
-    toast("⚠️ L'IA a besoin de précisions. Modifie la description manuellement.");
-    return;
+  try {
+    const analysis = await analyzeForgedQuest(name, desc, duration);
+    if (analysis.needs_clarification) {
+      toast("⚠️ L'IA a besoin de précisions. Modifie la description manuellement.");
+      return;
+    }
+    q.caps = analysis.caps;
+    q.xp = analysis.xp;
+    saveCustomQuests();
+    updateAll();
+    toast("✅ Quête réévaluée !");
+  } catch (error) {
+    toast("⚠️ Erreur de réévaluation. Réessaie plus tard.");
   }
-  q.caps = analysis.caps;
-  q.xp = analysis.xp;
-  if (questType === 'recurrent-until' && analysis.bonus_xp) {
-    q.bonus_xp = analysis.bonus_xp;
-  }
-  saveCustomQuests();
-  updateAll();
-  toast("✅ Quête réévaluée !");
 }
 
 async function deleteForgedQuest(id) {
@@ -2000,7 +2035,7 @@ function saveRecipes() {
 }
 
 // ============================================================
-// GÉNÉRATEUR D'ENTRAÎNEMENT
+// GÉNÉRATEUR D'ENTRAÎNEMENT (IA)
 // ============================================================
 async function genererEntrainement(btn, qId) {
   const existingId = 'workout-generated-' + qId;
