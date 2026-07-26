@@ -6,12 +6,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Évolution">
-<title>Évolution v2.1</title>
+<title>Évolution v2.2</title>
 <link rel="icon" type="image/jpeg" href="favicon.jpg?v=3">
 <link rel="apple-touch-icon" href="favicon.jpg?v=3">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-/* ===== STYLES (repris et ajustés) ===== */
+/* === STYLES (repris de la v2.1 avec ajustements) === */
 :root{--bg:#0e0e10;--card:#18181c;--card2:#222228;--border:rgba(255,255,255,0.07);--text:#f0f0f0;--muted:#777;--accent:#a78bfa;--accent2:#7c3aed;--green:#34d399;--amber:#fbbf24;--coral:#f87171;--blue:#60a5fa;--orange:#fb923c;--r:14px;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;font-size:15px;min-height:100dvh;padding-bottom:calc(76px + env(safe-area-inset-bottom));}
@@ -289,6 +289,10 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 .forge-form .form-group { margin-bottom:8px; }
 .forge-form textarea { min-height:60px; }
 .forge-form .form-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+
+/* Bouton reset dans paramètres */
+.reset-btn { background:rgba(248,113,113,0.15); border:0.5px solid var(--coral); color:var(--coral); }
+.reset-btn:active{opacity:0.7;}
 </style>
 </head>
 <body>
@@ -308,7 +312,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 
 <!-- Top Bar -->
 <div class="topbar">
-  <div class="topbar-title">Évolution v2.1</div>
+  <div class="topbar-title">Évolution v2.2</div>
   <div class="topbar-right">
     <div class="sync-dot" id="sync-dot"></div>
     <div class="top-xp" id="top-xp">0 XP</div>
@@ -389,7 +393,6 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
       <div class="accordion-body" id="forged-block">
         <div id="forged-quests-list"></div>
         <button class="btn-sm btn-accent" onclick="ouvrirFormulaireForge()" style="width:100%;margin-top:10px;">➕ Forger une quête (IA)</button>
-        <!-- Formulaire -->
         <div id="forge-form" style="display:none;margin-top:10px;">
           <div class="forge-form">
             <div class="form-group">
@@ -489,12 +492,24 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
   <div class="chart-card" id="log-list"><div class="empty-state">Aucune action enregistrée</div></div>
 </div>
 
+<!-- Écran Paramètres -->
+<div id="screen-settings" class="screen">
+  <div class="avatar-card">
+    <div class="avatar-title">⚙️ Paramètres</div>
+    <div class="avatar-subtitle">Gestion des données</div>
+    <button class="bilan-btn reset-btn" onclick="reinitialiserTout()">🗑️ Réinitialiser toutes les données</button>
+    <button class="bilan-btn" onclick="exporterDonnees()">📤 Exporter les données</button>
+    <button class="bilan-btn" onclick="importerDonnees()">📥 Importer les données</button>
+  </div>
+</div>
+
 <!-- Tab Bar -->
 <div class="tab-bar">
   <button class="tab-btn active" onclick="goTab('today',this)"><span class="tab-icon">☀️</span>Quêtes</button>
   <button class="tab-btn" onclick="goTab('journal',this)"><span class="tab-icon">📖</span>Journal</button>
   <button class="tab-btn" onclick="goTab('piliers',this)"><span class="tab-icon">🧱</span>Piliers</button>
   <button class="tab-btn" onclick="goTab('stats',this)"><span class="tab-icon">📈</span>Stats</button>
+  <button class="tab-btn" onclick="goTab('settings',this)"><span class="tab-icon">⚙️</span>Param.</button>
 </div>
 
 <!-- Coach IA -->
@@ -517,13 +532,13 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 </div>
 
 <div class="toast" id="toast"></div>
-<div class="version-footer">v2.1.0 – 2026-07-26</div>
+<div class="version-footer">v2.2.0 – 2026-07-26</div>
 
 <script>
 // ============================================================
 // CONFIGURATION
 // ============================================================
-const VERSION = '2.1.0';
+const VERSION = '2.2.0';
 const SB_URL = 'https://nlicstxewcrzjliyslkm.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5saWNzdHhld2NyempsaXlzbGttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1ODg1NzUsImV4cCI6MjA5ODE2NDU3NX0.CTHaV_iM50Q_sA1l8_5rVL7b4nU8XonYRcds8Z702GI';
 const HDR = {
@@ -695,7 +710,7 @@ async function sbGetMany(table, uid, limit = 50) {
 }
 
 // ============================================================
-// IA (Gemini via Cloudflare Worker) - version optimisée
+// IA (Gemini via Cloudflare Worker)
 // ============================================================
 const WORKER_URL = 'https://evolution-ai.eliseobuti.workers.dev';
 function callGemini(prompt) {
@@ -738,7 +753,7 @@ function buildCtx() {
 async function analyzeForgedQuest(name, desc, duration) {
   const capsList = PILLARS.flatMap(p => p.sub).map(c => `${c.id}:${c.name}`).join('; ');
   const durStr = duration > 0 ? `Durée:${duration}min.` : 'Sans durée définie.';
-  const prompt = `Quête: "${name}" (${desc}). ${durStr} Réponds JSON: {"caps":["id"],"xp":30}. Capacités: ${capsList}. Si vague, {"needs_clarification":true,"clarification_question":"..."}`;
+  const prompt = `Quête: "${name}" (${desc}). ${durStr} Réponds JSON: {"caps":["id1","id2"],"xp":30}. Capacités: ${capsList}. Si vague, {"needs_clarification":true,"clarification_question":"..."}`;
   const response = await callGemini(prompt);
   if (response === 'Timeout') throw new Error('timeout');
   try {
@@ -757,7 +772,7 @@ async function analyzeForgedQuest(name, desc, duration) {
 }
 
 // ============================================================
-// CHARGEMENT DES DONNÉES
+// CHARGEMENT DES DONNÉES (corrigé)
 // ============================================================
 async function loadFromSupabase() {
   setSyncState('syncing');
@@ -796,7 +811,8 @@ async function loadFromSupabase() {
           capacities[sub.id] = { xp: 0, level: 0, xp_toward_next: 0, next_level_xp: 100 };
         }
       }
-      // Ne pas sauvegarder automatiquement pour éviter d'écraser si erreur de chargement
+      // Sauvegarder immédiatement l'initialisation
+      await saveProgress();
     }
 
     const cq = await sbGet('sys_custom_quests', UID);
@@ -869,6 +885,9 @@ async function loadFromSupabase() {
   }
 }
 
+// ============================================================
+// SAUVEGARDE (appelée après chaque action)
+// ============================================================
 async function saveProgress() {
   setSyncState('syncing');
   try {
@@ -935,17 +954,28 @@ function markRecipesViewed() {
 }
 
 // ============================================================
-// RÉINITIALISATION DES XP
+// RÉINITIALISATION TOTALE
 // ============================================================
-function resetAllXP() {
-  if (!confirm("⚠️ Réinitialiser toutes les données XP ? Cette action est irréversible.")) return;
-  if (!confirm("Confirmer : tout l'XP et les logs seront effacés.")) return;
-  S.total_xp = 0;
-  S.streak = 0;
-  S.last_day = null;
-  S.days_total = 0;
-  S.start_date = todayKey();
-  S.current_month = 1;
+async function reinitialiserTout() {
+  if (!confirm("⚠️ Supprimer toutes les données ? Cette action est irréversible.")) return;
+  if (!confirm("Confirmer : tout l'XP, les logs, les quêtes forgées et les recettes seront effacés.")) return;
+  
+  // Supprimer toutes les données de l'utilisateur
+  try {
+    await sbDelete('sys_progress', UID, null, null);
+    await sbDelete('sys_capacities', UID, null, null);
+    await sbDelete('sys_log', UID, null, null);
+    await sbDelete('sys_custom_quests', UID, null, null);
+    await sbDelete('sys_recipes', UID, null, null);
+    await sbDelete('sys_sidequests', UID, null, null);
+  } catch(e) { console.warn('Suppression échouée', e); }
+  
+  // Réinitialiser l'état local
+  S = {
+    total_xp: 0, streak: 0, last_day: null, days_total: 0,
+    start_date: todayKey(), current_month: 1,
+    is_day_locked: false
+  };
   LOG = [];
   capacities = {};
   for (const p of PILLARS) {
@@ -953,15 +983,20 @@ function resetAllXP() {
       capacities[sub.id] = { xp: 0, level: 0, xp_toward_next: 0, next_level_xp: 100 };
     }
   }
+  customQuests = [];
+  recipes = [];
   checkedToday = {};
-  customQuests = customQuests.filter(q => q.is_forged && q.type === 'recurrent-until' ? !q.completed : true);
-  recipes.forEach(r => r.done = false);
+  currentSidequest = null;
   isDayLocked = false;
-  S.is_day_locked = false;
   chartOffset = 0;
-  scheduleSave();
+  localStorage.removeItem('sys12_viewed_forged');
+  localStorage.removeItem('sys12_new_recipes');
+  localStorage.removeItem('sys12_custom_quests');
+  localStorage.removeItem('sys12_recipes');
+  
+  await saveProgress();
   updateAll();
-  toast("🗑️ Données XP réinitialisées.");
+  toast("🗑️ Toutes les données ont été réinitialisées.");
 }
 
 // ============================================================
@@ -1320,7 +1355,6 @@ function renderXpChart() {
   const labels = [];
   const data = [];
   
-  // Générer les 7 derniers jours avec décalage (offset)
   for (let i = 6; i >= 0; i--) {
     const d = new Date(today);
     d.setDate(d.getDate() - i - chartOffset);
@@ -1330,7 +1364,6 @@ function renderXpChart() {
     data.push(0);
   }
   
-  // Remplir avec les logs
   LOG.forEach(l => {
     if (l.created_at) {
       const day = l.created_at.slice(0, 10);
@@ -1383,7 +1416,6 @@ function renderXpChart() {
     }
   });
 
-  // Gestion du swipe
   const swipeArea = document.getElementById('chart-swipe-area');
   swipeArea.ontouchstart = function(e) {
     touchStartX = e.changedTouches[0].screenX;
@@ -1392,13 +1424,11 @@ function renderXpChart() {
     touchEndX = e.changedTouches[0].screenX;
     const diff = touchStartX - touchEndX;
     if (Math.abs(diff) > 50) {
-      // Swipe gauche (diff > 0) => avancer dans le temps (diminuer offset)
-      // Swipe droite (diff < 0) => reculer dans le temps (augmenter offset)
       const delta = diff > 0 ? -1 : 1;
       const newOffset = Math.max(0, chartOffset + delta);
       if (newOffset !== chartOffset) {
         chartOffset = newOffset;
-        renderXpChart(); // Re-render avec le nouvel offset
+        renderXpChart();
       }
     }
   };
@@ -1640,7 +1670,7 @@ document.addEventListener('change', function(e) {
   }
 });
 
-// Création manuelle (fallback)
+// Création manuelle avec sélection multiple de capacités
 function creerManuellement(name, desc, duration) {
   const type = document.getElementById('forge-type').value;
   const target = document.getElementById('forge-target').value.trim();
@@ -2183,6 +2213,49 @@ function toggleAccordion(id) {
     body.classList.toggle('open');
     body.style.display = body.classList.contains('open') ? 'block' : 'none';
   }
+}
+
+// ============================================================
+// EXPORT / IMPORT
+// ============================================================
+function exporterDonnees() {
+  const data = { S, LOG, capacities, customQuests, recipes, checkedToday };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `evolution_backup_${todayKey()}.json`;
+  a.click();
+  toast("📤 Données exportées !");
+}
+
+function importerDonnees() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const text = await file.text();
+    try {
+      const data = JSON.parse(text);
+      if (data.S && data.LOG && data.capacities) {
+        Object.assign(S, data.S);
+        LOG = data.LOG;
+        capacities = data.capacities;
+        customQuests = data.customQuests || [];
+        recipes = data.recipes || [];
+        checkedToday = data.checkedToday || {};
+        scheduleSave();
+        updateAll();
+        toast("📥 Données importées !");
+      } else {
+        toast("⚠️ Fichier invalide.");
+      }
+    } catch (err) {
+      toast("⚠️ Erreur de lecture.");
+    }
+  };
+  input.click();
 }
 
 // ============================================================
