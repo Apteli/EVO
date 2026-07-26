@@ -6,12 +6,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Évolution">
-<title>Évolution v2.3</title>
+<title>Évolution v2.4</title>
 <link rel="icon" type="image/jpeg" href="favicon.jpg?v=3">
 <link rel="apple-touch-icon" href="favicon.jpg?v=3">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-/* ===== STYLES (identique à v2.2) ===== */
+/* ===== STYLES ===== */
 :root{--bg:#0e0e10;--card:#18181c;--card2:#222228;--border:rgba(255,255,255,0.07);--text:#f0f0f0;--muted:#777;--accent:#a78bfa;--accent2:#7c3aed;--green:#34d399;--amber:#fbbf24;--coral:#f87171;--blue:#60a5fa;--orange:#fb923c;--r:14px;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;font-size:15px;min-height:100dvh;padding-bottom:calc(76px + env(safe-area-inset-bottom));}
@@ -310,7 +310,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 
 <!-- Top Bar -->
 <div class="topbar">
-  <div class="topbar-title">Évolution v2.3</div>
+  <div class="topbar-title">Évolution v2.4</div>
   <div class="topbar-right">
     <div class="sync-dot" id="sync-dot"></div>
     <div class="top-xp" id="top-xp">0 XP</div>
@@ -521,13 +521,13 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 </div>
 
 <div class="toast" id="toast"></div>
-<div class="version-footer">v2.3.0 – 2026-07-26</div>
+<div class="version-footer">v2.4.0 – 2026-07-26</div>
 
 <script>
 // ============================================================
 // CONFIGURATION
 // ============================================================
-const VERSION = '2.3.0';
+const VERSION = '2.4.0';
 const SB_URL = 'https://nlicstxewcrzjliyslkm.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5saWNzdHhld2NyempsaXlzbGttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1ODg1NzUsImV4cCI6MjA5ODE2NDU3NX0.CTHaV_iM50Q_sA1l8_5rVL7b4nU8XonYRcds8Z702GI';
 const HDR = {
@@ -680,21 +680,32 @@ async function sbGet(table, uid) {
   return d && d[0] ? d[0] : null;
 }
 async function sbUpsert(table, obj) {
-  return fetch(`${SB_URL}/rest/v1/${table}`, {
+  const r = await fetch(`${SB_URL}/rest/v1/${table}`, {
     method: 'POST',
     headers: { ...HDR, 'Prefer': 'resolution=merge-duplicates,return=representation' },
     body: JSON.stringify(obj)
   });
+  console.log('sbUpsert', table, obj, r.status);
+  return r;
 }
 async function sbInsert(table, obj) {
-  return fetch(`${SB_URL}/rest/v1/${table}`, { method: 'POST', headers: HDR, body: JSON.stringify(obj) });
+  const r = await fetch(`${SB_URL}/rest/v1/${table}`, { method: 'POST', headers: HDR, body: JSON.stringify(obj) });
+  console.log('sbInsert', table, obj, r.status);
+  return r;
 }
 async function sbDelete(table, uid, questId, day) {
-  return fetch(`${SB_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(uid)}&quest_id=eq.${questId}&created_at=gte.${day}T00:00:00&created_at=lte.${day}T23:59:59`, { method: 'DELETE', headers: HDR });
+  let url = `${SB_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(uid)}`;
+  if (questId) url += `&quest_id=eq.${questId}`;
+  if (day) url += `&created_at=gte.${day}T00:00:00&created_at=lte.${day}T23:59:59`;
+  const r = await fetch(url, { method: 'DELETE', headers: HDR });
+  console.log('sbDelete', table, url, r.status);
+  return r;
 }
 async function sbGetMany(table, uid, limit = 50) {
   const r = await fetch(`${SB_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(uid)}&order=created_at.desc&limit=${limit}`, { headers: HDR });
-  return r.json();
+  const d = await r.json();
+  console.log('sbGetMany', table, d.length);
+  return d;
 }
 
 // ============================================================
@@ -760,11 +771,12 @@ async function analyzeForgedQuest(name, desc, duration) {
 }
 
 // ============================================================
-// CHARGEMENT DES DONNÉES (corrigé)
+// CHARGEMENT DES DONNÉES
 // ============================================================
 async function loadFromSupabase() {
   setSyncState('syncing');
   try {
+    console.log('=== Chargement des données ===');
     const [prog, logRaw, recipesData] = await Promise.all([
       sbGet('sys_progress', UID),
       sbGetMany('sys_log', UID, 50),
@@ -777,6 +789,7 @@ async function loadFromSupabase() {
       const diffJours = Math.floor((now - start) / (1000 * 60 * 60 * 24));
       S.current_month = Math.max(1, Math.min(12, Math.floor(diffJours / 30.44) + 1));
       isDayLocked = S.is_day_locked || false;
+      console.log('S chargé:', S);
     }
     if (Array.isArray(logRaw)) LOG = logRaw;
 
@@ -791,6 +804,7 @@ async function loadFromSupabase() {
           next_level_xp: c.next_level_xp || 100
         };
       });
+      console.log('Capacités chargées:', Object.keys(capacities).length);
     } else {
       // Aucune capacité trouvée : on initialise à zéro
       capacities = {};
@@ -799,8 +813,8 @@ async function loadFromSupabase() {
           capacities[sub.id] = { xp: 0, level: 0, xp_toward_next: 0, next_level_xp: 100 };
         }
       }
-      // Sauvegarde immédiate des capacités vides (pour la première connexion)
-      await saveProgress();
+      console.log('Capacités initialisées (vides)');
+      await saveProgress(); // sauvegarde immédiate
     }
 
     const cq = await sbGet('sys_custom_quests', UID);
@@ -867,6 +881,7 @@ async function loadFromSupabase() {
 
     updateAll();
     setSyncState('ok');
+    console.log('=== Chargement terminé ===');
   } catch (e) {
     setSyncState('error');
     console.error('loadFromSupabase:', e);
@@ -879,6 +894,7 @@ async function loadFromSupabase() {
 async function saveProgress() {
   setSyncState('syncing');
   try {
+    console.log('=== Sauvegarde ===');
     S.is_day_locked = isDayLocked;
     await sbUpsert('sys_progress', { ...S, user_id: UID, updated_at: new Date().toISOString() });
     for (const [id, data] of Object.entries(capacities)) {
@@ -895,8 +911,8 @@ async function saveProgress() {
     if (currentSidequest) {
       await sbUpsert('sys_sidequests', { user_id: UID, ...currentSidequest });
     }
-    // Les recettes sont sauvegardées via saveRecipes() appelé séparément
     setSyncState('ok');
+    console.log('=== Sauvegarde terminée ===');
   } catch (e) {
     setSyncState('error');
     console.error('saveProgress:', e);
@@ -1526,7 +1542,6 @@ async function toggleQuete(id) {
     await sbInsert('sys_log', entry);
     toast("✅ +" + xp + " XP pour '" + q.name + "'");
   }
-  // Sauvegarde immédiate
   await saveProgress();
   updateAll();
 }
