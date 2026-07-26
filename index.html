@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Évolution">
-<title>Évolution v1.5</title>
+<title>Évolution v1.6</title>
 <link rel="icon" type="image/jpeg" href="favicon.jpg?v=3">
 <link rel="apple-touch-icon" href="favicon.jpg?v=3">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -73,6 +73,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .tag-min{background:rgba(167,139,250,.15);color:var(--accent);}
 .tag-ph{background:rgba(255,255,255,.07);color:var(--muted);}
 .tag-cap{background:rgba(255,255,255,0.05);color:var(--text);}
+.tag-personal{background:rgba(251,191,36,.15);color:var(--amber);}
 .q-xp{font-size:13px;font-weight:700;color:var(--accent);flex-shrink:0;cursor:default;}
 .q-actions{display:flex;gap:4px;flex-shrink:0;}
 .q-actions button{background:rgba(255,255,255,0.06);border:0.5px solid var(--border);border-radius:6px;color:var(--muted);font-size:14px;padding:2px 6px;cursor:pointer;font-family:inherit;}
@@ -222,6 +223,56 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 .log-toggle-btn { background: none; border: none; color: var(--muted); font-size: 12px; cursor: pointer; padding: 4px 8px; margin-top: 8px; font-family: inherit; }
 .log-toggle-btn:hover { color: var(--text); }
 .version-footer { text-align: center; font-size: 11px; color: var(--muted); padding: 20px 0 10px; border-top: 0.5px solid var(--border); margin-top: 20px; }
+
+/* ===== BOUTON COACH IA FLOTTANT ===== */
+.coach-fab {
+  position: fixed;
+  bottom: 80px;
+  right: 16px;
+  background: var(--accent2);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  font-size: 28px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(124,58,237,0.4);
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform .2s;
+}
+.coach-fab:active { transform: scale(0.9); }
+.coach-fab .badge { position:absolute; top:-4px; right:-4px; width:16px; height:16px; background:var(--coral); border-radius:50%; font-size:9px; display:flex; align-items:center; justify-content:center; }
+.coach-panel {
+  position: fixed;
+  bottom: 140px;
+  right: 16px;
+  width: 320px;
+  max-height: 400px;
+  background: var(--card);
+  border: 0.5px solid var(--border);
+  border-radius: 16px;
+  padding: 14px;
+  z-index: 95;
+  display: none;
+  flex-direction: column;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+}
+.coach-panel.open { display: flex; }
+.coach-panel .chat-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+.coach-panel .chat-header span { font-weight:700; font-size:14px; }
+.coach-panel .chat-header button { background:none; border:none; color:var(--muted); font-size:18px; cursor:pointer; }
+.coach-panel .chat-messages { flex:1; overflow-y:auto; max-height:260px; margin-bottom:8px; }
+.coach-panel .chat-messages .msg { font-size:13px; padding:4px 0; }
+.coach-panel .chat-messages .msg.user { color:var(--blue); font-weight:500; }
+.coach-panel .chat-messages .msg.coach { color:var(--text); }
+.coach-panel .chat-input-wrap { display:flex; gap:6px; }
+.coach-panel .chat-input-wrap input { flex:1; background:rgba(255,255,255,0.06); border:0.5px solid var(--border); border-radius:8px; padding:6px 10px; color:var(--text); font-size:13px; outline:none; }
+.coach-panel .chat-input-wrap input:focus { border-color:var(--accent); }
+.coach-panel .chat-input-wrap button { background:var(--accent2); color:#fff; border:none; border-radius:8px; padding:6px 14px; font-size:13px; font-weight:600; cursor:pointer; }
 </style>
 </head>
 <body>
@@ -241,7 +292,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 
 <!-- Top Bar -->
 <div class="topbar">
-  <div class="topbar-title">Évolution v1.5</div>
+  <div class="topbar-title">Évolution v1.6</div>
   <div class="topbar-right">
     <div class="sync-dot" id="sync-dot"></div>
     <div class="top-xp" id="top-xp">0 XP</div>
@@ -275,134 +326,56 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
     </div>
   </div>
 
-  <div class="accordion">
-    <!-- Minimum -->
-    <div class="accordion-item">
-      <button class="accordion-header" onclick="toggleAccordion('min-quests')">
-        <span>⏳ Minimum — 20 min</span>
-        <span>▼</span>
-      </button>
-      <div class="accordion-body open" id="min-quests">
-        <div id="quetes-min"></div>
+  <!-- Minimum -->
+  <div class="section-title">⏳ Minimum — 20 min</div>
+  <div id="quetes-min"></div>
+
+  <!-- Optimal -->
+  <div class="section-title">⚡ Optimal</div>
+  <div id="quetes-opt"></div>
+
+  <!-- Sidequest -->
+  <div class="section-title">🎲 Sidequest du Jour</div>
+  <div class="sidequest-box" style="margin-bottom:12px;">
+    <div class="sidequest-header">
+      <div class="sidequest-title">🎲 Sidequest du Jour</div>
+      <div class="sidequest-xp" id="sq-xp-display">+30 XP</div>
+    </div>
+    <div class="quest" id="sidequest-item" onclick="toggleSidequest()" style="margin-bottom:8px;">
+      <div class="check" id="sq-check"></div>
+      <div class="q-info">
+        <div class="q-name" id="sidequest-text">Chargement du défi...</div>
+        <div class="q-desc" id="sidequest-sub">Zone de confort, sociabilité et observation de terrain.</div>
       </div>
     </div>
+    <button class="btn-sm btn-muted" id="btn-reroll" onclick="rerollSidequestIA()" style="width:100%;">🎲 Relancer via le Coach (IA)</button>
+  </div>
 
-    <!-- Optimal -->
-    <div class="accordion-item">
-      <button class="accordion-header" onclick="toggleAccordion('opt-quests')">
-        <span>⚡ Optimal</span>
-        <span>▼</span>
-      </button>
-      <div class="accordion-body open" id="opt-quests">
-        <div id="quetes-opt"></div>
-      </div>
-    </div>
+  <!-- Quêtes personnelles (forgées + extérieures) -->
+  <div class="section-title">📋 Quêtes personnelles</div>
+  <div id="personal-quests"></div>
+  <button class="btn-sm btn-accent" onclick="ajouterQuetePersonnelle()" style="width:100%;margin-top:6px;">➕ Ajouter une quête personnelle</button>
 
-    <!-- Sidequest -->
-    <div class="accordion-item">
-      <button class="accordion-header" onclick="toggleAccordion('sidequest-block')">
-        <span>🎲 Sidequest du Jour</span>
-        <span>▼</span>
-      </button>
-      <div class="accordion-body open" id="sidequest-block">
-        <div class="sidequest-box" style="margin-bottom:0;">
-          <div class="sidequest-header">
-            <div class="sidequest-title">🎲 Sidequest du Jour</div>
-            <div class="sidequest-xp" id="sq-xp-display">+30 XP</div>
-          </div>
-          <div class="quest" id="sidequest-item" onclick="toggleSidequest()" style="margin-bottom:8px;">
-            <div class="check" id="sq-check"></div>
-            <div class="q-info">
-              <div class="q-name" id="sidequest-text">Chargement du défi...</div>
-              <div class="q-desc" id="sidequest-sub">Zone de confort, sociabilité et observation de terrain.</div>
-            </div>
-          </div>
-          <button class="btn-sm btn-muted" id="btn-reroll" onclick="rerollSidequestIA()" style="width:100%;">🎲 Relancer via le Coach (IA)</button>
-        </div>
+  <!-- Recettes -->
+  <div class="section-title">🍳 Recettes</div>
+  <div id="recipes-list-short"></div>
+  <button class="btn-sm btn-muted" onclick="toggleSection('recipe-form')" style="width:100%;margin-top:6px;">➕ Ajouter une recette</button>
+  <div id="recipe-form" style="display:none;margin-top:8px;">
+    <div class="rev-card" style="margin-bottom:8px;">
+      <div class="form-group">
+        <input type="text" id="recipe-name" class="form-input" placeholder="Nom de la recette..." autocomplete="off">
       </div>
-    </div>
-
-    <!-- Quêtes forgées -->
-    <div class="accordion-item">
-      <button class="accordion-header" onclick="toggleAccordion('forges-block')">
-        <span>🔨 Quêtes forgées <span class="badge" id="forge-badge"></span></span>
-        <span>▼</span>
-      </button>
-      <div class="accordion-body" id="forges-block">
-        <div class="btn-group">
-          <button class="btn-sm btn-accent" onclick="toggleSection('forge-form')">➕ Forger une quête</button>
-          <button class="btn-sm btn-muted" onclick="toggleSection('forge-list'); hideBadge('forge-badge')">📋 Voir mes quêtes</button>
-        </div>
-        <div id="forge-form" style="display:none;">
-          <div class="rev-card" style="margin-bottom:8px;">
-            <div class="form-group">
-              <input type="text" id="cq-name" class="form-input" placeholder="Nom de la quête..." autocomplete="off">
-            </div>
-            <div class="form-row">
-              <select id="cq-diff" class="form-select">
-                <option value="easy">Facile (5 XP)</option>
-                <option value="medium">Moyen (15 XP)</option>
-                <option value="hard">Difficile (30 XP)</option>
-              </select>
-              <select id="cq-type" class="form-select">
-                <option value="oneshot">One-shot</option>
-                <option value="recurrent">Récurrente</option>
-              </select>
-            </div>
-            <button class="btn-sm btn-accent" onclick="ajouterQuetePerso()" style="width:100%;">+ Forger</button>
-          </div>
-        </div>
-        <div id="forge-list" style="display:none;">
-          <div id="custom-quests-list"></div>
-        </div>
+      <div class="form-row">
+        <input type="number" id="recipe-time" class="form-input" placeholder="Temps (min)" min="1" value="30">
+        <input type="number" id="recipe-people" class="form-input" placeholder="Personnes" min="1" value="2">
       </div>
-    </div>
-
-    <!-- Recettes -->
-    <div class="accordion-item">
-      <button class="accordion-header" onclick="toggleAccordion('recipes-block')">
-        <span>🍳 Recettes <span class="badge" id="recipe-badge"></span></span>
-        <span>▼</span>
-      </button>
-      <div class="accordion-body" id="recipes-block">
-        <div class="btn-group">
-          <button class="btn-sm btn-accent" onclick="toggleSection('recipe-form')">➕ Ajouter une recette</button>
-          <button class="btn-sm btn-muted" onclick="toggleSection('recipe-list'); hideBadge('recipe-badge')">📋 Voir mes recettes</button>
-        </div>
-        <div id="recipe-form" style="display:none;">
-          <div class="rev-card" style="margin-bottom:8px;">
-            <div class="form-group">
-              <input type="text" id="recipe-name" class="form-input" placeholder="Nom de la recette..." autocomplete="off">
-            </div>
-            <div class="form-row">
-              <input type="number" id="recipe-time" class="form-input" placeholder="Temps (min)" min="1" value="30">
-              <input type="number" id="recipe-people" class="form-input" placeholder="Personnes" min="1" value="2">
-            </div>
-            <div class="form-group">
-              <textarea id="recipe-ingredients" class="form-input" placeholder="Ingrédients (un par ligne)" rows="3"></textarea>
-            </div>
-            <div class="form-group">
-              <textarea id="recipe-steps" class="form-input" placeholder="Étapes (une par ligne)" rows="4"></textarea>
-            </div>
-            <button class="btn-sm btn-accent" onclick="ajouterRecette()" style="width:100%;">+ Ajouter</button>
-          </div>
-        </div>
-        <div id="recipe-list" style="display:none;">
-          <div id="recipes-list-container"></div>
-        </div>
+      <div class="form-group">
+        <textarea id="recipe-ingredients" class="form-input" placeholder="Ingrédients (un par ligne)" rows="3"></textarea>
       </div>
-    </div>
-
-    <!-- Quêtes extérieures -->
-    <div class="accordion-item">
-      <button class="accordion-header" onclick="toggleAccordion('ext-quests-block')">
-        <span>📋 Quêtes extérieures (To Do List)</span>
-        <span>▼</span>
-      </button>
-      <div class="accordion-body open" id="ext-quests-block">
-        <div id="external-quests"></div>
-        <button class="btn-sm btn-accent" onclick="ajouterQueteExterne()" style="width:100%;margin-top:10px;">➕ Ajouter une quête extérieure</button>
+      <div class="form-group">
+        <textarea id="recipe-steps" class="form-input" placeholder="Étapes (une par ligne)" rows="4"></textarea>
       </div>
+      <button class="btn-sm btn-accent" onclick="ajouterRecette()" style="width:100%;">+ Ajouter</button>
     </div>
   </div>
 
@@ -450,14 +423,33 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
   <button class="tab-btn" onclick="goTab('stats',this)"><span class="tab-icon">📈</span>Stats</button>
 </div>
 
+<!-- Coach IA (bouton flottant + panneau) -->
+<button class="coach-fab" id="coach-fab" onclick="toggleCoachPanel()">
+  🤖
+  <span class="badge" id="coach-badge" style="display:none;">1</span>
+</button>
+<div class="coach-panel" id="coach-panel">
+  <div class="chat-header">
+    <span>🤖 Coach IA</span>
+    <button onclick="toggleCoachPanel()">✕</button>
+  </div>
+  <div class="chat-messages" id="coach-messages">
+    <div class="msg coach">Bonjour ! Je suis ton coach. Pose-moi n’importe quelle question sur ta progression.</div>
+  </div>
+  <div class="chat-input-wrap">
+    <input type="text" id="coach-input" placeholder="Écris ton message..." onkeydown="if(event.key==='Enter')envoyerMessageCoach()">
+    <button onclick="envoyerMessageCoach()">Envoyer</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
-<div class="version-footer">v1.5.0 – 2026-07-26</div>
+<div class="version-footer">v1.6.0 – 2026-07-26</div>
 
 <script>
 // ============================================================
 // CONFIGURATION
 // ============================================================
-const VERSION = '1.5.0';
+const VERSION = '1.6.0';
 const SB_URL = 'https://nlicstxewcrzjliyslkm.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5saWNzdHhld2NyempsaXlzbGttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1ODg1NzUsImV4cCI6MjA5ODE2NDU3NX0.CTHaV_iM50Q_sA1l8_5rVL7b4nU8XonYRcds8Z702GI';
 const HDR = {
@@ -525,34 +517,34 @@ const PILLARS = [
   }
 ];
 
-// Quêtes prédéfinies avec leurs capacités associées
+// Quêtes prédéfinies
 const QUETES = {
   min: [
-    { id: 'q1', name: 'Respiration / cohérence cardiaque', desc: '5 min box breathing ou cohérence cardiaque', xp: 30, caps: ['stress'], time: 5 },
-    { id: 'q2', name: 'Anki — cartes du jour', desc: '10 min, minimum 10 cartes', xp: 34, caps: ['mct', 'mlt'], time: 10 },
-    { id: 'q3', name: 'Sémiologie factuelle & conscience spatiale', desc: '1 fait physique noté + 1 scan spatial', xp: 20, caps: ['observation', 'spatial'], time: 15 },
+    { id: 'q1', name: 'Respiration / cohérence cardiaque', desc: '5 min box breathing ou cohérence cardiaque', xp: 30, caps: ['stress'], time: 5, phases: [1,2,3] },
+    { id: 'q2', name: 'Anki — cartes du jour', desc: '10 min, minimum 10 cartes', xp: 34, caps: ['mct', 'mlt'], time: 10, phases: [1,2,3] },
+    { id: 'q3', name: 'Sémiologie factuelle & conscience spatiale', desc: '1 fait physique noté + 1 scan spatial', xp: 20, caps: ['observation', 'spatial'], time: 15, phases: [1,2,3] },
   ],
   opt: [
-    { id: 'q4', name: 'Bloc cognitif profond', desc: '45 min lecture technique, calcul ou méthode Feynman', xp: 54, caps: ['raisonnement', 'lecture'], time: 45 },
-    { id: 'q5', name: 'Entraînement physique', desc: '30 min force, natation ou zone 2', xp: 70, caps: ['endurance', 'force'], time: 30 },
-    { id: 'q6', name: 'Wim Hof / douche froide', desc: 'Protocole respiration + exposition au froid', xp: 50, caps: ['stress', 'recuperation'], time: 15 },
-    { id: 'q7', name: 'Langue ou rhétorique', desc: '30 min Pimsleur, Assimil ou débat oral', xp: 60, caps: ['langues', 'rhetorique'], time: 30 },
-    { id: 'q8', name: 'Journal décisionnel', desc: '5 min — 1 décision analysée pour biais cognitifs', xp: 21, caps: ['metacognition', 'decision'], time: 5 },
-    { id: 'q9', name: 'Lecture 30 min', desc: 'Médecine, philo, neuro, stoïcisme...', xp: 27, caps: ['lecture', 'mlt'], time: 30 },
-    { id: 'q10', name: 'Échecs / jeu stratégique', desc: '15 min blitz ou puzzle — pensée multi-coups', xp: 35, caps: ['raisonnement', 'decision'], time: 15 },
-    { id: 'q11', name: "Dessin d'observation", desc: '5 min — percevoir les lignes et volumes réels', xp: 25, caps: ['observation', 'creativite'], time: 5 },
-    { id: 'q12', name: 'Calcul mental chronométré', desc: '10 min — vitesse et chunking', xp: 21, caps: ['calcul', 'mct'], time: 10 },
-    { id: 'q13', name: 'Mobilité & Souplesse', desc: '15-30 min de travail articulaire, étirements ou yoga', xp: 60, caps: ['souplesse', 'coordination'], time: 15 },
-    { id: 'q14', name: 'Parcours de mobilité active', desc: '10 min d\'enchaînement dynamique (fentes, rotations)', xp: 30, caps: ['souplesse', 'coordination'], time: 10 },
-    { id: 'q15', name: 'Observation urbaine', desc: 'Dans la rue, repère 3 détails inédits', xp: 25, caps: ['observation', 'spatial'], time: 10 },
-    { id: 'q16', name: 'Exploration d\'un sujet', desc: 'Lis un article sur un domaine inconnu, note 3 idées', xp: 20, caps: ['lecture', 'creativite'], time: 20 },
-    { id: 'q17', name: 'Défi d\'observation clinique', desc: 'Dans un lieu public, décris la posture de 3 personnes', xp: 35, caps: ['observation', 'proprioception'], time: 15 }
+    { id: 'q4', name: 'Bloc cognitif profond', desc: '45 min lecture technique, calcul ou méthode Feynman', xp: 54, caps: ['raisonnement', 'lecture'], time: 45, phases: [1,2,3] },
+    { id: 'q5', name: 'Entraînement physique', desc: '30 min force, natation ou zone 2', xp: 70, caps: ['endurance', 'force'], time: 30, phases: [1,2,3] },
+    { id: 'q6', name: 'Wim Hof / douche froide', desc: 'Protocole respiration + exposition au froid', xp: 50, caps: ['stress', 'recuperation'], time: 15, phases: [1,2,3] },
+    { id: 'q7', name: 'Langue ou rhétorique', desc: '30 min Pimsleur, Assimil ou débat oral', xp: 60, caps: ['langues', 'rhetorique'], time: 30, phases: [2,3] },
+    { id: 'q8', name: 'Journal décisionnel', desc: '5 min — 1 décision analysée pour biais cognitifs', xp: 21, caps: ['metacognition', 'decision'], time: 5, phases: [1,2,3] },
+    { id: 'q9', name: 'Lecture 30 min', desc: 'Médecine, philo, neuro, stoïcisme...', xp: 27, caps: ['lecture', 'mlt'], time: 30, phases: [1,2,3] },
+    { id: 'q10', name: 'Échecs / jeu stratégique', desc: '15 min blitz ou puzzle — pensée multi-coups', xp: 35, caps: ['raisonnement', 'decision'], time: 15, phases: [2,3] },
+    { id: 'q11', name: "Dessin d'observation", desc: '5 min — percevoir les lignes et volumes réels', xp: 25, caps: ['observation', 'creativite'], time: 5, phases: [3] },
+    { id: 'q12', name: 'Calcul mental chronométré', desc: '10 min — vitesse et chunking', xp: 21, caps: ['calcul', 'mct'], time: 10, phases: [2,3] },
+    { id: 'q13', name: 'Mobilité & Souplesse', desc: '15-30 min de travail articulaire, étirements ou yoga', xp: 60, caps: ['souplesse', 'coordination'], time: 15, phases: [1,2,3] },
+    { id: 'q14', name: 'Parcours de mobilité active', desc: '10 min d\'enchaînement dynamique (fentes, rotations)', xp: 30, caps: ['souplesse', 'coordination'], time: 10, phases: [1,2,3] },
+    { id: 'q15', name: 'Observation urbaine', desc: 'Dans la rue, repère 3 détails inédits', xp: 25, caps: ['observation', 'spatial'], time: 10, phases: [1,2,3] },
+    { id: 'q16', name: 'Exploration d\'un sujet', desc: 'Lis un article sur un domaine inconnu, note 3 idées', xp: 20, caps: ['lecture', 'creativite'], time: 20, phases: [1,2,3] },
+    { id: 'q17', name: 'Défi d\'observation clinique', desc: 'Dans un lieu public, décris la posture de 3 personnes', xp: 35, caps: ['observation', 'proprioception'], time: 15, phases: [1,2,3] }
   ]
 };
 
 const QUEST_DEFAULT_TIME = {
-  q1: 5, q2: 10, q3: 15, q4: 45, q5: 30, q6: 15,
-  q7: 30, q8: 5, q9: 30, q10: 15, q11: 5, q12: 10, q13: 15
+  q1:5, q2:10, q3:15, q4:45, q5:30, q6:15,
+  q7:30, q8:5, q9:30, q10:15, q11:5, q12:10, q13:15
 };
 
 const BANQUE_SIDEQUESTS = [
@@ -588,7 +580,7 @@ let S = {
   is_day_locked: false
 };
 let LOG = [];
-let capacities = {}; // { id: { xp, level, xp_toward_next, next_level_xp } }
+let capacities = {};
 let customQuests = [];
 let recipes = [];
 let checkedToday = {};
@@ -635,7 +627,7 @@ function callGemini(prompt) {
       const xhr = new XMLHttpRequest();
       xhr.open('POST', WORKER_URL, true);
       xhr.setRequestHeader('Content-Type', 'application/json');
-      xhr.timeout = 15000;
+      xhr.timeout = 20000;
       xhr.onload = function() {
         try {
           const d = JSON.parse(xhr.responseText);
@@ -649,10 +641,27 @@ function callGemini(prompt) {
   });
 }
 
+function buildCtx() {
+  const ph = getCurrentPhase();
+  const ps = PILLARS.map(p => {
+    const total = p.sub.reduce((s, sub) => s + (capacities[sub.id]?.xp || 0), 0);
+    return p.name.split(' ')[0] + ': ' + total + 'XP';
+  }).join(', ');
+  let ctx = `Progression actuelle — Phase ${ph.id} (${ph.name}), mois ${S.current_month}/12. XP total: ${S.total_xp}. Streak: ${S.streak} jours. Piliers: ${ps}.`;
+  ctx += '\n\nCapacités détaillées :\n';
+  PILLARS.forEach(p => {
+    p.sub.forEach(sub => {
+      const d = capacities[sub.id] || { xp: 0, level: 0, xp_toward_next: 0, next_level_xp: 100 };
+      ctx += `- ${sub.name}: niveau ${d.level}, ${d.xp_toward_next}/${d.next_level_xp} XP vers prochain niveau\n`;
+    });
+  });
+  return ctx;
+}
+
 async function analyzeQuestIA(name, desc) {
   const capsList = PILLARS.flatMap(p => p.sub).map(c => `- ${c.id}: ${c.name}`).join('\n');
   const prompt = `
-  Analyse la quête extérieure suivante :
+  Analyse la quête personnelle suivante :
   Nom : "${name}"
   Description : "${desc}"
 
@@ -716,7 +725,6 @@ async function loadFromSupabase() {
         };
       });
     } else {
-      // Initialiser les capacités
       for (const p of PILLARS) {
         for (const sub of p.sub) {
           capacities[sub.id] = { xp: 0, level: 0, xp_toward_next: 0, next_level_xp: 100 };
@@ -735,7 +743,7 @@ async function loadFromSupabase() {
       }
     }
 
-    // Charger les quêtes personnalisées
+    // Charger les quêtes personnelles (forgées + extérieures)
     const cq = await sbGet('sys_custom_quests', UID);
     if (cq && cq.quests) customQuests = JSON.parse(cq.quests);
     else customQuests = [];
@@ -837,9 +845,8 @@ function todayKey() { return new Date().toISOString().slice(0, 10); }
 function updateAll() {
   updateHeader();
   renderQuetes();
-  renderCustomQuests();
-  renderRecipes();
-  renderExternalQuests();
+  renderPersonalQuests();
+  renderRecipesShort();
   renderPiliers();
   renderStats();
   updateSidequestUI();
@@ -894,6 +901,34 @@ function renderQuetes() {
         <span class="extra-xp" id="extra-xp-${q.id}"></span>
       </div>
     ` : '';
+    // Générer entraînement (pour q5 et q13)
+    let coachBtn = '';
+    if (q.id === 'q5' && inPhase) {
+      coachBtn = `
+        <div style="margin-top:4px;">
+          <select class="coach-select" id="workout-type-${q.id}" onclick="event.stopPropagation();">
+            <option value="bodyweight">🧱 Poids du corps</option>
+            <option value="swim">🏊 Natation</option>
+            <option value="run">🏃 Course à pied</option>
+            <option value="auto">🎲 Choix du coach</option>
+          </select>
+          <button class="btn-coach" style="background:rgba(96,165,250,.1);border-color:rgba(96,165,250,.3);color:var(--blue);margin-left:4px;" onclick="event.stopPropagation();genererEntrainement(this, '${q.id}')">🏋️ Générer</button>
+        </div>
+      `;
+    }
+    if (q.id === 'q13' && inPhase) {
+      coachBtn = `
+        <div style="margin-top:4px;">
+          <select class="coach-select" id="mobility-type-${q.id}" onclick="event.stopPropagation();">
+            <option value="general">🧘 Mobilité générale</option>
+            <option value="yoga">🧘 Yoga / étirements</option>
+            <option value="dynamic">🏃 Étirements dynamiques</option>
+            <option value="articular">🦵 Mobilité articulaire</option>
+          </select>
+          <button class="btn-coach" style="background:rgba(96,165,250,.1);border-color:rgba(96,165,250,.3);color:var(--blue);margin-left:4px;" onclick="event.stopPropagation();genererMobilite(this, '${q.id}')">🧘 Générer</button>
+        </div>
+      `;
+    }
     return `<div class="quest${done ? ' done' : ''}${!inPhase ? ' locked' : ''}" onclick="toggleQuete('${q.id}')">
       <div class="check">${done ? '✓' : ''}</div>
       <div class="q-info">
@@ -901,6 +936,7 @@ function renderQuetes() {
         <div class="q-desc">${q.desc}</div>
         <div class="q-tags">${minTag}${phTag}${capTags}</div>
         ${q.time ? `<div style="font-size:11px;color:var(--muted);margin-top:2px;">⏱️ ${q.time} min</div>` : ''}
+        ${coachBtn}
         ${extraHtml}
       </div>
       <div class="q-xp">+${q.xp} XP</div>
@@ -910,117 +946,55 @@ function renderQuetes() {
   document.getElementById('quetes-opt').innerHTML = QUETES.opt.map(q => qHTML(q, false)).join('');
 }
 
-function toggleExtraTime(qId) {
-  const field = document.getElementById('extra-time-field-' + qId);
-  if (!field) return;
-  field.classList.toggle('show');
-  if (field.classList.contains('show')) {
-    const input = field.querySelector('input');
-    if (input) {
-      input.focus();
-      input.value = 5;
-      updateExtraTimeDisplay(qId);
-    }
-  }
-}
-
-function updateExtraTimeDisplay(qId) {
-  const field = document.getElementById('extra-time-field-' + qId);
-  if (!field) return;
-  const input = field.querySelector('input');
-  const display = field.querySelector('.extra-xp');
-  if (!input || !display) return;
-  const extra = parseInt(input.value) || 0;
-  const all = [...QUETES.min, ...QUETES.opt];
-  const q = all.find(x => x.id === qId);
-  if (!q) return;
-  const defaultTime = QUEST_DEFAULT_TIME[qId] || 30;
-  const totalTime = defaultTime + extra;
-  let xp = q.xp * (totalTime / defaultTime);
-  xp = Math.round(xp);
-  display.textContent = '+' + xp + ' XP';
-}
-
-function renderCustomQuests() {
-  const listEl = document.getElementById('custom-quests-list');
+function renderPersonalQuests() {
+  const container = document.getElementById('personal-quests');
   if (!customQuests.length) {
-    listEl.innerHTML = '<div class="empty-state">Aucune quête forgée pour le moment.</div>';
+    container.innerHTML = '<div class="empty-state">Aucune quête personnelle pour le moment.</div>';
     return;
   }
-  listEl.innerHTML = customQuests.map(q => {
+  container.innerHTML = customQuests.map(q => {
     const done = !!checkedToday[q.id];
     const capTags = (q.caps || []).map(id => {
       const cap = PILLARS.flatMap(p => p.sub).find(c => c.id === id);
       return cap ? `<span class="tag tag-cap">${cap.name}</span>` : '';
     }).join('');
-    return `<div class="quest${done ? ' done' : ''}" onclick="toggleQuete('${q.id}')">
-      <div class="check">${done ? '✓' : ''}</div>
-      <div class="q-info">
-        <div class="q-name">${q.name}</div>
-        <div class="q-tags">
-          <span class="tag">${q.type === 'oneshot' ? 'One-shot' : 'Récurrente'}</span>
-          ${capTags}
-        </div>
-      </div>
-      <div class="q-xp">+${q.xp || 0} XP</div>
-      <div class="q-actions">
-        <button class="del" onclick="event.stopPropagation();deleteCustomQuest('${q.id}')">🗑️</button>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function renderRecipes() {
-  const container = document.getElementById('recipes-list-container');
-  if (!recipes.length) {
-    container.innerHTML = '<div class="empty-state">Aucune recette pour le moment.</div>';
-    return;
-  }
-  container.innerHTML = recipes.map(r => {
-    const xp = r.total_xp || 0;
-    const done = r.done || false;
-    return `<div class="recipe-item${done ? ' done' : ''}" onclick="toggleRecipe('${r.id}')">
-      <div class="check">${done ? '✓' : ''}</div>
-      <div class="recipe-info">
-        <div class="recipe-name">${r.name}</div>
-        <div class="recipe-meta">⏱️ ${r.time} min · 👥 ${r.people} pers</div>
-        ${r.ingredients ? `<div class="recipe-ingredients open">${formatIngredients(r.ingredients)}</div>` : ''}
-        ${r.steps ? `<div class="recipe-steps open">${formatSteps(r.steps)}</div>` : ''}
-      </div>
-      <div class="recipe-xp">+${xp} XP</div>
-    </div>`;
-  }).join('');
-}
-
-function renderExternalQuests() {
-  const container = document.getElementById('external-quests');
-  if (!customQuests.length) {
-    container.innerHTML = '<div class="empty-state">Aucune quête extérieure pour le moment.</div>';
-    return;
-  }
-  container.innerHTML = customQuests.map((q) => {
-    const done = !!checkedToday[q.id];
-    const capTags = (q.caps || []).map(id => {
-      const cap = PILLARS.flatMap(p => p.sub).find(c => c.id === id);
-      return cap ? `<span class="tag tag-cap">${cap.name}</span>` : '';
-    }).join('');
+    const typeTag = `<span class="tag tag-personal">${q.type === 'oneshot' ? 'One-shot' : 'Récurrente'}</span>`;
     return `<div class="quest${done ? ' done' : ''}" onclick="toggleQuete('${q.id}')">
       <div class="check">${done ? '✓' : ''}</div>
       <div class="q-info">
         <div class="q-name">${q.name}</div>
         <div class="q-desc">${q.desc || ''}</div>
-        <div class="q-tags">
-          <span class="tag">${q.type === 'one-shot' ? 'One-shot' : 'Récurrente'}</span>
-          ${capTags}
-        </div>
+        <div class="q-tags">${typeTag}${capTags}</div>
         ${q.duration ? `<div style="font-size:11px;color:var(--muted);margin-top:2px;">⏱️ ${q.duration} min</div>` : ''}
       </div>
       <div class="q-xp">+${q.xp || 0} XP</div>
       <div class="q-actions">
-        <button class="del" onclick="event.stopPropagation();deleteCustomQuest('${q.id}')">🗑️</button>
+        <button class="del" onclick="event.stopPropagation();deletePersonalQuest('${q.id}')">🗑️</button>
       </div>
     </div>`;
   }).join('');
+}
+
+function renderRecipesShort() {
+  const container = document.getElementById('recipes-list-short');
+  if (!recipes.length) {
+    container.innerHTML = '<div class="empty-state">Aucune recette.</div>';
+    return;
+  }
+  container.innerHTML = recipes.slice(0, 3).map(r => {
+    const done = r.done || false;
+    return `<div class="recipe-item${done ? ' done' : ''}" onclick="toggleRecipe('${r.id}')" style="margin-bottom:4px;">
+      <div class="check">${done ? '✓' : ''}</div>
+      <div class="recipe-info">
+        <div class="recipe-name">${r.name}</div>
+        <div class="recipe-meta">⏱️ ${r.time} min</div>
+      </div>
+      <div class="recipe-xp">+${r.total_xp || 0}</div>
+    </div>`;
+  }).join('');
+  if (recipes.length > 3) {
+    container.innerHTML += `<div style="font-size:11px;color:var(--muted);text-align:center;padding:4px;">+ ${recipes.length-3} autres recettes</div>`;
+  }
 }
 
 function renderPiliers() {
@@ -1103,10 +1077,9 @@ function renderStats() {
         tooltip: {
           callbacks: {
             label: function(context) {
-              const value = context.raw;
               const pilier = PILLARS[context.dataIndex];
               const total = pilier.sub.reduce((sum, s) => sum + (capacities[s.id]?.xp || 0), 0);
-              return pilier.name + ' : ' + value + '% (' + total + ' XP)';
+              return pilier.name + ' : ' + total + ' XP';
             }
           }
         }
@@ -1124,7 +1097,7 @@ function renderStats() {
     }
   });
 
-  // Graphique XP par jour (7 jours glissants)
+  // Graphique XP par jour
   renderXpChart();
 
   // Jalons
@@ -1145,12 +1118,12 @@ function renderStats() {
     </div>`;
   }).join('');
 
-  // Journal
+  // Journal (déroulant)
   const logContainer = document.getElementById('log-list');
   if (!LOG.length) {
     logContainer.innerHTML = '<div class="empty-state">Aucune action enregistrée</div>';
   } else {
-    const entries = LOG.slice(0, 20).map(l => `
+    const allEntries = LOG.slice(0, 20).map(l => `
       <div class="log-entry">
         <div class="log-dot" style="background:${l.capacity_id ? '#a78bfa' : '#888'}"></div>
         <div class="log-text">${l.quest_name || l.quest_id}</div>
@@ -1158,13 +1131,36 @@ function renderStats() {
         <span class="log-time">${l.created_at ? l.created_at.slice(11, 16) : ''}</span>
       </div>
     `).join('');
-    logContainer.innerHTML = entries;
+    let html = `<div class="log-container collapsed" id="log-inner">
+      ${allEntries}
+    </div>
+    <button class="log-toggle-btn" id="log-toggle-btn" onclick="toggleLog()">Voir plus</button>`;
+    logContainer.innerHTML = html;
+    if (LOG.length <= 5) {
+      document.getElementById('log-toggle-btn').style.display = 'none';
+    } else {
+      document.getElementById('log-inner').classList.add('collapsed');
+    }
+  }
+}
+
+function toggleLog() {
+  const container = document.getElementById('log-inner');
+  const btn = document.getElementById('log-toggle-btn');
+  if (!container || !btn) return;
+  if (container.classList.contains('collapsed')) {
+    container.classList.remove('collapsed');
+    container.classList.add('expanded');
+    btn.textContent = 'Voir moins';
+  } else {
+    container.classList.add('collapsed');
+    container.classList.remove('expanded');
+    btn.textContent = 'Voir plus';
   }
 }
 
 function renderXpChart() {
   const ctx = document.getElementById('chart-xp').getContext('2d');
-  // Grouper les logs par jour
   const dailyXP = {};
   LOG.forEach(l => {
     if (l.created_at) {
@@ -1173,11 +1169,10 @@ function renderXpChart() {
     }
   });
   const sortedDays = Object.keys(dailyXP).sort();
-  // Sélectionner 7 jours glissants à partir de chartOffset
   const endIndex = sortedDays.length - 1 - chartOffset;
   const startIndex = Math.max(0, endIndex - 6);
   const windowDays = sortedDays.slice(startIndex, endIndex + 1);
-  const labels = windowDays.map(d => d.slice(5, 10)); // MM-DD
+  const labels = windowDays.map(d => d.slice(5, 10));
   const data = windowDays.map(d => dailyXP[d] || 0);
 
   const rangeText = windowDays.length ? `${windowDays[0].slice(5,10)} → ${windowDays[windowDays.length-1].slice(5,10)}` : '...';
@@ -1258,6 +1253,32 @@ function updateSidequestUI() {
 // ============================================================
 // LOGIQUE DES QUÊTES
 // ============================================================
+function toggleExtraTime(qId) {
+  const field = document.getElementById('extra-time-field-' + qId);
+  if (!field) return;
+  field.classList.toggle('show');
+  if (field.classList.contains('show')) {
+    const input = field.querySelector('input');
+    if (input) { input.focus(); input.value = 5; updateExtraTimeDisplay(qId); }
+  }
+}
+
+function updateExtraTimeDisplay(qId) {
+  const field = document.getElementById('extra-time-field-' + qId);
+  if (!field) return;
+  const input = field.querySelector('input');
+  const display = field.querySelector('.extra-xp');
+  if (!input || !display) return;
+  const extra = parseInt(input.value) || 0;
+  const all = [...QUETES.min, ...QUETES.opt];
+  const q = all.find(x => x.id === qId);
+  if (!q) return;
+  const defaultTime = QUEST_DEFAULT_TIME[qId] || 30;
+  const totalTime = defaultTime + extra;
+  let xp = Math.round(q.xp * (totalTime / defaultTime));
+  display.textContent = '+' + xp + ' XP';
+}
+
 async function toggleQuete(id) {
   if (isDayLocked) {
     toast("⚠️ Journée verrouillée. Utilise 'Modifier la journée' pour ajuster.");
@@ -1267,7 +1288,6 @@ async function toggleQuete(id) {
   const q = allQuests.find(x => x.id === id);
   if (!q) return;
   const today = todayKey();
-  // Calculer l'XP avec éventuel temps supplémentaire
   let xp = q.xp || 0;
   const extraField = document.getElementById('extra-time-field-' + id);
   if (extraField && extraField.classList.contains('show')) {
@@ -1327,7 +1347,6 @@ async function toggleQuete(id) {
 function updateCapLevel(capId) {
   const data = capacities[capId];
   if (!data) return;
-  // Déterminer le niveau à partir de l'XP total
   const levels = [
     { level: 0, xp: 0, label: 'Débutant' },
     { level: 1, xp: 50, label: 'Novice' },
@@ -1343,10 +1362,7 @@ function updateCapLevel(capId) {
   ];
   let currentLevel = 0;
   for (let i = levels.length - 1; i >= 0; i--) {
-    if (data.xp >= levels[i].xp) {
-      currentLevel = i;
-      break;
-    }
+    if (data.xp >= levels[i].xp) { currentLevel = i; break; }
   }
   const nextLevel = levels[Math.min(currentLevel + 1, levels.length - 1)];
   const current = levels[currentLevel];
@@ -1360,17 +1376,10 @@ function updateCapLevel(capId) {
 // SIDEQUEST
 // ============================================================
 async function toggleSidequest() {
-  if (isDayLocked) {
-    toast("⚠️ Journée verrouillée.");
-    return;
-  }
+  if (isDayLocked) { toast("⚠️ Journée verrouillée."); return; }
   if (!currentSidequest) return;
   const today = todayKey();
-  if (currentSidequest.date !== today) {
-    await loadFromSupabase();
-    updateSidequestUI();
-    return;
-  }
+  if (currentSidequest.date !== today) { await loadFromSupabase(); updateSidequestUI(); return; }
   const finalXp = 30;
   if (currentSidequest.done) {
     currentSidequest.done = false;
@@ -1400,10 +1409,7 @@ async function toggleSidequest() {
 }
 
 async function rerollSidequestIA() {
-  if (isDayLocked) {
-    toast("⚠️ Journée verrouillée.");
-    return;
-  }
+  if (isDayLocked) { toast("⚠️ Journée verrouillée."); return; }
   const btn = document.getElementById('btn-reroll');
   btn.textContent = "Création en cours par l'IA...";
   btn.disabled = true;
@@ -1425,30 +1431,55 @@ async function rerollSidequestIA() {
 }
 
 // ============================================================
-// QUÊTES FORGÉES
+// QUÊTES PERSONNELLES (forgées + extérieures)
 // ============================================================
-function ajouterQuetePerso() {
-  const name = document.getElementById('cq-name').value.trim();
-  if (!name) { toast("⚠️ Donne un nom à ta quête."); return; }
-  const diff = document.getElementById('cq-diff').value;
-  const type = document.getElementById('cq-type').value;
-  let xp = diff === 'easy' ? 5 : diff === 'medium' ? 15 : 30;
-  const id = 'cq_' + Date.now();
-  const newQuest = { id, name, xp, type, caps: ['coordination'], done: false };
-  customQuests.push(newQuest);
-  document.getElementById('cq-name').value = '';
+async function ajouterQuetePersonnelle() {
+  const name = prompt("Nom de la quête :");
+  if (!name) return;
+  const desc = prompt("Description (optionnelle) :") || "";
+  const type = confirm("Récurrente ? (OK = oui)") ? 'recurrent' : 'oneshot';
+  const useIA = desc.length > 5;
+  let caps = ['raisonnement'];
+  let xp = 20;
+  let duration = 15;
+  if (useIA) {
+    toast("🤖 Analyse en cours par l'IA...");
+    const analysis = await analyzeQuestIA(name, desc);
+    if (analysis) {
+      caps = analysis.caps;
+      xp = analysis.xp;
+      duration = analysis.duration;
+      const capNames = caps.map(id => PILLARS.flatMap(p => p.sub).find(c => c.id === id)?.name || id).join(', ');
+      if (!confirm(`Résumé IA :\n- Capacités : ${capNames}\n- XP : ${xp}\n- Durée : ${duration} min\n\nAjouter ?`)) {
+        const capList = PILLARS.flatMap(p => p.sub).map((c, i) => `${i+1}. ${c.name}`).join('\n');
+        const capChoice = prompt(`Capacités (numéros) :\n${capList}`, caps.map(id => PILLARS.flatMap(p => p.sub).findIndex(c => c.id === id)+1).join(','));
+        caps = capChoice ? capChoice.split(',').map(n => parseInt(n.trim())).filter(n => n > 0 && n <= PILLARS.flatMap(p => p.sub).length).map(n => PILLARS.flatMap(p => p.sub)[n-1].id) : caps;
+        xp = parseInt(prompt("XP :", xp)) || xp;
+        duration = parseInt(prompt("Durée (min) :", duration)) || duration;
+      }
+    } else {
+      // fallback manuel
+      const capList = PILLARS.flatMap(p => p.sub).map((c, i) => `${i+1}. ${c.name}`).join('\n');
+      const capChoice = prompt(`Capacités (numéros) :\n${capList}`);
+      caps = capChoice ? capChoice.split(',').map(n => parseInt(n.trim())).filter(n => n > 0 && n <= PILLARS.flatMap(p => p.sub).length).map(n => PILLARS.flatMap(p => p.sub)[n-1].id) : ['raisonnement'];
+      xp = parseInt(prompt("XP :", "20")) || 20;
+      duration = parseInt(prompt("Durée (min) :", "15")) || 15;
+    }
+  } else {
+    const capList = PILLARS.flatMap(p => p.sub).map((c, i) => `${i+1}. ${c.name}`).join('\n');
+    const capChoice = prompt(`Capacités (numéros) :\n${capList}`);
+    caps = capChoice ? capChoice.split(',').map(n => parseInt(n.trim())).filter(n => n > 0 && n <= PILLARS.flatMap(p => p.sub).length).map(n => PILLARS.flatMap(p => p.sub)[n-1].id) : ['raisonnement'];
+    xp = parseInt(prompt("XP :", "20")) || 20;
+    duration = parseInt(prompt("Durée (min) :", "15")) || 15;
+  }
+  const id = 'pers_' + Date.now();
+  customQuests.push({ id, name, desc, type, caps, xp, duration, is_personal: true });
   saveCustomQuests();
-  toast("⚔️ Quête forgée : '" + name + "'");
+  updateAll();
+  toast("✅ Quête personnelle ajoutée !");
 }
 
-function saveCustomQuests() {
-  localStorage.setItem('sys12_custom_quests', JSON.stringify(customQuests));
-  sbUpsert('sys_custom_quests', { user_id: UID, quests: JSON.stringify(customQuests) });
-  renderCustomQuests();
-  renderExternalQuests();
-}
-
-async function deleteCustomQuest(id) {
+async function deletePersonalQuest(id) {
   if (!confirm("Supprimer cette quête ?")) return;
   const q = customQuests.find(x => x.id === id);
   if (q && checkedToday[id]) {
@@ -1462,6 +1493,11 @@ async function deleteCustomQuest(id) {
   saveCustomQuests();
   updateAll();
   toast("🗑️ Quête supprimée.");
+}
+
+function saveCustomQuests() {
+  localStorage.setItem('sys12_custom_quests', JSON.stringify(customQuests));
+  sbUpsert('sys_custom_quests', { user_id: UID, quests: JSON.stringify(customQuests) });
 }
 
 // ============================================================
@@ -1529,56 +1565,103 @@ function saveRecipes() {
   for (const r of recipes) {
     sbUpsert('sys_recipes', { user_id: UID, id: r.id, name: r.name, time: r.time, people: r.people, steps: r.steps, ingredients: r.ingredients || '', done: r.done, total_xp: r.total_xp, created_at: r.created_at });
   }
-  renderRecipes();
 }
 
 // ============================================================
-// QUÊTES EXTÉRIEURES
+// GÉNÉRATEUR D'ENTRAÎNEMENT (IA)
 // ============================================================
-async function ajouterQueteExterne() {
-  const name = prompt("Nom de la quête extérieure :");
-  if (!name) return;
-  const desc = prompt("Description (optionnelle) :") || "";
-  toast("🤖 Analyse en cours par l'IA...");
-  let analysis = null;
-  if (desc) {
-    analysis = await analyzeQuestIA(name, desc);
+async function genererEntrainement(btn, qId) {
+  const existingId = 'workout-generated-' + qId;
+  const existing = document.getElementById(existingId);
+  if (existing) { existing.remove(); return; }
+  const select = document.getElementById('workout-type-' + qId);
+  const domain = select ? select.value : 'auto';
+  const card = document.createElement('div');
+  card.className = 'ai-card';
+  card.id = existingId;
+  card.style.marginTop = '6px';
+  card.style.border = '0.5px solid rgba(96,165,250,.3)';
+  card.style.background = 'linear-gradient(135deg,rgba(96,165,250,.12),rgba(14,14,16,.08))';
+  card.innerHTML = '<div class="ai-header"><span style="font-size:16px">🏋️</span><span class="ai-label" style="color:var(--blue)">Séance sur-mesure</span></div><div class="ai-body" id="txt-' + qId + '">Analyse du domaine choisi et calcul du protocole adaptatif...</div>';
+  btn.closest('.q-info').after(card);
+  const prompt = buildCtx() + `
+  En tant que coach sportif, génère un entraînement physique précis de 30 à 45 minutes.
+  Domaine : ${domain}. 
+  Format (très concis) : 
+  1. Objectif
+  2. Échauffement
+  3. Corps de séance (exercices, séries, temps)
+  4. Récupération
+  Maximum 7 lignes. Pas de markdown.
+  `;
+  const response = await callGemini(prompt);
+  document.getElementById('txt-' + qId).textContent = response;
+}
+
+async function genererMobilite(btn, qId) {
+  const existingId = 'mobility-generated-' + qId;
+  const existing = document.getElementById(existingId);
+  if (existing) { existing.remove(); return; }
+  const select = document.getElementById('mobility-type-' + qId);
+  const domain = select ? select.value : 'general';
+  const card = document.createElement('div');
+  card.className = 'ai-card';
+  card.id = existingId;
+  card.style.marginTop = '6px';
+  card.style.border = '0.5px solid rgba(52,211,153,.3)';
+  card.style.background = 'linear-gradient(135deg,rgba(52,211,153,.12),rgba(14,14,16,.08))';
+  card.innerHTML = '<div class="ai-header"><span style="font-size:16px">🧘</span><span class="ai-label" style="color:var(--green)">Mobilité sur-mesure</span></div><div class="ai-body" id="txtmob-' + qId + '">Analyse du domaine choisi...</div>';
+  btn.closest('.q-info').after(card);
+  const prompt = buildCtx() + `
+  Génère une séance de mobilité/souplesse de 15-25 minutes.
+  Type : ${domain}.
+  Format : 
+  1. Objectif
+  2. Échauffement
+  3. 4-5 exercices avec consignes
+  4. Récupération
+  Maximum 8 lignes. Pas de markdown.
+  `;
+  const response = await callGemini(prompt);
+  document.getElementById('txtmob-' + qId).textContent = response;
+}
+
+// ============================================================
+// COACH IA (Chat)
+// ============================================================
+function toggleCoachPanel() {
+  const panel = document.getElementById('coach-panel');
+  panel.classList.toggle('open');
+  if (panel.classList.contains('open')) {
+    document.getElementById('coach-input').focus();
+    document.getElementById('coach-badge').style.display = 'none';
   }
-  if (!analysis) {
-    const type = confirm("Récurrente ? (OK = oui)") ? 'recurrent' : 'one-shot';
-    const capList = PILLARS.flatMap(p => p.sub).map((c, i) => `${i+1}. ${c.name}`).join('\n');
-    const capChoice = prompt(`Capacités (numéros séparés par des virgules) :\n${capList}`);
-    const caps = capChoice ? capChoice.split(',').map(n => parseInt(n.trim())).filter(n => n > 0 && n <= PILLARS.flatMap(p => p.sub).length).map(n => PILLARS.flatMap(p => p.sub)[n-1].id) : ['raisonnement'];
-    const xp = parseInt(prompt("XP :", "30")) || 30;
-    const duration = parseInt(prompt("Durée (min) :", "15")) || 15;
-    const id = 'ext_' + Date.now();
-    customQuests.push({ id, name, desc, type, caps, xp, duration, is_external: true });
-    saveCustomQuests();
-    updateAll();
-    toast("✅ Quête extérieure ajoutée !");
-    return;
-  }
-  const { caps, xp, duration } = analysis;
-  const type = confirm("Récurrente ? (OK = oui)") ? 'recurrent' : 'one-shot';
-  const capNames = caps.map(id => PILLARS.flatMap(p => p.sub).find(c => c.id === id)?.name || id).join(', ');
-  if (!confirm(`Résumé IA :\n- Capacités : ${capNames}\n- XP : ${xp}\n- Durée : ${duration} min\n\nAjouter ?`)) {
-    const capList = PILLARS.flatMap(p => p.sub).map((c, i) => `${i+1}. ${c.name}`).join('\n');
-    const capChoice = prompt(`Capacités :\n${capList}`, caps.map(id => PILLARS.flatMap(p => p.sub).findIndex(c => c.id === id)+1).join(','));
-    const newCaps = capChoice ? capChoice.split(',').map(n => parseInt(n.trim())).filter(n => n > 0 && n <= PILLARS.flatMap(p => p.sub).length).map(n => PILLARS.flatMap(p => p.sub)[n-1].id) : caps;
-    const newXp = parseInt(prompt("XP :", xp)) || xp;
-    const newDuration = parseInt(prompt("Durée (min) :", duration)) || duration;
-    const id = 'ext_' + Date.now();
-    customQuests.push({ id, name, desc, type, caps: newCaps, xp: newXp, duration: newDuration, is_external: true });
-    saveCustomQuests();
-    updateAll();
-    toast("✅ Quête extérieure ajoutée (modifiée) !");
-    return;
-  }
-  const id = 'ext_' + Date.now();
-  customQuests.push({ id, name, desc, type, caps, xp, duration, is_external: true });
-  saveCustomQuests();
-  updateAll();
-  toast("✅ Quête extérieure ajoutée (IA) !");
+}
+
+async function envoyerMessageCoach() {
+  const input = document.getElementById('coach-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+  const messagesContainer = document.getElementById('coach-messages');
+  const userDiv = document.createElement('div');
+  userDiv.className = 'msg user';
+  userDiv.textContent = '👤 ' + msg;
+  messagesContainer.appendChild(userDiv);
+  input.value = '';
+  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+  // Réponse du coach
+  const coachDiv = document.createElement('div');
+  coachDiv.className = 'msg coach';
+  coachDiv.textContent = '🤖 Réflexion...';
+  messagesContainer.appendChild(coachDiv);
+  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+  const ctx = buildCtx();
+  const prompt = ctx + '\n\nL\'utilisateur te demande : "' + msg + '". Réponds de manière directe, analytique et motivante, en lien avec sa progression. Sans markdown.';
+  const response = await callGemini(prompt);
+  coachDiv.textContent = '🤖 ' + response;
+  messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
 // ============================================================
@@ -1625,6 +1708,11 @@ function updateValidationButton() {
   }
 }
 
+function toggleSection(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = el.style.display === 'block' ? 'none' : 'block';
+}
+
 // ============================================================
 // UTILITAIRES
 // ============================================================
@@ -1648,31 +1736,6 @@ function toast(msg) {
   clearTimeout(el._timeout);
   el._timeout = setTimeout(() => el.classList.remove('show'), 3000);
 }
-function toggleAccordion(id) {
-  const body = document.getElementById(id);
-  if (body) {
-    body.classList.toggle('open');
-    body.style.display = body.classList.contains('open') ? 'block' : 'none';
-  }
-}
-function toggleSection(id) {
-  const el = document.getElementById(id);
-  if (el) {
-    el.style.display = el.style.display === 'block' ? 'none' : 'block';
-  }
-}
-function hideBadge(id) {
-  const el = document.getElementById(id);
-  if (el) el.classList.remove('show');
-}
-function formatSteps(text) {
-  if (!text) return '';
-  return text.split('\n').filter(l => l.trim()).map((l, i) => (i+1) + '. ' + l.trim()).join('\n');
-}
-function formatIngredients(text) {
-  if (!text) return '';
-  return text.split('\n').filter(l => l.trim()).map(l => '• ' + l.trim()).join('\n');
-}
 function goTab(id, btn) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-' + id).classList.add('active');
@@ -1680,6 +1743,7 @@ function goTab(id, btn) {
   if (btn) btn.classList.add('active');
   if (id === 'stats') renderStats();
   if (id === 'piliers') renderPiliers();
+  if (id === 'today') updateAll();
 }
 
 // ============================================================
