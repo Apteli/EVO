@@ -1,639 +1,14 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Évolution">
-<title>Évolution v2.7.6</title>
-<link rel="icon" type="image/jpeg" href="favicon.jpg?v=3">
-<link rel="apple-touch-icon" href="favicon.jpg?v=3">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<style>
-/* ===== STYLES ===== */
-:root{--bg:#0e0e10;--card:#18181c;--card2:#222228;--border:rgba(255,255,255,0.07);--text:#f0f0f0;--muted:#777;--accent:#a78bfa;--accent2:#7c3aed;--green:#34d399;--amber:#fbbf24;--coral:#f87171;--blue:#60a5fa;--orange:#fb923c;--r:14px;}
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;font-size:15px;min-height:100dvh;padding-bottom:calc(76px + env(safe-area-inset-bottom));}
-.screen{display:none;padding:14px;max-width:500px;margin:0 auto;}
-.screen.active{display:block;}
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 14px 6px;max-width:500px;margin:0 auto;}
-.topbar-title{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
-.topbar-right{display:flex;align-items:center;gap:10px;}
-.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--green);transition:background .3s;}
-.sync-dot.syncing{background:var(--amber);animation:pulse 1s infinite;}
-.sync-dot.error{background:var(--coral);}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.top-xp{font-size:13px;font-weight:700;color:var(--accent);}
-.phase-banner{border-radius:10px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;}
-.ph1{background:rgba(52,211,153,.1);border:0.5px solid rgba(52,211,153,.25);}
-.ph2{background:rgba(96,165,250,.1);border:0.5px solid rgba(96,165,250,.25);}
-.ph3{background:rgba(167,139,250,.1);border:0.5px solid rgba(167,139,250,.25);}
-.phase-icon{font-size:20px;}
-.phase-info{flex:1;}
-.phase-name{font-size:13px;font-weight:700;}
-.phase-desc{font-size:11px;color:var(--muted);margin-top:1px;}
-.phase-prog{font-size:11px;font-weight:600;margin-left:auto;}
-.ph1 .phase-prog{color:var(--green);}
-.ph2 .phase-prog{color:var(--blue);}
-.ph3 .phase-prog{color:var(--accent);}
-.xp-bars-container{display:flex;flex-direction:column;gap:4px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:12px;}
-.xp-bar-row{display:flex;align-items:center;gap:8px;}
-.xp-bar-label{font-size:10px;font-weight:600;color:var(--muted);min-width:32px;text-transform:uppercase;letter-spacing:0.05em;}
-.xp-bar-track{flex:1;background:rgba(255,255,255,0.06);border-radius:4px;height:6px;overflow:hidden;}
-.xp-bar-fill{height:100%;border-radius:4px;transition:width .5s ease;}
-.xp-bar-value{font-size:10px;font-weight:600;color:var(--muted);min-width:50px;text-align:right;}
-.xp-bar-fill.global{background:linear-gradient(90deg,var(--accent2),var(--accent));}
-.xp-bar-fill.pilliers{background:linear-gradient(90deg,#34d399,#60a5fa);}
-.xp-bar-fill.forges{background:linear-gradient(90deg,#fbbf24,#fb923c);}
-.xp-hero{background:var(--card);border:0.5px solid var(--border);border-radius:var(--r);padding:18px 16px 14px;margin-bottom:12px;text-align:center;}
-.xp-big{font-size:54px;font-weight:800;letter-spacing:-2px;background:linear-gradient(135deg,var(--accent),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;}
-.xp-level{font-size:14px;color:var(--muted);margin-top:4px;}
-.xp-level span{color:var(--accent);font-weight:600;}
-.bar-wrap{background:rgba(255,255,255,0.06);border-radius:6px;height:6px;overflow:hidden;margin-top:12px;}
-.bar-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--accent2),var(--accent));transition:width .5s ease;}
-.bar-label{display:flex;justify-content:space-between;margin-top:5px;font-size:11px;color:var(--muted);}
-.streak-row{display:flex;gap:10px;margin-bottom:12px;}
-.streak-card{flex:1;background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:14px;text-align:center;}
-.streak-num{font-size:28px;font-weight:800;}
-.streak-lbl{font-size:11px;color:var(--muted);margin-top:2px;}
-.section-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:14px 0 8px;}
-.quest{display:flex;align-items:center;gap:12px;background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:13px 14px;margin-bottom:8px;cursor:pointer;transition:all .15s;user-select:none;}
-.quest:active{transform:scale(0.98);opacity:.8;}
-.quest.done{opacity:.4;}
-.quest.done .q-name{text-decoration:line-through;}
-.quest.locked{opacity:.25;cursor:default;pointer-events:none;}
-.quest.completed{opacity:.6;border-color:var(--green);}
-.quest.completed .q-name{text-decoration:line-through;color:var(--green);}
-.check{width:22px;height:22px;border-radius:7px;border:1.5px solid rgba(255,255,255,0.2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .2s;}
-.quest.done .check{background:var(--green);border-color:var(--green);}
-.quest.completed .check{background:var(--amber);border-color:var(--amber);}
-.q-info{flex:1;min-width:0;}
-.q-name{font-size:14px;font-weight:500;line-height:1.3;}
-.q-desc{font-size:12px;color:var(--muted);margin-top:2px;}
-.q-tags{display:flex;gap:5px;margin-top:4px;flex-wrap:wrap;}
-.tag{font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;}
-.tag-min{background:rgba(167,139,250,.15);color:var(--accent);}
-.tag-ph{background:rgba(255,255,255,.07);color:var(--muted);}
-.tag-cap{background:rgba(255,255,255,0.05);color:var(--text);}
-.tag-forged{background:rgba(251,191,36,.15);color:var(--amber);}
-.tag-recurrent{background:rgba(52,211,153,.15);color:var(--green);}
-.tag-until{background:rgba(251,191,36,.2);color:var(--amber);}
-.tag-oneshot{background:rgba(96,165,250,.15);color:var(--blue);}
-.q-xp{font-size:13px;font-weight:700;color:var(--accent);flex-shrink:0;cursor:default;}
-.q-actions{display:flex;gap:4px;flex-shrink:0;}
-.q-actions button{background:rgba(255,255,255,0.06);border:0.5px solid var(--border);border-radius:6px;color:var(--muted);font-size:14px;padding:2px 6px;cursor:pointer;font-family:inherit;}
-.q-actions button:hover{background:rgba(255,255,255,0.12);}
-.q-actions button.del:hover{color:var(--coral);border-color:var(--coral);}
-.q-actions button.edit:hover{color:var(--blue);border-color:var(--blue);}
-.q-actions button.complete-btn:hover{color:var(--green);border-color:var(--green);}
-.btn-main{width:100%;background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;border:none;border-radius:14px;padding:16px;font-size:16px;font-weight:700;cursor:pointer;margin-top:14px;transition:opacity .15s;font-family:inherit;}
-.btn-main:active{opacity:.8;}
-.btn-sm{padding:10px 14px;font-size:13px;font-weight:600;border-radius:8px;border:none;cursor:pointer;font-family:inherit;}
-.btn-accent{background:var(--accent2);color:#fff;}
-.btn-muted{background:rgba(255,255,255,0.06);color:var(--text);border:0.5px solid var(--border);}
-.btn-accent:active,.btn-muted:active{opacity:0.8;}
-.alert{background:rgba(251,191,36,.1);border:0.5px solid rgba(251,191,36,.3);border-radius:10px;padding:12px 14px;font-size:13px;color:#fbbf24;margin-bottom:12px;display:none;}
-.alert.show{display:block;}
-.pillar{background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;cursor:pointer;transition:all .2s;}
-.pillar:hover{background:var(--card2);}
-.pillar .sub-pillars{display:none;margin-top:10px;padding-top:10px;border-top:0.5px solid var(--border);}
-.pillar .sub-pillars.open{display:block;}
-.pillar .pillar-global-bar{margin-top:6px;}
-.sub-pillar{display:flex;align-items:center;gap:8px;margin-bottom:6px;padding:4px 0;}
-.sub-pillar .sub-label{font-size:11px;font-weight:600;color:var(--muted);min-width:70px;}
-.sub-pillar .sub-track{flex:1;background:rgba(255,255,255,0.06);border-radius:4px;height:4px;overflow:hidden;}
-.sub-pillar .sub-fill{height:100%;border-radius:4px;transition:width .5s;}
-.sub-pillar .sub-value{font-size:10px;color:var(--muted);min-width:40px;text-align:right;}
-.pillar-top{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
-.pillar-icon{font-size:20px;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.pillar-name{font-size:14px;font-weight:600;flex:1;}
-.pillar-lv{font-size:12px;color:var(--muted);}
-.pillar-title{font-size:13px;font-weight:700;color:var(--accent);margin-left:6px;}
-.pillar-sats{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;}
-.pillar-arrow{font-size:12px;color:var(--muted);transition:transform .3s;}
-.pillar-arrow.open{transform:rotate(180deg);}
-.chart-card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px;position:relative;overflow:hidden;}
-.chart-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
-.chart-nav{display:flex;justify-content:space-between;align-items:center;margin-top:10px;}
-.chart-nav span{font-size:12px;color:var(--muted);}
-.chart-swipe-area{width:100%;touch-action:none;cursor:grab;}
-.chart-swipe-area:active{cursor:grabbing;}
-.cap-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
-.cap-item{background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:10px 12px;}
-.cap-name{font-size:11px;color:var(--muted);margin-bottom:4px;}
-.cap-count{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;}
-.cap-bar{height:4px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden;}
-.cap-fill{height:100%;border-radius:2px;transition:width .4s;}
-.heatmap{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px;}
-.hm-sq{width:12px;height:12px;border-radius:2px;background:rgba(255,255,255,0.05);}
-.hm-sq.on{background:var(--accent2);}
-.hm-sq.today{background:var(--accent);box-shadow:0 0 6px var(--accent);}
-.hm-legend{font-size:11px;color:var(--muted);display:flex;gap:14px;margin-bottom:4px;}
-.hm-legend span{display:flex;align-items:center;gap:5px;}
-.ms-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
-.ms-item{background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:12px;}
-.ms-item.reached{border-color:rgba(52,211,153,.4);background:rgba(52,211,153,.06);}
-.ms-icon{font-size:20px;margin-bottom:4px;}
-.ms-label{font-size:12px;font-weight:600;}
-.ms-status{font-size:11px;color:var(--muted);margin-top:2px;}
-.ms-item.reached .ms-status{color:var(--green);}
-.log-entry{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border);}
-.log-entry:last-child{border-bottom:none;}
-.log-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
-.log-text{flex:1;font-size:13px;}
-.log-xp{font-size:12px;font-weight:700;color:var(--accent);}
-.log-time{font-size:11px;color:var(--muted);}
-textarea{width:100%;background:rgba(255,255,255,.05);border:0.5px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-family:inherit;font-size:13px;resize:none;min-height:72px;outline:none;}
-textarea:focus{border-color:rgba(167,139,250,.5);}
-.setup-overlay{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;align-items:center;justify-content:center;padding:24px;}
-.setup-box{background:var(--card);border:0.5px solid var(--border);border-radius:20px;padding:28px 24px;width:100%;max-width:420px;}
-.setup-title{font-size:20px;font-weight:800;margin-bottom:6px;}
-.setup-sub{font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.5;}
-.setup-label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;}
-.setup-input{width:100%;background:rgba(255,255,255,.06);border:0.5px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-family:inherit;font-size:14px;outline:none;margin-bottom:16px;}
-.setup-input:focus{border-color:rgba(167,139,250,.5);}
-.setup-hint{font-size:12px;color:var(--muted);margin-bottom:20px;line-height:1.5;}
-.setup-err{font-size:12px;color:var(--coral);margin-bottom:12px;display:none;}
-.setup-err.show{display:block;}
-.tab-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(14,14,16,.94);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:0.5px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:100;}
-.tab-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:10px 2px;border:none;background:none;color:var(--muted);font-size:9px;font-family:inherit;cursor:pointer;transition:color .15s;min-height:56px;}
-.tab-btn.active{color:var(--accent);}
-.tab-icon{font-size:20px;line-height:1;}
-.empty-state{color:var(--muted);font-size:13px;padding:28px 0;text-align:center;}
-.ai-card{background:linear-gradient(135deg,rgba(124,58,237,.12),rgba(96,165,250,.08));border:0.5px solid rgba(167,139,250,.25);border-radius:12px;padding:14px 16px;margin-bottom:10px;}
-.ai-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
-.ai-label{font-size:11px;font-weight:700;color:var(--accent);letter-spacing:.05em;text-transform:uppercase;}
-.ai-body{font-size:13px;color:var(--text);line-height:1.65;white-space:pre-wrap;}
-.chat-messages-box{max-height:220px;overflow-y:auto;margin-top:10px;padding-top:10px;border-top:0.5px solid var(--border);display:flex;flex-direction:column;gap:10px;}
-.chat-msg{font-size:13px;line-height:1.5;white-space:pre-wrap;padding:4px 0;}
-.chat-msg.user{color:var(--blue);font-weight:500;}
-.chat-msg.coach{color:var(--text);}
-.coach-chat-wrap{margin-top:12px;display:flex;gap:8px;}
-.coach-input{flex:1;background:rgba(255,255,255,0.06);border:0.5px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:inherit;font-size:13px;outline:none;}
-.coach-input:focus{border-color:rgba(167,139,250,0.5);}
-.coach-send{background:var(--accent2);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;}
-.coach-send:active{opacity:0.8;}
-.btn-coach{background:rgba(167,139,250,.1);border:0.5px solid rgba(167,139,250,.3);border-radius:8px;padding:5px 11px;font-size:11px;font-weight:600;color:var(--accent);cursor:pointer;font-family:inherit;display:inline-block;margin-top:6px;}
-.coach-select{background:rgba(24,24,28,0.9);border:0.5px solid rgba(255,255,255,0.15);color:var(--text);border-radius:6px;padding:4px 8px;font-size:11px;font-family:inherit;outline:none;margin-top:6px;vertical-align:middle;}
-.form-group{margin-bottom:12px;}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
-.form-select,.form-input{width:100%;background:rgba(255,255,255,.05);border:0.5px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-family:inherit;font-size:13px;outline:none;}
-.form-select:focus,.form-input:focus{border-color:var(--accent);}
-.sidequest-box{background:linear-gradient(135deg,rgba(251,191,36,0.1),rgba(249,146,60,0.05));border:0.5px solid rgba(251,191,36,0.25);border-radius:12px;padding:14px;margin-bottom:14px;}
-.sidequest-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
-.sidequest-title{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--amber);letter-spacing:0.05em;}
-.sidequest-xp{font-size:12px;font-weight:700;color:var(--amber);}
-.sidequest-caps{font-size:11px;color:var(--muted);margin-top:2px;}
-.accordion{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
-.accordion-item{background:var(--card);border:0.5px solid var(--border);border-radius:12px;overflow:hidden;}
-.accordion-header{width:100%;background:transparent;border:none;padding:14px 16px;text-align:left;font-size:15px;font-weight:600;color:var(--text);cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-family:inherit;}
-.accordion-header:hover{background:rgba(255,255,255,0.03);}
-.accordion-header .badge{display:none;background:var(--coral);width:8px;height:8px;border-radius:50%;margin-left:8px;flex-shrink:0;}
-.accordion-header .badge.show{display:inline-block;}
-.accordion-body{padding:0 16px 16px;display:none;}
-.accordion-body.open{display:block;}
-.accordion-body .btn-group{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
-.accordion-body .btn-group .btn-sm{flex:1;min-width:100px;}
-.recipe-item{display:flex;align-items:center;gap:12px;background:var(--card2);border:0.5px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:6px;cursor:pointer;}
-.recipe-item .recipe-info{flex:1;}
-.recipe-item .recipe-name{font-weight:500;}
-.recipe-item .recipe-meta{font-size:11px;color:var(--muted);}
-.recipe-item .recipe-xp{font-size:12px;font-weight:700;color:var(--accent);}
-.recipe-item .recipe-details{font-size:12px;color:var(--muted);margin-top:4px;padding-left:12px;border-left:2px solid var(--border);display:none;}
-.recipe-item .recipe-details.open{display:block;}
-.recipe-item .recipe-details .detail-line{padding:2px 0;white-space:pre-wrap;}
-.recipe-item.done{opacity:0.4;}
-.recipe-item.done .recipe-name{text-decoration:line-through;}
-.rating-popup{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:400;display:none;align-items:center;justify-content:center;padding:20px;}
-.rating-popup.show{display:flex;}
-.rating-box{background:var(--card);border:0.5px solid var(--border);border-radius:16px;padding:24px;width:100%;max-width:380px;}
-.rating-box .rating-title{font-size:16px;font-weight:700;margin-bottom:16px;text-align:center;}
-.rating-box .rating-stars{display:flex;justify-content:center;gap:8px;margin-bottom:12px;}
-.rating-box .rating-stars .star{font-size:32px;cursor:pointer;opacity:0.3;transition:opacity .2s;}
-.rating-box .rating-stars .star.active{opacity:1;color:#fbbf24;}
-.rating-box .rating-sub{font-size:13px;color:var(--muted);text-align:center;margin-bottom:16px;}
-.rating-box .rating-actions{display:flex;gap:10px;}
-.rating-box .rating-actions button{flex:1;padding:10px;border-radius:10px;border:none;font-weight:600;cursor:pointer;font-family:inherit;}
-.rating-box .rating-actions .btn-confirm{background:var(--accent2);color:#fff;}
-.rating-box .rating-actions .btn-skip{background:rgba(255,255,255,0.06);color:var(--text);border:0.5px solid var(--border);}
-.extra-time-toggle { display: inline-block; margin-left: 6px; cursor: pointer; color: var(--muted); font-size: 12px; transition: color 0.2s; user-select: none; }
-.extra-time-toggle:hover { color: var(--accent); }
-.extra-time-toggle .plus { font-weight: 700; font-size: 16px; }
-.extra-time-field { display: none; margin-top: 4px; padding: 4px 8px; background: rgba(255,255,255,0.03); border-radius: 6px; align-items: center; gap: 6px; flex-wrap: wrap; }
-.extra-time-field input { width: 60px; background: rgba(255,255,255,0.06); border: 0.5px solid var(--border); border-radius: 4px; padding: 2px 4px; color: var(--text); font-size: 12px; text-align: center; }
-.extra-time-field label { font-size: 11px; color: var(--muted); }
-.extra-time-field .extra-xp { color: var(--accent); font-weight: 600; font-size: 13px; }
-.extra-time-field.show { display: flex; }
-.log-container { max-height: 150px; overflow-y: auto; margin-top: 8px; border-top: 0.5px solid var(--border); padding-top: 8px; }
-.log-container.collapsed { max-height: 150px; overflow-y: hidden; }
-.log-container.expanded { max-height: none; }
-.log-toggle-btn { background: none; border: none; color: var(--muted); font-size: 12px; cursor: pointer; padding: 4px 8px; margin-top: 8px; font-family: inherit; }
-.log-toggle-btn:hover { color: var(--text); }
-.version-footer { text-align: center; font-size: 11px; color: var(--muted); padding: 20px 0 10px; border-top: 0.5px solid var(--border); margin-top: 20px; }
-.reset-link { color: var(--muted); text-decoration: underline; cursor: pointer; font-size: 11px; margin-top: 4px; display: inline-block; }
-.reset-link:hover { color: var(--coral); }
-
-/* ===== COACH FAB ===== */
-.coach-fab {
-  position: fixed;
-  bottom: 80px;
-  right: 16px;
-  background: var(--accent2);
-  color: #fff;
-  border: none;
-  border-radius: 50%;
-  width: 56px;
-  height: 56px;
-  font-size: 28px;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(124,58,237,0.4);
-  z-index: 90;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform .2s;
-}
-.coach-fab:active { transform: scale(0.9); }
-.coach-fab .badge { position:absolute; top:-4px; right:-4px; width:16px; height:16px; background:var(--coral); border-radius:50%; font-size:9px; display:flex; align-items:center; justify-content:center; }
-.coach-panel {
-  position: fixed;
-  bottom: 140px;
-  right: 16px;
-  width: 320px;
-  max-height: 400px;
-  background: var(--card);
-  border: 0.5px solid var(--border);
-  border-radius: 16px;
-  padding: 14px;
-  z-index: 95;
-  display: none;
-  flex-direction: column;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.6);
-}
-.coach-panel.open { display: flex; }
-.coach-panel .chat-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
-.coach-panel .chat-header span { font-weight:700; font-size:14px; }
-.coach-panel .chat-header button { background:none; border:none; color:var(--muted); font-size:18px; cursor:pointer; }
-.coach-panel .chat-messages { flex:1; overflow-y:auto; max-height:260px; margin-bottom:8px; }
-.coach-panel .chat-messages .msg { font-size:13px; padding:4px 0; }
-.coach-panel .chat-messages .msg.user { color:var(--blue); font-weight:500; }
-.coach-panel .chat-messages .msg.coach { color:var(--text); }
-.coach-panel .chat-input-wrap { display:flex; gap:6px; }
-.coach-panel .chat-input-wrap input { flex:1; background:rgba(255,255,255,0.06); border:0.5px solid var(--border); border-radius:8px; padding:6px 10px; color:var(--text); font-size:13px; outline:none; }
-.coach-panel .chat-input-wrap input:focus { border-color:var(--accent); }
-.coach-panel .chat-input-wrap button { background:var(--accent2); color:#fff; border:none; border-radius:8px; padding:6px 14px; font-size:13px; font-weight:600; cursor:pointer; }
-
-/* ---- Accordéons journal ---- */
-.journal-accordion .accordion-item { margin-bottom:6px; }
-.journal-accordion .accordion-header { padding:12px 16px; }
-.journal-accordion .accordion-body { padding:0 16px 16px; }
-.forge-form { background:var(--card2); border-radius:10px; padding:12px; margin-top:8px; }
-.forge-form .form-group { margin-bottom:8px; }
-.forge-form textarea { min-height:60px; }
-.forge-form .form-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-
-/* Sliders de poids dans la forge */
-.weight-slider-group { margin-top:8px; padding:8px; background:rgba(255,255,255,0.03); border-radius:6px; }
-.weight-slider-row { display:flex; align-items:center; gap:6px; margin-bottom:4px; }
-.weight-slider-row label { font-size:12px; min-width:80px; color:var(--muted); }
-.weight-slider-row input[type="number"] { width:50px; background:rgba(255,255,255,0.06); border:0.5px solid var(--border); border-radius:4px; padding:2px 4px; color:var(--text); font-size:12px; text-align:center; }
-.weight-slider-row .weight-bar { flex:1; height:4px; background:rgba(255,255,255,0.1); border-radius:2px; overflow:hidden; }
-.weight-slider-row .weight-bar .fill { height:100%; background:var(--accent); transition:width .2s; }
-</style>
-</head>
-<body>
-
-<!-- Setup Overlay -->
-<div class="setup-overlay" id="setup-overlay" style="display:none">
-  <div class="setup-box">
-    <div class="setup-title">Bienvenue 👋</div>
-    <div class="setup-sub">Entre ton identifiant pour synchroniser ta progression sur tous tes appareils.</div>
-    <div class="setup-label">Ton prénom ou pseudo</div>
-    <input class="setup-input" id="setup-name" placeholder="ex: eliseo" maxlength="30" autocomplete="off" autocorrect="off" autocapitalize="off">
-    <div class="setup-hint">Même identifiant sur tous tes appareils. Lettres et chiffres uniquement.</div>
-    <div class="setup-err" id="setup-err">Identifiant invalide. Lettres et chiffres uniquement.</div>
-    <button class="btn-main" style="margin-top:0" onclick="setupUser()">Commencer →</button>
-  </div>
-</div>
-
-<!-- Top Bar -->
-<div class="topbar">
-  <div class="topbar-title">Évolution v2.7.6</div>
-  <div class="topbar-right">
-    <div class="sync-dot" id="sync-dot"></div>
-    <div class="top-xp" id="top-xp">0 XP</div>
-  </div>
-</div>
-
-<!-- Écran Aujourd'hui -->
-<div id="screen-today" class="screen active">
-  <div id="phase-banner" class="phase-banner ph1">
-    <div class="phase-icon">🌱</div>
-    <div class="phase-info">
-      <div class="phase-name">Phase 1 — Fondations</div>
-      <div class="phase-desc">Installer les routines à friction minimale</div>
-    </div>
-    <div class="phase-prog" id="phase-prog">Mois 1</div>
-  </div>
-  <div class="xp-hero">
-    <div class="xp-big" id="xp-big">0</div>
-    <div class="xp-level">Niveau <span id="lv-name">Initié</span></div>
-    <div class="bar-wrap"><div class="bar-fill" id="lv-bar" style="width:0%"></div></div>
-    <div class="bar-label"><span id="bar-cur">0 / 500 XP</span><span id="bar-next">→ Apprenti</span></div>
-  </div>
-  <div class="streak-row">
-    <div class="streak-card">
-      <div class="streak-num" style="color:#fb923c" id="streak-num">🔥 0</div>
-      <div class="streak-lbl">jours consécutifs</div>
-    </div>
-    <div class="streak-card">
-      <div class="streak-num" style="color:var(--blue)" id="days-total">0</div>
-      <div class="streak-lbl">jours actifs</div>
-    </div>
-  </div>
-
-  <div class="section-title">⏳ Minimum — 20 min</div>
-  <div id="quetes-min"></div>
-
-  <div class="section-title">⚡ Optimal</div>
-  <div id="quetes-opt"></div>
-
-  <button class="btn-main" id="btn-valider" onclick="validerJour()">✓ Valider la journée</button>
-</div>
-
-<!-- Écran Journal -->
-<div id="screen-journal" class="screen">
-  <div class="journal-accordion accordion">
-    <!-- Sidequest -->
-    <div class="accordion-item">
-      <button class="accordion-header" onclick="toggleAccordion('sidequest-block')">
-        <span>🎲 Sidequest du Jour</span>
-        <span>▼</span>
-      </button>
-      <div class="accordion-body open" id="sidequest-block">
-        <div class="sidequest-box" style="margin-bottom:0;">
-          <div class="sidequest-header">
-            <div class="sidequest-title">🎲 Sidequest du Jour</div>
-            <div class="sidequest-xp" id="sq-xp-display">+30 XP</div>
-          </div>
-          <div class="quest" id="sidequest-item" onclick="toggleSidequest()" style="margin-bottom:8px;">
-            <div class="check" id="sq-check"></div>
-            <div class="q-info">
-              <div class="q-name" id="sidequest-text">Chargement du défi...</div>
-              <div class="q-desc" id="sidequest-sub">Zone de confort, sociabilité et observation de terrain.</div>
-              <div class="sidequest-caps" id="sidequest-caps"></div>
-            </div>
-          </div>
-          <button class="btn-sm btn-muted" id="btn-reroll" onclick="rerollSidequestIA()" style="width:100%;">🎲 Relancer via le Coach (IA)</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Quêtes forgées -->
-    <div class="accordion-item">
-      <button class="accordion-header" onclick="toggleAccordion('forged-block')">
-        <span>🔨 Quêtes forgées <span class="badge" id="forge-badge"></span></span>
-        <span>▼</span>
-      </button>
-      <div class="accordion-body" id="forged-block">
-        <div id="forged-quests-list"></div>
-        <button class="btn-sm btn-accent" onclick="ouvrirFormulaireForge()" style="width:100%;margin-top:10px;">➕ Forger une quête (IA)</button>
-        <div id="forge-form" style="display:none;margin-top:10px;">
-          <div class="forge-form">
-            <div class="form-group">
-              <input type="text" id="forge-name" class="form-input" placeholder="Nom de la quête..." autocomplete="off">
-            </div>
-            <div class="form-group">
-              <textarea id="forge-desc" class="form-input" placeholder="Description détaillée (objectif, contexte, etc.)" rows="3"></textarea>
-            </div>
-            <div class="form-row">
-              <input type="number" id="forge-duration" class="form-input" placeholder="Durée (min, optionnel)" min="0" value="" step="5">
-              <select id="forge-type" class="form-select">
-                <option value="oneshot">One-shot</option>
-                <option value="recurrent">Récurrente</option>
-                <option value="recurrent-until">Récurrente jusqu'à accomplissement</option>
-              </select>
-            </div>
-            <div id="forge-target-group" style="display:none;margin-bottom:8px;">
-              <input type="text" id="forge-target" class="form-input" placeholder="Objectif final (ex: obtenir le permis)">
-              <input type="number" id="forge-bonus" class="form-input" placeholder="XP bonus final" min="10" value="50" style="margin-top:6px;">
-            </div>
-            <div class="btn-group" style="display:flex;gap:8px;margin-top:8px;">
-              <button class="btn-sm btn-accent" onclick="analyserForgeIA()" style="flex:1;">🤖 Analyser par l'IA</button>
-              <button class="btn-sm btn-muted" onclick="annulerForge()" style="flex:0.5;">Annuler</button>
-            </div>
-            <div id="forge-analysis-result" style="margin-top:8px;display:none;"></div>
-            <div id="forge-weight-sliders" class="weight-slider-group" style="margin-top:8px;display:none;"></div>
-            <div id="forge-actions" style="margin-top:8px;display:none;">
-              <button class="btn-sm btn-accent" id="forge-confirm-btn" onclick="confirmerForge()" style="width:100%;">✅ Confirmer et ajouter</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Recettes -->
-    <div class="accordion-item">
-      <button class="accordion-header" onclick="toggleAccordion('recipes-block')">
-        <span>🍳 Recettes <span class="badge" id="recipe-badge"></span></span>
-        <span>▼</span>
-      </button>
-      <div class="accordion-body" id="recipes-block">
-        <div id="recipes-list"></div>
-        <button class="btn-sm btn-muted" onclick="toggleSection('recipe-form')" style="width:100%;margin-top:10px;">➕ Ajouter une recette</button>
-        <div id="recipe-form" style="display:none;margin-top:8px;">
-          <div class="forge-form">
-            <div class="form-group">
-              <input type="text" id="recipe-name" class="form-input" placeholder="Nom de la recette..." autocomplete="off">
-            </div>
-            <div class="form-row">
-              <input type="number" id="recipe-time" class="form-input" placeholder="Temps (min)" min="1" value="30">
-              <input type="number" id="recipe-people" class="form-input" placeholder="Personnes" min="1" value="2">
-            </div>
-            <div class="form-group">
-              <textarea id="recipe-ingredients" class="form-input" placeholder="Ingrédients (un par ligne)" rows="3"></textarea>
-            </div>
-            <div class="form-group">
-              <textarea id="recipe-steps" class="form-input" placeholder="Étapes (une par ligne)" rows="4"></textarea>
-            </div>
-            <button class="btn-sm btn-accent" onclick="ajouterRecette()" style="width:100%;">+ Ajouter</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Écran Piliers -->
-<div id="screen-piliers" class="screen">
-  <div id="piliers-list"></div>
-</div>
-
-<!-- Écran Stats -->
-<div id="screen-stats" class="screen">
-  <div class="chart-card">
-    <div class="chart-title">XP gagnés — 7 derniers jours</div>
-    <div class="chart-swipe-area" id="chart-swipe-area">
-      <canvas id="chart-xp" height="130"></canvas>
-    </div>
-    <div class="chart-nav">
-      <span id="chart-range">...</span>
-    </div>
-  </div>
-  <div class="chart-card">
-    <div class="chart-title">Équilibre des piliers</div>
-    <canvas id="chart-radar" height="200"></canvas>
-  </div>
-  <div class="section-title">Activité — 60 jours</div>
-  <div class="chart-card">
-    <div class="heatmap" id="heatmap"></div>
-    <div class="hm-legend">
-      <span><div class="hm-sq on" style="display:inline-block;width:10px;height:10px;border-radius:2px"></div> actif</span>
-      <span><div class="hm-sq today" style="display:inline-block;width:10px;height:10px;border-radius:2px"></div> aujourd'hui</span>
-    </div>
-  </div>
-  <div class="section-title">Jalons</div>
-  <div class="ms-grid" id="milestones"></div>
-  <div class="section-title">Journal des actions</div>
-  <div class="chart-card" id="log-list"><div class="empty-state">Aucune action enregistrée</div></div>
-  <div style="text-align:center;margin-top:12px;">
-    <span class="reset-link" onclick="reinitialiserTout()">🗑️ Réinitialiser toutes les données</span>
-  </div>
-</div>
-
-<!-- Tab Bar -->
-<div class="tab-bar">
-  <button class="tab-btn active" onclick="goTab('today',this)"><span class="tab-icon">☀️</span>Quêtes</button>
-  <button class="tab-btn" onclick="goTab('journal',this)"><span class="tab-icon">📖</span>Journal</button>
-  <button class="tab-btn" onclick="goTab('piliers',this)"><span class="tab-icon">🧱</span>Piliers</button>
-  <button class="tab-btn" onclick="goTab('stats',this)"><span class="tab-icon">📈</span>Stats</button>
-</div>
-
-<!-- Coach IA -->
-<button class="coach-fab" id="coach-fab" onclick="toggleCoachPanel()">
-  🤖
-  <span class="badge" id="coach-badge" style="display:none;">1</span>
-</button>
-<div class="coach-panel" id="coach-panel">
-  <div class="chat-header">
-    <span>🤖 Coach IA</span>
-    <button onclick="toggleCoachPanel()">✕</button>
-  </div>
-  <div class="chat-messages" id="coach-messages">
-    <div class="msg coach">Bonjour ! Je suis ton coach. Pose-moi n'importe quelle question sur ta progression.</div>
-  </div>
-  <div class="chat-input-wrap">
-    <input type="text" id="coach-input" placeholder="Écris ton message..." onkeydown="if(event.key==='Enter')envoyerMessageCoach()">
-    <button onclick="envoyerMessageCoach()">Envoyer</button>
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
-<div class="version-footer">v2.7.6 – 2026-07-27</div>
-
-<script>
-// ============================================================
-// CONFIGURATION
-// ============================================================
-const VERSION = '2.7.6';
+<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Évolution"><title>Évolution v2.7.5</title><link rel="icon" type="image/jpeg" href="favicon.jpg?v=3"><link rel="apple-touch-icon" href="favicon.jpg?v=3"><script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script><style>:root{--bg:#0e0e10;--card:#18181c;--card2:#222228;--border:rgba(255,255,255,0.07);--text:#f0f0f0;--muted:#777;--accent:#a78bfa;--accent2:#7c3aed;--green:#34d399;--amber:#fbbf24;--coral:#f87171;--blue:#60a5fa;--orange:#fb923c;--r:14px;}*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;font-size:15px;min-height:100dvh;padding-bottom:calc(76px + env(safe-area-inset-bottom));}.screen{display:none;padding:14px;max-width:500px;margin:0 auto;}.screen.active{display:block;}.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 14px 6px;max-width:500px;margin:0 auto;}.topbar-title{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}.topbar-right{display:flex;align-items:center;gap:10px;}.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--green);transition:background .3s;}.sync-dot.syncing{background:var(--amber);animation:pulse 1s infinite;}.sync-dot.error{background:var(--coral);}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}.top-xp{font-size:13px;font-weight:700;color:var(--accent);}.ai-status{font-size:11px;color:var(--muted);margin-left:6px;}.ai-status.ok{color:var(--green);}.ai-status.error{color:var(--coral);}.phase-banner{border-radius:10px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;}.ph1{background:rgba(52,211,153,.1);border:0.5px solid rgba(52,211,153,.25);}.ph2{background:rgba(96,165,250,.1);border:0.5px solid rgba(96,165,250,.25);}.ph3{background:rgba(167,139,250,.1);border:0.5px solid rgba(167,139,250,.25);}.phase-icon{font-size:20px;}.phase-info{flex:1;}.phase-name{font-size:13px;font-weight:700;}.phase-desc{font-size:11px;color:var(--muted);margin-top:1px;}.phase-prog{font-size:11px;font-weight:600;margin-left:auto;}.ph1 .phase-prog{color:var(--green);}.ph2 .phase-prog{color:var(--blue);}.ph3 .phase-prog{color:var(--accent);}.xp-bars-container{display:flex;flex-direction:column;gap:4px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:12px;}.xp-bar-row{display:flex;align-items:center;gap:8px;}.xp-bar-label{font-size:10px;font-weight:600;color:var(--muted);min-width:32px;text-transform:uppercase;letter-spacing:0.05em;}.xp-bar-track{flex:1;background:rgba(255,255,255,0.06);border-radius:4px;height:6px;overflow:hidden;}.xp-bar-fill{height:100%;border-radius:4px;transition:width .5s ease;}.xp-bar-value{font-size:10px;font-weight:600;color:var(--muted);min-width:50px;text-align:right;}.xp-bar-fill.global{background:linear-gradient(90deg,var(--accent2),var(--accent));}.xp-bar-fill.pilliers{background:linear-gradient(90deg,#34d399,#60a5fa);}.xp-bar-fill.forges{background:linear-gradient(90deg,#fbbf24,#fb923c);}.xp-hero{background:var(--card);border:0.5px solid var(--border);border-radius:var(--r);padding:18px 16px 14px;margin-bottom:12px;text-align:center;}.xp-big{font-size:54px;font-weight:800;letter-spacing:-2px;background:linear-gradient(135deg,var(--accent),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;}.xp-level{font-size:14px;color:var(--muted);margin-top:4px;}.xp-level span{color:var(--accent);font-weight:600;}.bar-wrap{background:rgba(255,255,255,0.06);border-radius:6px;height:6px;overflow:hidden;margin-top:12px;}.bar-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--accent2),var(--accent));transition:width .5s ease;}.bar-label{display:flex;justify-content:space-between;margin-top:5px;font-size:11px;color:var(--muted);}.streak-row{display:flex;gap:10px;margin-bottom:12px;}.streak-card{flex:1;background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:14px;text-align:center;}.streak-num{font-size:28px;font-weight:800;}.streak-lbl{font-size:11px;color:var(--muted);margin-top:2px;}.section-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:14px 0 8px;}.quest{display:flex;align-items:center;gap:12px;background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:13px 14px;margin-bottom:8px;cursor:pointer;transition:all .15s;user-select:none;}.quest:active{transform:scale(0.98);opacity:.8;}.quest.done{opacity:.4;}.quest.done .q-name{text-decoration:line-through;}.quest.locked{opacity:.25;cursor:default;pointer-events:none;}.quest.completed{opacity:.6;border-color:var(--green);}.quest.completed .q-name{text-decoration:line-through;color:var(--green);}.check{width:22px;height:22px;border-radius:7px;border:1.5px solid rgba(255,255,255,0.2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .2s;}.quest.done .check{background:var(--green);border-color:var(--green);}.quest.completed .check{background:var(--amber);border-color:var(--amber);}.q-info{flex:1;min-width:0;}.q-name{font-size:14px;font-weight:500;line-height:1.3;}.q-desc{font-size:12px;color:var(--muted);margin-top:2px;}.q-tags{display:flex;gap:5px;margin-top:4px;flex-wrap:wrap;}.tag{font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;}.tag-min{background:rgba(167,139,250,.15);color:var(--accent);}.tag-ph{background:rgba(255,255,255,.07);color:var(--muted);}.tag-cap{background:rgba(255,255,255,0.05);color:var(--text);}.tag-forged{background:rgba(251,191,36,.15);color:var(--amber);}.tag-recurrent{background:rgba(52,211,153,.15);color:var(--green);}.tag-until{background:rgba(251,191,36,.2);color:var(--amber);}.tag-oneshot{background:rgba(96,165,250,.15);color:var(--blue);}.tag-generated{background:rgba(167,139,250,.15);color:var(--accent);}.q-xp{font-size:13px;font-weight:700;color:var(--accent);flex-shrink:0;cursor:default;}.q-actions{display:flex;gap:4px;flex-shrink:0;}.q-actions button{background:rgba(255,255,255,0.06);border:0.5px solid var(--border);border-radius:6px;color:var(--muted);font-size:14px;padding:2px 6px;cursor:pointer;font-family:inherit;}.q-actions button:hover{background:rgba(255,255,255,0.12);}.q-actions button.del:hover{color:var(--coral);border-color:var(--coral);}.q-actions button.edit:hover{color:var(--blue);border-color:var(--blue);}.q-actions button.complete-btn:hover{color:var(--green);border-color:var(--green);}.q-details-toggle{background:transparent;border:none;color:var(--muted);font-size:12px;cursor:pointer;padding:2px 4px;margin-top:2px;}.q-details-toggle:hover{color:var(--text);}.q-details{display:none;font-size:12px;color:var(--muted);margin-top:4px;padding-left:8px;border-left:1px solid var(--border);}.q-details.open{display:block;}.btn-main{width:100%;background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;border:none;border-radius:14px;padding:16px;font-size:16px;font-weight:700;cursor:pointer;margin-top:14px;transition:opacity .15s;font-family:inherit;}.btn-main:active{opacity:.8;}.btn-sm{padding:10px 14px;font-size:13px;font-weight:600;border-radius:8px;border:none;cursor:pointer;font-family:inherit;}.btn-accent{background:var(--accent2);color:#fff;}.btn-muted{background:rgba(255,255,255,0.06);color:var(--text);border:0.5px solid var(--border);}.btn-accent:active,.btn-muted:active{opacity:0.8;}.alert{background:rgba(251,191,36,.1);border:0.5px solid rgba(251,191,36,.3);border-radius:10px;padding:12px 14px;font-size:13px;color:#fbbf24;margin-bottom:12px;display:none;}.alert.show{display:block;}.pillar{background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;cursor:pointer;transition:all .2s;}.pillar:hover{background:var(--card2);}.pillar .sub-pillars{display:none;margin-top:10px;padding-top:10px;border-top:0.5px solid var(--border);}.pillar .sub-pillars.open{display:block;}.pillar .pillar-global-bar{margin-top:6px;}.sub-pillar{display:flex;align-items:center;gap:8px;margin-bottom:6px;padding:4px 0;}.sub-pillar .sub-label{font-size:11px;font-weight:600;color:var(--muted);min-width:70px;}.sub-pillar .sub-track{flex:1;background:rgba(255,255,255,0.06);border-radius:4px;height:4px;overflow:hidden;}.sub-pillar .sub-fill{height:100%;border-radius:4px;transition:width .5s;}.sub-pillar .sub-value{font-size:10px;color:var(--muted);min-width:40px;text-align:right;}.pillar-top{display:flex;align-items:center;gap:10px;margin-bottom:6px;}.pillar-icon{font-size:20px;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}.pillar-name{font-size:14px;font-weight:600;flex:1;}.pillar-lv{font-size:12px;color:var(--muted);}.pillar-title{font-size:13px;font-weight:700;color:var(--accent);margin-left:6px;}.pillar-sats{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;}.pillar-arrow{font-size:12px;color:var(--muted);transition:transform .3s;}.pillar-arrow.open{transform:rotate(180deg);}.chart-card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px;position:relative;overflow:hidden;}.chart-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}.chart-nav{display:flex;justify-content:space-between;align-items:center;margin-top:10px;}.chart-nav span{font-size:12px;color:var(--muted);}.chart-swipe-area{width:100%;touch-action:none;cursor:grab;}.chart-swipe-area:active{cursor:grabbing;}.cap-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}.cap-item{background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:10px 12px;}.cap-name{font-size:11px;color:var(--muted);margin-bottom:4px;}.cap-count{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;}.cap-bar{height:4px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden;}.cap-fill{height:100%;border-radius:2px;transition:width .4s;}.heatmap{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px;}.hm-sq{width:12px;height:12px;border-radius:2px;background:rgba(255,255,255,0.05);}.hm-sq.on{background:var(--accent2);}.hm-sq.today{background:var(--accent);box-shadow:0 0 6px var(--accent);}.hm-legend{font-size:11px;color:var(--muted);display:flex;gap:14px;margin-bottom:4px;}.hm-legend span{display:flex;align-items:center;gap:5px;}.ms-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}.ms-item{background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:12px;}.ms-item.reached{border-color:rgba(52,211,153,.4);background:rgba(52,211,153,.06);}.ms-icon{font-size:20px;margin-bottom:4px;}.ms-label{font-size:12px;font-weight:600;}.ms-status{font-size:11px;color:var(--muted);margin-top:2px;}.ms-item.reached .ms-status{color:var(--green);}.log-entry{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border);}.log-entry:last-child{border-bottom:none;}.log-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}.log-text{flex:1;font-size:13px;}.log-xp{font-size:12px;font-weight:700;color:var(--accent);}.log-time{font-size:11px;color:var(--muted);}textarea{width:100%;background:rgba(255,255,255,.05);border:0.5px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-family:inherit;font-size:13px;resize:none;min-height:72px;outline:none;}textarea:focus{border-color:rgba(167,139,250,.5);}.setup-overlay{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;align-items:center;justify-content:center;padding:24px;}.setup-box{background:var(--card);border:0.5px solid var(--border);border-radius:20px;padding:28px 24px;width:100%;max-width:420px;}.setup-title{font-size:20px;font-weight:800;margin-bottom:6px;}.setup-sub{font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.5;}.setup-label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;}.setup-input{width:100%;background:rgba(255,255,255,.06);border:0.5px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-family:inherit;font-size:14px;outline:none;margin-bottom:16px;}.setup-input:focus{border-color:rgba(167,139,250,.5);}.setup-hint{font-size:12px;color:var(--muted);margin-bottom:20px;line-height:1.5;}.setup-err{font-size:12px;color:var(--coral);margin-bottom:12px;display:none;}.setup-err.show{display:block;}.tab-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(14,14,16,.94);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:0.5px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:100;}.tab-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:10px 2px;border:none;background:none;color:var(--muted);font-size:9px;font-family:inherit;cursor:pointer;transition:color .15s;min-height:56px;}.tab-btn.active{color:var(--accent);}.tab-icon{font-size:20px;line-height:1;}.empty-state{color:var(--muted);font-size:13px;padding:28px 0;text-align:center;}.ai-card{background:linear-gradient(135deg,rgba(124,58,237,.12),rgba(96,165,250,.08));border:0.5px solid rgba(167,139,250,.25);border-radius:12px;padding:14px 16px;margin-bottom:10px;}.ai-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;}.ai-label{font-size:11px;font-weight:700;color:var(--accent);letter-spacing:.05em;text-transform:uppercase;}.ai-body{font-size:13px;color:var(--text);line-height:1.65;white-space:pre-wrap;}.chat-messages-box{max-height:220px;overflow-y:auto;margin-top:10px;padding-top:10px;border-top:0.5px solid var(--border);display:flex;flex-direction:column;gap:10px;}.chat-msg{font-size:13px;line-height:1.5;white-space:pre-wrap;padding:4px 0;}.chat-msg.user{color:var(--blue);font-weight:500;}.chat-msg.coach{color:var(--text);}.coach-chat-wrap{margin-top:12px;display:flex;gap:8px;}.coach-input{flex:1;background:rgba(255,255,255,0.06);border:0.5px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:inherit;font-size:13px;outline:none;}.coach-input:focus{border-color:rgba(167,139,250,0.5);}.coach-send{background:var(--accent2);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;}.coach-send:active{opacity:0.8;}.btn-coach{background:rgba(167,139,250,.1);border:0.5px solid rgba(167,139,250,.3);border-radius:8px;padding:5px 11px;font-size:11px;font-weight:600;color:var(--accent);cursor:pointer;font-family:inherit;display:inline-block;margin-top:6px;}.coach-select{background:rgba(24,24,28,0.9);border:0.5px solid rgba(255,255,255,0.15);color:var(--text);border-radius:6px;padding:4px 8px;font-size:11px;font-family:inherit;outline:none;margin-top:6px;vertical-align:middle;}.form-group{margin-bottom:12px;}.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}.form-select,.form-input{width:100%;background:rgba(255,255,255,.05);border:0.5px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-family:inherit;font-size:13px;outline:none;}.form-select:focus,.form-input:focus{border-color:var(--accent);}.sidequest-box{background:linear-gradient(135deg,rgba(251,191,36,0.1),rgba(249,146,60,0.05));border:0.5px solid rgba(251,191,36,0.25);border-radius:12px;padding:14px;margin-bottom:14px;}.sidequest-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}.sidequest-title{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--amber);letter-spacing:0.05em;}.sidequest-xp{font-size:12px;font-weight:700;color:var(--amber);}.sidequest-caps{font-size:11px;color:var(--muted);margin-top:2px;}.accordion{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}.accordion-item{background:var(--card);border:0.5px solid var(--border);border-radius:12px;overflow:hidden;}.accordion-header{width:100%;background:transparent;border:none;padding:14px 16px;text-align:left;font-size:15px;font-weight:600;color:var(--text);cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-family:inherit;}.accordion-header:hover{background:rgba(255,255,255,0.03);}.accordion-header .badge{display:none;background:var(--coral);width:8px;height:8px;border-radius:50%;margin-left:8px;flex-shrink:0;}.accordion-header .badge.show{display:inline-block;}.accordion-body{padding:0 16px 16px;display:none;}.accordion-body.open{display:block;}.accordion-body .btn-group{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}.accordion-body .btn-group .btn-sm{flex:1;min-width:100px;}.recipe-item{display:flex;align-items:center;gap:12px;background:var(--card2);border:0.5px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:6px;cursor:pointer;}.recipe-item .recipe-info{flex:1;}.recipe-item .recipe-name{font-weight:500;}.recipe-item .recipe-meta{font-size:11px;color:var(--muted);}.recipe-item .recipe-xp{font-size:12px;font-weight:700;color:var(--accent);}.recipe-item .recipe-details{font-size:12px;color:var(--muted);margin-top:4px;padding-left:12px;border-left:2px solid var(--border);display:none;}.recipe-item .recipe-details.open{display:block;}.recipe-item .recipe-details .detail-line{padding:2px 0;white-space:pre-wrap;}.recipe-item.done{opacity:0.4;}.recipe-item.done .recipe-name{text-decoration:line-through;}.rating-popup{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:400;display:none;align-items:center;justify-content:center;padding:20px;}.rating-popup.show{display:flex;}.rating-box{background:var(--card);border:0.5px solid var(--border);border-radius:16px;padding:24px;width:100%;max-width:380px;}.rating-box .rating-title{font-size:16px;font-weight:700;margin-bottom:16px;text-align:center;}.rating-box .rating-stars{display:flex;justify-content:center;gap:8px;margin-bottom:12px;}.rating-box .rating-stars .star{font-size:32px;cursor:pointer;opacity:0.3;transition:opacity .2s;}.rating-box .rating-stars .star.active{opacity:1;color:#fbbf24;}.rating-box .rating-sub{font-size:13px;color:var(--muted);text-align:center;margin-bottom:16px;}.rating-box .rating-actions{display:flex;gap:10px;}.rating-box .rating-actions button{flex:1;padding:10px;border-radius:10px;border:none;font-weight:600;cursor:pointer;font-family:inherit;}.rating-box .rating-actions .btn-confirm{background:var(--accent2);color:#fff;}.rating-box .rating-actions .btn-skip{background:rgba(255,255,255,0.06);color:var(--text);border:0.5px solid var(--border);}.extra-time-toggle { display: inline-block; margin-left: 6px; cursor: pointer; color: var(--muted); font-size: 12px; transition: color 0.2s; user-select: none; }.extra-time-toggle:hover { color: var(--accent); }.extra-time-toggle .plus { font-weight: 700; font-size: 16px; }.extra-time-field { display: none; margin-top: 4px; padding: 4px 8px; background: rgba(255,255,255,0.03); border-radius: 6px; align-items: center; gap: 6px; flex-wrap: wrap; }.extra-time-field input { width: 60px; background: rgba(255,255,255,0.06); border: 0.5px solid var(--border); border-radius: 4px; padding: 2px 4px; color: var(--text); font-size: 12px; text-align: center; }.extra-time-field label { font-size: 11px; color: var(--muted); }.extra-time-field .extra-xp { color: var(--accent); font-weight: 600; font-size: 13px; }.extra-time-field.show { display: flex; }.log-container { max-height: 150px; overflow-y: auto; margin-top: 8px; border-top: 0.5px solid var(--border); padding-top: 8px; }.log-container.collapsed { max-height: 150px; overflow-y: hidden; }.log-container.expanded { max-height: none; }.log-toggle-btn { background: none; border: none; color: var(--muted); font-size: 12px; cursor: pointer; padding: 4px 8px; margin-top: 8px; font-family: inherit; }.log-toggle-btn:hover { color: var(--text); }.version-footer { text-align: center; font-size: 11px; color: var(--muted); padding: 20px 0 10px; border-top: 0.5px solid var(--border); margin-top: 20px; }.reset-link { color: var(--muted); text-decoration: underline; cursor: pointer; font-size: 11px; margin-top: 4px; display: inline-block; }.reset-link:hover { color: var(--coral); }.coach-fab { position: fixed; bottom: 80px; right: 16px; background: var(--accent2); color: #fff; border: none; border-radius: 50%; width: 56px; height: 56px; font-size: 28px; cursor: pointer; box-shadow: 0 4px 12px rgba(124,58,237,0.4); z-index: 90; display: flex; align-items: center; justify-content: center; transition: transform .2s;}.coach-fab:active { transform: scale(0.9); }.coach-fab .badge { position:absolute; top:-4px; right:-4px; width:16px; height:16px; background:var(--coral); border-radius:50%; font-size:9px; display:flex; align-items:center; justify-content:center; }.coach-panel { position: fixed; bottom: 140px; right: 16px; width: 320px; max-height: 400px; background: var(--card); border: 0.5px solid var(--border); border-radius: 16px; padding: 14px; z-index: 95; display: none; flex-direction: column; box-shadow: 0 8px 24px rgba(0,0,0,0.6);}.coach-panel.open { display: flex; }.coach-panel .chat-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }.coach-panel .chat-header span { font-weight:700; font-size:14px; }.coach-panel .chat-header button { background:none; border:none; color:var(--muted); font-size:18px; cursor:pointer; }.coach-panel .chat-messages { flex:1; overflow-y:auto; max-height:260px; margin-bottom:8px; }.coach-panel .chat-messages .msg { font-size:13px; padding:4px 0; }.coach-panel .chat-messages .msg.user { color:var(--blue); font-weight:500; }.coach-panel .chat-messages .msg.coach { color:var(--text); }.coach-panel .chat-input-wrap { display:flex; gap:6px; }.coach-panel .chat-input-wrap input { flex:1; background:rgba(255,255,255,0.06); border:0.5px solid var(--border); border-radius:8px; padding:6px 10px; color:var(--text); font-size:13px; outline:none; }.coach-panel .chat-input-wrap input:focus { border-color:var(--accent); }.coach-panel .chat-input-wrap button { background:var(--accent2); color:#fff; border:none; border-radius:8px; padding:6px 14px; font-size:13px; font-weight:600; cursor:pointer; }.journal-accordion .accordion-item { margin-bottom:6px; }.journal-accordion .accordion-header { padding:12px 16px; }.journal-accordion .accordion-body { padding:0 16px 16px; }.forge-form { background:var(--card2); border-radius:10px; padding:12px; margin-top:8px; }.forge-form .form-group { margin-bottom:8px; }.forge-form textarea { min-height:60px; }.forge-form .form-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }.weight-slider-group { margin-top:8px; padding:8px; background:rgba(255,255,255,0.03); border-radius:6px; }.weight-slider-row { display:flex; align-items:center; gap:6px; margin-bottom:4px; }.weight-slider-row label { font-size:12px; min-width:80px; color:var(--muted); }.weight-slider-row input[type="number"] { width:50px; background:rgba(255,255,255,0.06); border:0.5px solid var(--border); border-radius:4px; padding:2px 4px; color:var(--text); font-size:12px; text-align:center; }.weight-slider-row .weight-bar { flex:1; height:4px; background:rgba(255,255,255,0.1); border-radius:2px; overflow:hidden; }.weight-slider-row .weight-bar .fill { height:100%; background:var(--accent); transition:width .2s; }.custom-quest-generator { background:var(--card); border:0.5px solid var(--border); border-radius:12px; padding:14px; margin-top:12px; }.custom-quest-generator .cap-checkboxes { display:grid; grid-template-columns:1fr 1fr; gap:4px 8px; margin:8px 0; }.custom-quest-generator .cap-checkboxes label { font-size:12px; color:var(--text); display:flex; align-items:center; gap:4px; }.toggle-caps-btn { background:transparent; border:0.5px solid var(--border); border-radius:6px; color:var(--muted); font-size:12px; padding:4px 8px; cursor:pointer; width:100%; text-align:center; margin-bottom:6px; }.toggle-caps-btn:hover{background:rgba(255,255,255,0.05);}.caps-container{display:none;}.caps-container.open{display:block;}</style></head><body><div class="setup-overlay" id="setup-overlay" style="display:none"><div class="setup-box"><div class="setup-title">Bienvenue 👋</div><div class="setup-sub">Entre ton identifiant pour synchroniser ta progression sur tous tes appareils.</div><div class="setup-label">Ton prénom ou pseudo</div><input class="setup-input" id="setup-name" placeholder="ex: eliseo" maxlength="30" autocomplete="off" autocorrect="off" autocapitalize="off"><div class="setup-hint">Même identifiant sur tous tes appareils. Lettres et chiffres uniquement.</div><div class="setup-err" id="setup-err">Identifiant invalide. Lettres et chiffres uniquement.</div><button class="btn-main" style="margin-top:0" onclick="setupUser()">Commencer →</button></div></div><div class="topbar"><div class="topbar-title">Évolution v2.7.5</div><div class="topbar-right"><div class="sync-dot" id="sync-dot"></div><div class="top-xp" id="top-xp">0 XP</div><span class="ai-status ok" id="ai-status">🤖 ●</span></div></div><div id="screen-today" class="screen active"><div id="phase-banner" class="phase-banner ph1"><div class="phase-icon">🌱</div><div class="phase-info"><div class="phase-name">Phase 1 — Fondations</div><div class="phase-desc">Installer les routines à friction minimale</div></div><div class="phase-prog" id="phase-prog">Mois 1</div></div><div class="xp-hero"><div class="xp-big" id="xp-big">0</div><div class="xp-level">Niveau <span id="lv-name">Initié</span></div><div class="bar-wrap"><div class="bar-fill" id="lv-bar" style="width:0%"></div></div><div class="bar-label"><span id="bar-cur">0 / 500 XP</span><span id="bar-next">→ Apprenti</span></div></div><div class="streak-row"><div class="streak-card"><div class="streak-num" style="color:#fb923c" id="streak-num">🔥 0</div><div class="streak-lbl">jours consécutifs</div></div><div class="streak-card"><div class="streak-num" style="color:var(--blue)" id="days-total">0</div><div class="streak-lbl">jours actifs</div></div></div><div class="section-title">⏳ Minimum — 20 min</div><div id="quetes-min"></div><div class="section-title">⚡ Optimal</div><div id="quetes-opt"></div><div class="section-title">⚡ Quêtes sur mesure</div><div id="quetes-generated"></div><div class="custom-quest-generator"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;"><span class="section-title" style="margin:0;">🧠 Générer une quête sur mesure</span></div><button class="toggle-caps-btn" onclick="toggleCapsSelector()">📋 Choisir les capacités</button><div class="caps-container" id="caps-selector"><div class="cap-checkboxes" id="custom-cap-checkboxes"></div></div><button class="btn-sm btn-accent" onclick="genererQueteSurMesure()" style="width:100%;margin-top:6px;">⚡ Générer la quête</button><div id="custom-quest-result" style="margin-top:8px;display:none;"></div></div><button class="btn-main" id="btn-valider" onclick="validerJour()">✓ Valider la journée</button></div><div id="screen-journal" class="screen"><div class="journal-accordion accordion"><div class="accordion-item"><button class="accordion-header" onclick="toggleAccordion('sidequest-block')"><span>🎲 Sidequest du Jour</span><span>▼</span></button><div class="accordion-body open" id="sidequest-block"><div class="sidequest-box" style="margin-bottom:0;"><div class="sidequest-header"><div class="sidequest-title">🎲 Sidequest du Jour</div><div class="sidequest-xp" id="sq-xp-display">+30 XP</div></div><div class="quest" id="sidequest-item" onclick="toggleSidequest()" style="margin-bottom:8px;"><div class="check" id="sq-check"></div><div class="q-info"><div class="q-name" id="sidequest-text">Chargement du défi...</div><div class="q-desc" id="sidequest-sub">Zone de confort, sociabilité et observation de terrain.</div><div class="sidequest-caps" id="sidequest-caps"></div></div></div><button class="btn-sm btn-muted" id="btn-reroll" onclick="rerollSidequestIA()" style="width:100%;">🎲 Relancer via le Coach (IA)</button></div></div></div><div class="accordion-item"><button class="accordion-header" onclick="toggleAccordion('forged-block')"><span>🔨 Quêtes forgées <span class="badge" id="forge-badge"></span></span><span>▼</span></button><div class="accordion-body" id="forged-block"><div id="forged-quests-list"></div><button class="btn-sm btn-accent" onclick="ouvrirFormulaireForge()" style="width:100%;margin-top:10px;">➕ Forger une quête (IA)</button><div id="forge-form" style="display:none;margin-top:10px;"><div class="forge-form"><div class="form-group"><input type="text" id="forge-name" class="form-input" placeholder="Nom de la quête..." autocomplete="off"></div><div class="form-group"><textarea id="forge-desc" class="form-input" placeholder="Description détaillée (objectif, contexte, etc.)" rows="3"></textarea></div><div class="form-row"><input type="number" id="forge-duration" class="form-input" placeholder="Durée (min, optionnel)" min="0" value="" step="5"><select id="forge-type" class="form-select"><option value="oneshot">One-shot</option><option value="recurrent">Récurrente</option><option value="recurrent-until">Récurrente jusqu'à accomplissement</option></select></div><div id="forge-target-group" style="display:none;margin-bottom:8px;"><input type="text" id="forge-target" class="form-input" placeholder="Objectif final (ex: obtenir le permis)"><input type="number" id="forge-bonus" class="form-input" placeholder="XP bonus final" min="10" value="50" style="margin-top:6px;"></div><div class="btn-group" style="display:flex;gap:8px;margin-top:8px;"><button class="btn-sm btn-accent" onclick="analyserForgeIA()" style="flex:1;">🤖 Analyser par l'IA</button><button class="btn-sm btn-muted" onclick="annulerForge()" style="flex:0.5;">Annuler</button></div><div id="forge-analysis-result" style="margin-top:8px;display:none;"></div><div id="forge-actions" style="margin-top:8px;display:none;"><div id="forge-weight-sliders"></div><button class="btn-sm btn-accent" onclick="confirmerForge()" style="width:100%;margin-top:8px;">✅ Confirmer et ajouter</button></div></div></div></div></div><div class="accordion-item"><button class="accordion-header" onclick="toggleAccordion('recipes-block')"><span>🍳 Recettes <span class="badge" id="recipe-badge"></span></span><span>▼</span></button><div class="accordion-body" id="recipes-block"><div id="recipes-list"></div><button class="btn-sm btn-muted" onclick="toggleSection('recipe-form')" style="width:100%;margin-top:10px;">➕ Ajouter une recette</button><div id="recipe-form" style="display:none;margin-top:8px;"><div class="forge-form"><div class="form-group"><input type="text" id="recipe-name" class="form-input" placeholder="Nom de la recette..." autocomplete="off"></div><div class="form-row"><input type="number" id="recipe-time" class="form-input" placeholder="Temps (min)" min="1" value="30"><input type="number" id="recipe-people" class="form-input" placeholder="Personnes" min="1" value="2"></div><div class="form-group"><textarea id="recipe-ingredients" class="form-input" placeholder="Ingrédients (un par ligne)" rows="3"></textarea></div><div class="form-group"><textarea id="recipe-steps" class="form-input" placeholder="Étapes (une par ligne)" rows="4"></textarea></div><button class="btn-sm btn-accent" onclick="ajouterRecette()" style="width:100%;">+ Ajouter</button></div></div></div></div></div></div><div id="screen-piliers" class="screen"><div id="piliers-list"></div></div><div id="screen-stats" class="screen"><div class="chart-card"><div class="chart-title">XP gagnés — 7 derniers jours</div><div class="chart-swipe-area" id="chart-swipe-area"><canvas id="chart-xp" height="130"></canvas></div><div class="chart-nav"><span id="chart-range">...</span></div></div><div class="chart-card"><div class="chart-title">Équilibre des piliers</div><canvas id="chart-radar" height="200"></canvas></div><div class="section-title">Activité — 60 jours</div><div class="chart-card"><div class="heatmap" id="heatmap"></div><div class="hm-legend"><span><div class="hm-sq on" style="display:inline-block;width:10px;height:10px;border-radius:2px"></div> actif</span><span><div class="hm-sq today" style="display:inline-block;width:10px;height:10px;border-radius:2px"></div> aujourd'hui</span></div></div><div class="section-title">Jalons</div><div class="ms-grid" id="milestones"></div><div class="section-title">Journal des actions</div><div class="chart-card" id="log-list"><div class="empty-state">Aucune action enregistrée</div></div><div style="text-align:center;margin-top:12px;"><span class="reset-link" onclick="reinitialiserTout()">🗑️ Réinitialiser toutes les données</span></div></div><div class="tab-bar"><button class="tab-btn active" onclick="goTab('today',this)"><span class="tab-icon">☀️</span>Quêtes</button><button class="tab-btn" onclick="goTab('journal',this)"><span class="tab-icon">📖</span>Journal</button><button class="tab-btn" onclick="goTab('piliers',this)"><span class="tab-icon">🧱</span>Piliers</button><button class="tab-btn" onclick="goTab('stats',this)"><span class="tab-icon">📈</span>Stats</button></div><button class="coach-fab" id="coach-fab" onclick="toggleCoachPanel()"> 🤖 <span class="badge" id="coach-badge" style="display:none;">1</span></button><div class="coach-panel" id="coach-panel"><div class="chat-header"><span>🤖 Coach IA</span><button onclick="toggleCoachPanel()">✕</button></div><div class="chat-messages" id="coach-messages"><div class="msg coach">Bonjour ! Je suis ton coach. Pose-moi n'importe quelle question sur ta progression.</div></div><div class="chat-input-wrap"><input type="text" id="coach-input" placeholder="Écris ton message..." onkeydown="if(event.key==='Enter')envoyerMessageCoach()"><button onclick="envoyerMessageCoach()">Envoyer</button></div></div><div class="toast" id="toast"></div><div class="version-footer">v2.7.5 – 2026-07-27</div><script>
+const VERSION = '2.7.5';
 const SB_URL = 'https://nlicstxewcrzjliyslkm.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5saWNzdHhld2NyempsaXlzbGttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1ODg1NzUsImV4cCI6MjA5ODE2NDU3NX0.CTHaV_iM50Q_sA1l8_5rVL7b4nU8XonYRcds8Z702GI';
-const HDR = {
-  'Content-Type': 'application/json',
-  'apikey': SB_KEY,
-  'Authorization': 'Bearer ' + SB_KEY,
-  'Prefer': 'return=representation'
-};
+const HDR = { 'Content-Type': 'application/json', 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Prefer': 'return=representation'};
+const LEVELS = [ { min: 0, name: 'Initié' }, { min: 500, name: 'Apprenti' }, { min: 1200, name: 'Praticien' }, { min: 2500, name: 'Expert' }, { min: 5000, name: 'Maître' }, { min: 10000, name: 'Architecte' }];
+const PHASES = [ { id: 1, months: [1, 2, 3], name: 'Fondations', desc: 'Installer les routines à friction minimale', icon: '🌱', cls: 'ph1' }, { id: 2, months: [4, 5, 6, 7, 8], name: 'Intensification', desc: 'Intégration des satellites, armée comme labo', icon: '⚡', cls: 'ph2' }, { id: 3, months: [9, 10, 11, 12], name: 'Consolidation', desc: 'Mesure, ajustement, extension du système', icon: '💎', cls: 'ph3' } ];
+const PILLARS = [ { id: 'p1', name: 'Cognitif', icon: '🧠', color: '#a78bfa', sub: [ { id: 'mct', name: 'Mémoire à court terme', desc: 'Retenir et manipuler des informations' }, { id: 'mlt', name: 'Mémoire à long terme', desc: 'Stockage et rappel d\'informations' }, { id: 'raisonnement', name: 'Raisonnement logique', desc: 'Résolution de problèmes, déduction' }, { id: 'calcul', name: 'Calcul mental', desc: 'Vitesse et précision' }, { id: 'lecture', name: 'Compréhension de lecture', desc: 'Analyse de texte, extraction d\'idées' }, { id: 'metacognition', name: 'Métacognition', desc: 'Conscience de ses processus cognitifs' } ] }, { id: 'p2', name: 'Physiologique', icon: '🫁', color: '#34d399', sub: [ { id: 'stress', name: 'Régulation du stress', desc: 'Variabilité cardiaque, contrôle émotionnel' }, { id: 'souplesse', name: 'Souplesse/mobilité', desc: 'Amplitude articulaire, coordination' }, { id: 'endurance', name: 'Endurance', desc: 'Capacité aérobie' }, { id: 'force', name: 'Force', desc: 'Puissance musculaire' }, { id: 'recuperation', name: 'Récupération', desc: 'Qualité du sommeil, récupération post-effort' } ] }, { id: 'p3', name: 'Sensoriel', icon: '👁', color: '#60a5fa', sub: [ { id: 'observation', name: 'Observation clinique', desc: 'Détection de détails visuels, auditifs' }, { id: 'spatial', name: 'Conscience spatiale', desc: 'Orientation, perception des distances' }, { id: 'proprioception', name: 'Proprioception', desc: 'Perception du corps dans l\'espace' } ] }, { id: 'p4', name: 'Social/Communication', icon: '🎯', color: '#fbbf24', sub: [ { id: 'rhetorique', name: 'Rhétorique', desc: 'Structurer un discours' }, { id: 'ecoute', name: 'Écoute active', desc: 'Compréhension des nuances' }, { id: 'negociation', name: 'Négociation', desc: 'Trouver des compromis' }, { id: 'langues', name: 'Langues', desc: 'Maîtrise de langues étrangères' } ] }, { id: 'p5', name: 'Transversal', icon: '💎', color: '#fb923c', sub: [ { id: 'creativite', name: 'Créativité', desc: 'Pensée divergente' }, { id: 'decision', name: 'Prise de décision', desc: 'Efficacité et rapidité' }, { id: 'coordination', name: 'Coordination', desc: 'Vitesse, réflexes, coordination' } ] } ];
+const QUETES = { min: [ { id: 'q1', name: 'Respiration / cohérence cardiaque', desc: '5 min box breathing ou cohérence cardiaque', xp: 30, caps: ['stress'], time: 5, phases: [1,2,3] }, { id: 'q2', name: 'Anki — cartes du jour', desc: '10 min, minimum 10 cartes', xp: 34, caps: ['mct', 'mlt'], time: 10, phases: [1,2,3] }, { id: 'q3', name: 'Sémiologie factuelle & conscience spatiale', desc: '1 fait physique noté + 1 scan spatial', xp: 20, caps: ['observation', 'spatial'], time: 15, phases: [1,2,3] }, ], opt: [ { id: 'q4', name: 'Bloc cognitif profond', desc: '45 min lecture technique, calcul ou méthode Feynman', xp: 54, caps: ['raisonnement', 'lecture'], time: 45, phases: [1,2,3] }, { id: 'q5', name: 'Entraînement physique', desc: '30 min force, natation ou zone 2', xp: 70, caps: ['endurance', 'force'], time: 30, phases: [1,2,3] }, { id: 'q6', name: 'Wim Hof / douche froide', desc: 'Protocole respiration + exposition au froid', xp: 50, caps: ['stress', 'recuperation'], time: 15, phases: [1,2,3] }, { id: 'q7', name: 'Langue ou rhétorique', desc: '30 min Pimsleur, Assimil ou débat oral', xp: 60, caps: ['langues', 'rhetorique'], time: 30, phases: [2,3] }, { id: 'q8', name: 'Journal décisionnel', desc: '5 min — 1 décision analysée pour biais cognitifs', xp: 21, caps: ['metacognition', 'decision'], time: 5, phases: [1,2,3] }, { id: 'q9', name: 'Lecture 30 min', desc: 'Médecine, philo, neuro, stoïcisme...', xp: 27, caps: ['lecture', 'mlt'], time: 30, phases: [1,2,3] }, { id: 'q10', name: 'Échecs / jeu stratégique', desc: '15 min blitz ou puzzle — pensée multi-coups', xp: 35, caps: ['raisonnement', 'decision'], time: 15, phases: [2,3] }, { id: 'q11', name: "Dessin d'observation", desc: '5 min — percevoir les lignes et volumes réels', xp: 25, caps: ['observation', 'creativite'], time: 5, phases: [3] }, { id: 'q12', name: 'Calcul mental chronométré', desc: '10 min — vitesse et chunking', xp: 21, caps: ['calcul', 'mct'], time: 10, phases: [2,3] }, { id: 'q13', name: 'Mobilité & Souplesse', desc: '15-30 min de travail articulaire, étirements ou yoga', xp: 60, caps: ['souplesse', 'coordination'], time: 15, phases: [1,2,3] }, { id: 'q14', name: 'Parcours de mobilité active', desc: '10 min d\'enchaînement dynamique (fentes, rotations)', xp: 30, caps: ['souplesse', 'coordination'], time: 10, phases: [1,2,3] }, { id: 'q15', name: 'Observation urbaine', desc: 'Dans la rue, repère 3 détails inédits', xp: 25, caps: ['observation', 'spatial'], time: 10, phases: [1,2,3] }, { id: 'q16', name: 'Exploration d\'un sujet', desc: 'Lis un article sur un domaine inconnu, note 3 idées', xp: 20, caps: ['lecture', 'creativite'], time: 20, phases: [1,2,3] }, { id: 'q17', name: 'Défi d\'observation clinique', desc: 'Dans un lieu public, décris la posture de 3 personnes', xp: 35, caps: ['observation', 'proprioception'], time: 15, phases: [1,2,3] } ] };
+const QUEST_DEFAULT_TIME = { q1:5, q2:10, q3:15, q4:45, q5:30, q6:15, q7:30, q8:5, q9:30, q10:15, q11:5, q12:10, q13:15};
 
-// ============================================================
-// DONNÉES STATIQUES
-// ============================================================
-const LEVELS = [
-  { min: 0, name: 'Initié' }, { min: 500, name: 'Apprenti' }, { min: 1200, name: 'Praticien' },
-  { min: 2500, name: 'Expert' }, { min: 5000, name: 'Maître' }, { min: 10000, name: 'Architecte' }
-];
-
-const PHASES = [
-  { id: 1, months: [1, 2, 3], name: 'Fondations', desc: 'Installer les routines à friction minimale', icon: '🌱', cls: 'ph1' },
-  { id: 2, months: [4, 5, 6, 7, 8], name: 'Intensification', desc: 'Intégration des satellites, armée comme labo', icon: '⚡', cls: 'ph2' },
-  { id: 3, months: [9, 10, 11, 12], name: 'Consolidation', desc: 'Mesure, ajustement, extension du système', icon: '💎', cls: 'ph3' },
-];
-
-const PILLARS = [
-  { id: 'p1', name: 'Cognitif', icon: '🧠', color: '#a78bfa', 
-    sub: [
-      { id: 'mct', name: 'Mémoire à court terme', desc: 'Retenir et manipuler des informations' },
-      { id: 'mlt', name: 'Mémoire à long terme', desc: 'Stockage et rappel d\'informations' },
-      { id: 'raisonnement', name: 'Raisonnement logique', desc: 'Résolution de problèmes, déduction' },
-      { id: 'calcul', name: 'Calcul mental', desc: 'Vitesse et précision' },
-      { id: 'lecture', name: 'Compréhension de lecture', desc: 'Analyse de texte, extraction d\'idées' },
-      { id: 'metacognition', name: 'Métacognition', desc: 'Conscience de ses processus cognitifs' }
-    ]
-  },
-  { id: 'p2', name: 'Physiologique', icon: '🫁', color: '#34d399',
-    sub: [
-      { id: 'stress', name: 'Régulation du stress', desc: 'Variabilité cardiaque, contrôle émotionnel' },
-      { id: 'souplesse', name: 'Souplesse/mobilité', desc: 'Amplitude articulaire, coordination' },
-      { id: 'endurance', name: 'Endurance', desc: 'Capacité aérobie' },
-      { id: 'force', name: 'Force', desc: 'Puissance musculaire' },
-      { id: 'recuperation', name: 'Récupération', desc: 'Qualité du sommeil, récupération post-effort' }
-    ]
-  },
-  { id: 'p3', name: 'Sensoriel', icon: '👁', color: '#60a5fa',
-    sub: [
-      { id: 'observation', name: 'Observation clinique', desc: 'Détection de détails visuels, auditifs' },
-      { id: 'spatial', name: 'Conscience spatiale', desc: 'Orientation, perception des distances' },
-      { id: 'proprioception', name: 'Proprioception', desc: 'Perception du corps dans l\'espace' }
-    ]
-  },
-  { id: 'p4', name: 'Social/Communication', icon: '🎯', color: '#fbbf24',
-    sub: [
-      { id: 'rhetorique', name: 'Rhétorique', desc: 'Structurer un discours' },
-      { id: 'ecoute', name: 'Écoute active', desc: 'Compréhension des nuances' },
-      { id: 'negociation', name: 'Négociation', desc: 'Trouver des compromis' },
-      { id: 'langues', name: 'Langues', desc: 'Maîtrise de langues étrangères' }
-    ]
-  },
-  { id: 'p5', name: 'Transversal', icon: '💎', color: '#fb923c',
-    sub: [
-      { id: 'creativite', name: 'Créativité', desc: 'Pensée divergente' },
-      { id: 'decision', name: 'Prise de décision', desc: 'Efficacité et rapidité' },
-      { id: 'coordination', name: 'Coordination', desc: 'Vitesse, réflexes, coordination' }
-    ]
-  }
-];
-
-const QUETES = {
-  min: [
-    { id: 'q1', name: 'Respiration / cohérence cardiaque', desc: '5 min box breathing ou cohérence cardiaque', xp: 30, caps: ['stress'], time: 5, phases: [1,2,3] },
-    { id: 'q2', name: 'Anki — cartes du jour', desc: '10 min, minimum 10 cartes', xp: 34, caps: ['mct', 'mlt'], time: 10, phases: [1,2,3] },
-    { id: 'q3', name: 'Sémiologie factuelle & conscience spatiale', desc: '1 fait physique noté + 1 scan spatial', xp: 20, caps: ['observation', 'spatial'], time: 15, phases: [1,2,3] },
-  ],
-  opt: [
-    { id: 'q4', name: 'Bloc cognitif profond', desc: '45 min lecture technique, calcul ou méthode Feynman', xp: 54, caps: ['raisonnement', 'lecture'], time: 45, phases: [1,2,3] },
-    { id: 'q5', name: 'Entraînement physique', desc: '30 min force, natation ou zone 2', xp: 70, caps: ['endurance', 'force'], time: 30, phases: [1,2,3] },
-    { id: 'q6', name: 'Wim Hof / douche froide', desc: 'Protocole respiration + exposition au froid', xp: 50, caps: ['stress', 'recuperation'], time: 15, phases: [1,2,3] },
-    { id: 'q7', name: 'Langue ou rhétorique', desc: '30 min Pimsleur, Assimil ou débat oral', xp: 60, caps: ['langues', 'rhetorique'], time: 30, phases: [2,3] },
-    { id: 'q8', name: 'Journal décisionnel', desc: '5 min — 1 décision analysée pour biais cognitifs', xp: 21, caps: ['metacognition', 'decision'], time: 5, phases: [1,2,3] },
-    { id: 'q9', name: 'Lecture 30 min', desc: 'Médecine, philo, neuro, stoïcisme...', xp: 27, caps: ['lecture', 'mlt'], time: 30, phases: [1,2,3] },
-    { id: 'q10', name: 'Échecs / jeu stratégique', desc: '15 min blitz ou puzzle — pensée multi-coups', xp: 35, caps: ['raisonnement', 'decision'], time: 15, phases: [2,3] },
-    { id: 'q11', name: "Dessin d'observation", desc: '5 min — percevoir les lignes et volumes réels', xp: 25, caps: ['observation', 'creativite'], time: 5, phases: [3] },
-    { id: 'q12', name: 'Calcul mental chronométré', desc: '10 min — vitesse et chunking', xp: 21, caps: ['calcul', 'mct'], time: 10, phases: [2,3] },
-    { id: 'q13', name: 'Mobilité & Souplesse', desc: '15-30 min de travail articulaire, étirements ou yoga', xp: 60, caps: ['souplesse', 'coordination'], time: 15, phases: [1,2,3] },
-    { id: 'q14', name: 'Parcours de mobilité active', desc: '10 min d\'enchaînement dynamique (fentes, rotations)', xp: 30, caps: ['souplesse', 'coordination'], time: 10, phases: [1,2,3] },
-    { id: 'q15', name: 'Observation urbaine', desc: 'Dans la rue, repère 3 détails inédits', xp: 25, caps: ['observation', 'spatial'], time: 10, phases: [1,2,3] },
-    { id: 'q16', name: 'Exploration d\'un sujet', desc: 'Lis un article sur un domaine inconnu, note 3 idées', xp: 20, caps: ['lecture', 'creativite'], time: 20, phases: [1,2,3] },
-    { id: 'q17', name: 'Défi d\'observation clinique', desc: 'Dans un lieu public, décris la posture de 3 personnes', xp: 35, caps: ['observation', 'proprioception'], time: 15, phases: [1,2,3] }
-  ]
-};
-
-const QUEST_DEFAULT_TIME = {
-  q1:5, q2:10, q3:15, q4:45, q5:30, q6:15,
-  q7:30, q8:5, q9:30, q10:15, q11:5, q12:10, q13:15
-};
-
-// Banque de sidequests avec capacités pondérées (caps)
 const SIDEQUESTS_POOL = [
   { text: "L'Œil Clinique Social : Fais un compliment sincère et ultra-spécifique à un inconnu sur son style ou un accessoire.", caps: {rhetorique:0.6, ecoute:0.4}, xp_total:30, pid:"p4" },
   { text: "Le Brise-Glace Tactique : Demande une direction ou une recommandation à quelqu'un dans la rue sans sortir ton téléphone.", caps: {negociation:0.5, rhetorique:0.5}, xp_total:30, pid:"p4" },
@@ -657,92 +32,43 @@ const SIDEQUESTS_POOL = [
   { text: "Mémorisation de plaque : Retiens la plaque d'immatriculation de la prochaine voiture croisée pendant 1 heure.", caps: {mct:0.6, mlt:0.4}, xp_total:25, pid:"p1" }
 ];
 
-// ============================================================
-// ÉTAT GLOBAL
-// ============================================================
 let UID = localStorage.getItem('sys12_uid') || null;
-let S = {
-  total_xp: 0, streak: 0, last_day: null, days_total: 0,
-  start_date: new Date().toISOString().slice(0, 10), current_month: 1,
-  is_day_locked: false
-};
+let S = { total_xp: 0, streak: 0, last_day: null, days_total: 0, start_date: new Date().toISOString().slice(0, 10), current_month: 1, is_day_locked: false };
 let LOG = [];
 let capacities = {};
 let customQuests = [];
 let recipes = [];
 let checkedToday = {};
-let currentSidequest = null; // { date, text, caps, xp_total, pid, done, isIA }
+let currentSidequest = null;
 let isDayLocked = false;
 let chartXp = null;
 let chartRadar = null;
 let chartOffset = 0;
-let forgePending = null; // utilisé pour la forge
+let forgePending = null;
 let newForgedCount = 0;
+let newGeneratedCount = 0;
 let touchStartX = 0;
 let touchEndX = 0;
 
-// ============================================================
-// FONCTIONS SUPABASE
-// ============================================================
-async function sbGet(table, uid) {
-  const r = await fetch(`${SB_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(uid)}&limit=1`, { headers: HDR });
-  const d = await r.json();
-  console.log(`📥 sbGet ${table}:`, d);
-  return d && d[0] ? d[0] : null;
+function setAIStatus(ok) {
+  const el = document.getElementById('ai-status');
+  if (ok) { el.textContent = '🤖 ●'; el.className = 'ai-status ok'; }
+  else { el.textContent = '🤖 ✗'; el.className = 'ai-status error'; }
 }
-async function sbUpsert(table, obj) {
-  const r = await fetch(`${SB_URL}/rest/v1/${table}`, {
-    method: 'POST',
-    headers: { ...HDR, 'Prefer': 'resolution=merge-duplicates,return=representation' },
-    body: JSON.stringify(obj)
-  });
-  const text = await r.text();
-  console.log(`📤 sbUpsert ${table}:`, r.status, text.slice(0, 200));
-  if (r.status >= 400) console.error('❌ Erreur Supabase:', text);
-  return r;
-}
-async function sbInsert(table, obj) {
-  const r = await fetch(`${SB_URL}/rest/v1/${table}`, { method: 'POST', headers: HDR, body: JSON.stringify(obj) });
-  const text = await r.text();
-  console.log(`📤 sbInsert ${table}:`, r.status, text.slice(0, 200));
-  if (r.status >= 400) console.error('❌ Erreur Supabase:', text);
-  return r;
-}
-async function sbDelete(table, uid, questId, day) {
-  let url = `${SB_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(uid)}`;
-  if (questId) url += `&quest_id=eq.${questId}`;
-  if (day) url += `&created_at=gte.${day}T00:00:00&created_at=lte.${day}T23:59:59`;
-  const r = await fetch(url, { method: 'DELETE', headers: HDR });
-  console.log(`🗑️ sbDelete ${table}:`, r.status);
-  return r;
-}
-async function sbGetMany(table, uid, limit = 50) {
-  const r = await fetch(`${SB_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(uid)}&order=created_at.desc&limit=${limit}`, { headers: HDR });
-  const d = await r.json();
-  console.log(`📥 sbGetMany ${table}:`, d.length);
-  return d;
-}
+setAIStatus(true);
 
-function saveLocal() {
-  const data = { S, LOG, capacities, customQuests, recipes, checkedToday, currentSidequest, isDayLocked };
-  localStorage.setItem('sys12_fallback_' + UID, JSON.stringify(data));
-  console.log('💾 Sauvegarde locale effectuée');
-}
-function loadLocal() {
-  const raw = localStorage.getItem('sys12_fallback_' + UID);
-  if (!raw) return null;
-  try {
-    const data = JSON.parse(raw);
-    console.log('📂 Données locales chargées');
-    return data;
-  } catch (e) { return null; }
-}
+async function sbGet(table, uid) { const r = await fetch(`${SB_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(uid)}&limit=1`, { headers: HDR }); const d = await r.json(); return d && d[0] ? d[0] : null; }
+async function sbUpsert(table, obj) { const r = await fetch(`${SB_URL}/rest/v1/${table}`, { method: 'POST', headers: { ...HDR, 'Prefer': 'resolution=merge-duplicates,return=representation' }, body: JSON.stringify(obj) }); const text = await r.text(); if (r.status >= 400) console.error('❌ Erreur Supabase:', text); return r; }
+async function sbInsert(table, obj) { const r = await fetch(`${SB_URL}/rest/v1/${table}`, { method: 'POST', headers: HDR, body: JSON.stringify(obj) }); const text = await r.text(); if (r.status >= 400) console.error('❌ Erreur Supabase:', text); return r; }
+async function sbDelete(table, uid, questId, day) { let url = `${SB_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(uid)}`; if (questId) url += `&quest_id=eq.${questId}`; if (day) url += `&created_at=gte.${day}T00:00:00&created_at=lte.${day}T23:59:59`; const r = await fetch(url, { method: 'DELETE', headers: HDR }); return r; }
+async function sbGetMany(table, uid, limit = 50) { const r = await fetch(`${SB_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(uid)}&order=created_at.desc&limit=${limit}`, { headers: HDR }); const d = await r.json(); return d; }
 
-// ============================================================
-// IA (Gemini via Cloudflare Worker)
-// ============================================================
+function saveLocal() { const data = { S, LOG, capacities, customQuests, recipes, checkedToday, currentSidequest, isDayLocked }; localStorage.setItem('sys12_fallback_' + UID, JSON.stringify(data)); }
+function loadLocal() { const raw = localStorage.getItem('sys12_fallback_' + UID); if (!raw) return null; try { return JSON.parse(raw); } catch (e) { return null; } }
+
 const WORKER_URL = 'https://evolution-ai.eliseobuti.workers.dev';
 function callGemini(prompt) {
+  setAIStatus(true);
   return new Promise(function(resolve) {
     try {
       const xhr = new XMLHttpRequest();
@@ -753,33 +79,36 @@ function callGemini(prompt) {
         try {
           const d = JSON.parse(xhr.responseText);
           resolve(d.text || 'Réponse invalide.');
-        } catch (e) { resolve('Erreur parsing: ' + xhr.responseText.slice(0, 80)); }
+        } catch (e) {
+          setAIStatus(false);
+          resolve('Erreur parsing: ' + xhr.responseText.slice(0, 80));
+        }
       };
-      xhr.onerror = function() { resolve('Erreur réseau XHR.'); };
-      xhr.ontimeout = function() { resolve('Timeout'); };
+      xhr.onerror = function() {
+        setAIStatus(false);
+        resolve('Erreur réseau XHR.');
+      };
+      xhr.ontimeout = function() {
+        setAIStatus(false);
+        resolve('Timeout');
+      };
       xhr.send(JSON.stringify({ prompt: prompt }));
-    } catch (e) { resolve('Erreur: ' + e.message); }
+    } catch (e) {
+      setAIStatus(false);
+      resolve('Erreur: ' + e.message);
+    }
   });
 }
 
 function buildCtx() {
   const ph = getCurrentPhase();
-  const ps = PILLARS.map(p => {
-    const total = p.sub.reduce((s, sub) => s + (capacities[sub.id]?.xp || 0), 0);
-    return p.name.split(' ')[0] + ': ' + total + 'XP';
-  }).join(', ');
+  const ps = PILLARS.map(p => { const total = p.sub.reduce((s, sub) => s + (capacities[sub.id]?.xp || 0), 0); return p.name.split(' ')[0] + ': ' + total + 'XP'; }).join(', ');
   let ctx = `Progression actuelle — Phase ${ph.id} (${ph.name}), mois ${S.current_month}/12. XP total: ${S.total_xp}. Streak: ${S.streak} jours. Piliers: ${ps}.`;
   ctx += '\n\nCapacités détaillées :\n';
-  PILLARS.forEach(p => {
-    p.sub.forEach(sub => {
-      const d = capacities[sub.id] || { xp: 0, level: 0, xp_toward_next: 0, next_level_xp: 100 };
-      ctx += `- ${sub.name}: niveau ${d.level}, ${d.xp_toward_next}/${d.next_level_xp} XP vers prochain niveau\n`;
-    });
-  });
+  PILLARS.forEach(p => { p.sub.forEach(sub => { const d = capacities[sub.id] || { xp: 0, level: 0, xp_toward_next: 0, next_level_xp: 100 }; ctx += `- ${sub.name}: niveau ${d.level}, ${d.xp_toward_next}/${d.next_level_xp} XP vers prochain niveau\n`; }); });
   return ctx;
 }
 
-// Analyse IA avec poids (retourne {caps: {id: poids}, xp: ...})
 async function analyzeForgedQuest(name, desc, duration) {
   const capsList = PILLARS.flatMap(p => p.sub).map(c => `${c.id}:${c.name}`).join('; ');
   const durStr = duration > 0 ? `Durée:${duration}min.` : 'Sans durée définie.';
@@ -794,21 +123,48 @@ async function analyzeForgedQuest(name, desc, duration) {
     let sum = 0;
     validIds.forEach(id => { weights[id] = Math.max(0, caps[id] || 0); sum += weights[id]; });
     if (sum > 0) { Object.keys(weights).forEach(id => weights[id] /= sum); } else { weights = { raisonnement: 1 }; }
-    return {
-      caps: weights,
-      xp: Math.max(10, parsed.xp || 30),
-      needs_clarification: parsed.needs_clarification || false,
-      clarification_question: parsed.clarification_question || ''
-    };
+    return { caps: weights, xp: Math.max(10, parsed.xp || 30), needs_clarification: parsed.needs_clarification || false, clarification_question: parsed.clarification_question || '' };
   } catch (e) {
     console.warn('Analyse IA échouée', e);
     return { caps: { raisonnement: 1 }, xp: 20, needs_clarification: false, clarification_question: '' };
   }
 }
 
-// ============================================================
-// CHARGEMENT DES DONNÉES
-// ============================================================
+async function genererQueteSurMesure() {
+  const checkboxes = document.querySelectorAll('#custom-cap-checkboxes input[type="checkbox"]:checked');
+  const selected = Array.from(checkboxes).map(cb => cb.value);
+  if (selected.length === 0) { toast("⚠️ Sélectionne au moins une capacité."); return; }
+  const capsStr = selected.map(id => { const cap = PILLARS.flatMap(p => p.sub).find(c => c.id === id); return cap ? cap.name : id; }).join(', ');
+  const ctx = buildCtx();
+  const prompt = `Génère une quête courte (max 15 min) pour améliorer les capacités suivantes : ${capsStr}. Contexte : ${ctx}. Réponds en JSON avec les champs : "name" (titre court, sans fioritures), "desc" (description concise), "caps" (objet avec les identifiants et poids, somme=1), "xp" (nombre entre 20 et 60). Exemple : {"name":"Lecture rapide","desc":"...","caps":{"lecture":0.7,"mct":0.3},"xp":30}. Sans markdown.`;
+  toast("⏳ Génération en cours...");
+  const response = await callGemini(prompt);
+  if (response === 'Timeout') { toast("⏱️ Temps dépassé, réessaie."); return; }
+  if (response.includes('Erreur') || response.includes('Timeout')) { toast("⚠️ L'IA est indisponible, réessaie plus tard."); return; }
+  try {
+    const parsed = JSON.parse(response);
+    const name = parsed.name || 'Quête sur mesure';
+    const desc = parsed.desc || '';
+    const caps = parsed.caps || {};
+    const validIds = Object.keys(caps).filter(id => PILLARS.some(p => p.sub.some(c => c.id === id)));
+    let weights = {};
+    let sum = 0;
+    validIds.forEach(id => { weights[id] = Math.max(0, caps[id] || 0); sum += weights[id]; });
+    if (sum > 0) { Object.keys(weights).forEach(id => weights[id] /= sum); } else { weights = { [selected[0]]: 1 }; }
+    const xp = Math.max(10, Math.min(60, parsed.xp || 30));
+    const id = 'gen_' + Date.now();
+    const quest = { id, name, desc, duration: 15, xp, caps: Object.keys(weights), caps_weights: weights, type: 'oneshot', is_forged: false, category: 'generated', done: false, completed: false };
+    customQuests.push(quest);
+    saveCustomQuests();
+    updateAll();
+    toast("✅ Quête générée et ajoutée !");
+    const resultDiv = document.getElementById('custom-quest-result');
+    resultDiv.style.display = 'block';
+    const capNames = Object.keys(weights).map(id => { const c = PILLARS.flatMap(p => p.sub).find(s => s.id === id); return c ? c.name : id; }).join(', ');
+    resultDiv.innerHTML = `<div class="ai-card"><div class="ai-header"><span>✅</span><span class="ai-label">Quête générée</span></div><div class="ai-body"><strong>${name}</strong>\n${desc}\nCapacités : ${capNames} (poids: ${Object.values(weights).map(w => Math.round(w*100)+'%').join(', ')})\nXP: +${xp}</div></div>`;
+  } catch(e) { console.error(e); toast("⚠️ Erreur de parsing, réessaie."); }
+}
+
 async function loadFromSupabase() {
   setSyncState('syncing');
   try {
@@ -818,9 +174,7 @@ async function loadFromSupabase() {
       sbGetMany('sys_log', UID, 50),
       sbGetMany('sys_recipes', UID, 100)
     ]);
-    
     let useLocal = false;
-    
     if (prog) {
       S = { ...S, ...prog };
       const start = new Date(S.start_date);
@@ -829,85 +183,37 @@ async function loadFromSupabase() {
       S.current_month = Math.max(1, Math.min(12, Math.floor(diffJours / 30.44) + 1));
       isDayLocked = S.is_day_locked || false;
       console.log('✅ S chargé depuis Supabase:', S);
-    } else {
-      console.warn('⚠️ Aucun prog trouvé dans Supabase');
-      useLocal = true;
-    }
-    
+    } else { console.warn('⚠️ Aucun prog trouvé dans Supabase'); useLocal = true; }
     if (Array.isArray(logRaw)) LOG = logRaw;
-    
-    // Charger les capacités
     const capsData = await sbGetMany('sys_capacities', UID, 50);
     if (capsData && capsData.length) {
-      capsData.forEach(c => {
-        capacities[c.id] = {
-          xp: c.xp || 0,
-          level: c.current_level || 0,
-          xp_toward_next: c.xp_toward_next || 0,
-          next_level_xp: c.next_level_xp || 100
-        };
-      });
+      capsData.forEach(c => { capacities[c.id] = { xp: c.xp || 0, level: c.current_level || 0, xp_toward_next: c.xp_toward_next || 0, next_level_xp: c.next_level_xp || 100 }; });
       console.log('✅ Capacités chargées:', Object.keys(capacities).length);
-    } else {
-      console.warn('⚠️ Aucune capacité trouvée dans Supabase');
-      useLocal = true;
-    }
-
+    } else { console.warn('⚠️ Aucune capacité trouvée dans Supabase'); useLocal = true; }
     const cq = await sbGet('sys_custom_quests', UID);
     if (cq && cq.quests) {
       customQuests = JSON.parse(cq.quests);
-      customQuests.forEach(q => {
-        if (!q.is_personal && !q.is_forged) q.is_forged = true;
-        if (q.type === 'recurrent-until' && !q.completed) q.completed = false;
-        // s'il manque caps_weights, on le crée à partir de caps
-        if (!q.caps_weights && q.caps && q.caps.length) {
-          const w = 1 / q.caps.length;
-          q.caps_weights = {};
-          q.caps.forEach(id => q.caps_weights[id] = w);
-        }
-      });
-    } else {
-      useLocal = true;
-    }
-
+      customQuests.forEach(q => { if (!q.is_personal && !q.is_forged) q.is_forged = false; if (q.type === 'recurrent-until' && !q.completed) q.completed = false; if (!q.category) q.category = 'forged'; });
+      console.log('✅ Quêtes chargées:', customQuests.length);
+    } else { console.warn('⚠️ Aucune quête personnalisée trouvée'); useLocal = true; }
     if (Array.isArray(recipesData)) {
-      recipes = recipesData.map(r => ({
-        id: r.id,
-        name: r.name,
-        time: r.time || 30,
-        people: r.people || 2,
-        steps: r.steps || '',
-        ingredients: r.ingredients || '',
-        done: r.done || false,
-        total_xp: r.total_xp || 0,
-        created_at: r.created_at || new Date().toISOString()
-      }));
+      recipes = recipesData.map(r => ({ id: r.id, name: r.name, time: r.time || 30, people: r.people || 2, steps: r.steps || '', ingredients: r.ingredients || '', done: r.done || false, total_xp: r.total_xp || 0, created_at: r.created_at || new Date().toISOString() }));
       recipes.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     }
-
-    // Sidequest du jour (avec caps et xp_total)
+    const today = todayKey();
     const dbSq = await sbGet('sys_sidequests', UID);
-    const todayStr = todayKey();
-    if (dbSq && dbSq.date === todayStr) {
+    if (dbSq && dbSq.date === today) {
       currentSidequest = dbSq;
-      if (!currentSidequest.caps) currentSidequest.caps = { raisonnement: 1 };
+      if (!currentSidequest.caps) currentSidequest.caps = { [SIDEQUESTS_POOL[0]?.caps ? Object.keys(SIDEQUESTS_POOL[0].caps)[0] : 'raisonnement']: 1 };
       if (!currentSidequest.xp_total) currentSidequest.xp_total = 30;
       console.log('✅ Sidequest chargée:', currentSidequest.text);
     } else {
-      const rand = SIDEQUESTS_POOL[Math.floor(Math.random() * SIDEQUESTS_POOL.length)];
-      currentSidequest = {
-        date: todayStr,
-        text: rand.text,
-        caps: rand.caps,
-        xp_total: rand.xp_total || 30,
-        pid: rand.pid || 'p1',
-        done: false,
-        isIA: false
-      };
+      const pool = SIDEQUESTS_POOL;
+      const random = pool[Math.floor(Math.random() * pool.length)];
+      currentSidequest = { date: today, text: random.text, caps: random.caps, xp_total: random.xp_total, pid: random.pid, done: false, isIA: false };
       await sbUpsert('sys_sidequests', { user_id: UID, ...currentSidequest });
       console.log('✅ Nouvelle sidequest générée');
     }
-
     if (useLocal) {
       const localData = loadLocal();
       if (localData) {
@@ -923,35 +229,19 @@ async function loadFromSupabase() {
         await saveProgress();
       } else {
         capacities = {};
-        for (const p of PILLARS) {
-          for (const sub of p.sub) {
-            capacities[sub.id] = { xp: 0, level: 0, xp_toward_next: 0, next_level_xp: 100 };
-          }
-        }
+        for (const p of PILLARS) { for (const sub of p.sub) { capacities[sub.id] = { xp: 0, level: 0, xp_toward_next: 0, next_level_xp: 100 }; } }
         await saveProgress();
       }
     }
-
     checkedToday = {};
-    LOG.forEach(l => {
-      if (l.quest_id && l.created_at && l.created_at.slice(0, 10) === todayStr) {
-        checkedToday[l.quest_id] = true;
-      }
-    });
-
-    if (S.last_day && S.last_day !== todayStr) {
-      isDayLocked = false;
-      S.is_day_locked = false;
-      await saveProgress();
-      toast("🔓 Nouveau jour ! La journée est déverrouillée.");
-    } else {
-      isDayLocked = S.is_day_locked || false;
-    }
-
-    const viewed = JSON.parse(localStorage.getItem('sys12_viewed_forged') || '[]');
-    newForgedCount = customQuests.filter(q => q.is_forged && !viewed.includes(q.id)).length;
+    LOG.forEach(l => { if (l.quest_id && l.created_at && l.created_at.slice(0, 10) === today) checkedToday[l.quest_id] = true; });
+    if (S.last_day && S.last_day !== today) { isDayLocked = false; S.is_day_locked = false; await saveProgress(); toast("🔓 Nouveau jour ! La journée est déverrouillée."); } else { isDayLocked = S.is_day_locked || false; }
+    const viewedForged = JSON.parse(localStorage.getItem('sys12_viewed_forged') || '[]');
+    newForgedCount = customQuests.filter(q => q.category === 'forged' && q.is_forged && !viewedForged.includes(q.id)).length;
+    const viewedGenerated = JSON.parse(localStorage.getItem('sys12_viewed_generated') || '[]');
+    newGeneratedCount = customQuests.filter(q => q.category === 'generated' && !viewedGenerated.includes(q.id)).length;
+    renderCustomCapCheckboxes();
     updateBadges();
-
     updateAll();
     setSyncState('ok');
     console.log('=== Chargement terminé ===');
@@ -982,14 +272,7 @@ async function saveProgress() {
     S.is_day_locked = isDayLocked;
     await sbUpsert('sys_progress', { ...S, user_id: UID, updated_at: new Date().toISOString() });
     for (const [id, data] of Object.entries(capacities)) {
-      await sbUpsert('sys_capacities', {
-        user_id: UID,
-        id: id,
-        current_level: data.level,
-        xp: data.xp,
-        xp_toward_next: data.xp_toward_next,
-        next_level_xp: data.next_level_xp
-      });
+      await sbUpsert('sys_capacities', { user_id: UID, id: id, current_level: data.level, xp: data.xp, xp_toward_next: data.xp_toward_next, next_level_xp: data.next_level_xp });
     }
     await sbUpsert('sys_custom_quests', { user_id: UID, quests: JSON.stringify(customQuests) });
     if (currentSidequest) {
@@ -1008,45 +291,16 @@ async function saveProgress() {
 
 function todayKey() { return new Date().toISOString().slice(0, 10); }
 
-// ============================================================
-// BADGES
-// ============================================================
 function updateBadges() {
   const forgeBadge = document.getElementById('forge-badge');
-  if (forgeBadge) {
-    forgeBadge.classList.toggle('show', newForgedCount > 0);
-    forgeBadge.textContent = newForgedCount > 0 ? newForgedCount : '';
-  }
-  const recipeBadge = document.getElementById('recipe-badge');
-  const newRecipes = parseInt(localStorage.getItem('sys12_new_recipes') || '0');
-  if (recipeBadge) {
-    recipeBadge.classList.toggle('show', newRecipes > 0);
-    recipeBadge.textContent = newRecipes > 0 ? newRecipes : '';
-  }
+  if (forgeBadge) { forgeBadge.classList.toggle('show', newForgedCount > 0); forgeBadge.textContent = newForgedCount > 0 ? newForgedCount : ''; }
 }
 
-function markForgedViewed() {
-  const viewed = JSON.parse(localStorage.getItem('sys12_viewed_forged') || '[]');
-  customQuests.filter(q => q.is_forged).forEach(q => {
-    if (!viewed.includes(q.id)) viewed.push(q.id);
-  });
-  localStorage.setItem('sys12_viewed_forged', JSON.stringify(viewed));
-  newForgedCount = 0;
-  updateBadges();
-}
+function markForgedViewed() { const viewed = JSON.parse(localStorage.getItem('sys12_viewed_forged') || '[]'); customQuests.filter(q => q.category === 'forged' && q.is_forged).forEach(q => { if (!viewed.includes(q.id)) viewed.push(q.id); }); localStorage.setItem('sys12_viewed_forged', JSON.stringify(viewed)); newForgedCount = 0; updateBadges(); }
 
-function markRecipesViewed() {
-  localStorage.setItem('sys12_new_recipes', '0');
-  updateBadges();
-}
-
-// ============================================================
-// RÉINITIALISATION TOTALE
-// ============================================================
 async function reinitialiserTout() {
-  if (!confirm("⚠️ Supprimer toutes les données ? Cette action est irréversible.")) return;
+  if (!confirm("⚠️ Supprimer toutes les données ?")) return;
   if (!confirm("Confirmer : tout l'XP, les logs, les quêtes forgées et les recettes seront effacés.")) return;
-  
   try {
     await sbDelete('sys_progress', UID, null, null);
     await sbDelete('sys_capacities', UID, null, null);
@@ -1055,19 +309,10 @@ async function reinitialiserTout() {
     await sbDelete('sys_recipes', UID, null, null);
     await sbDelete('sys_sidequests', UID, null, null);
   } catch(e) { console.warn('Suppression échouée', e); }
-  
-  S = {
-    total_xp: 0, streak: 0, last_day: null, days_total: 0,
-    start_date: todayKey(), current_month: 1,
-    is_day_locked: false
-  };
+  S = { total_xp: 0, streak: 0, last_day: null, days_total: 0, start_date: todayKey(), current_month: 1, is_day_locked: false };
   LOG = [];
   capacities = {};
-  for (const p of PILLARS) {
-    for (const sub of p.sub) {
-      capacities[sub.id] = { xp: 0, level: 0, xp_toward_next: 0, next_level_xp: 100 };
-    }
-  }
+  for (const p of PILLARS) { for (const sub of p.sub) { capacities[sub.id] = { xp: 0, level: 0, xp_toward_next: 0, next_level_xp: 100 }; } }
   customQuests = [];
   recipes = [];
   checkedToday = {};
@@ -1075,19 +320,16 @@ async function reinitialiserTout() {
   isDayLocked = false;
   chartOffset = 0;
   localStorage.removeItem('sys12_viewed_forged');
+  localStorage.removeItem('sys12_viewed_generated');
   localStorage.removeItem('sys12_new_recipes');
   localStorage.removeItem('sys12_custom_quests');
   localStorage.removeItem('sys12_recipes');
   localStorage.removeItem('sys12_fallback_' + UID);
-  
   await saveProgress();
   updateAll();
   toast("🗑️ Toutes les données ont été réinitialisées.");
 }
 
-// ============================================================
-// AFFICHAGE
-// ============================================================
 function updateAll() {
   updateHeader();
   renderQuetes();
@@ -1098,6 +340,7 @@ function updateAll() {
   updateSidequestUI();
   updateValidationButton();
   updateBadges();
+  renderCustomCapCheckboxes();
 }
 
 function updateHeader() {
@@ -1125,134 +368,148 @@ function updateHeader() {
 
 function renderQuetes() {
   const phase = getCurrentPhase();
-  function qHTML(q, isMin) {
+  function qHTML(q, isMin, showDetails = false) {
     const done = !!checkedToday[q.id];
     const inPhase = q.phases ? q.phases.includes(phase.id) : true;
     const caps = q.caps || [];
-    const capTags = caps.map(id => {
-      const cap = PILLARS.flatMap(p => p.sub).find(c => c.id === id);
-      return cap ? `<span class="tag tag-cap">${cap.name}</span>` : '';
-    }).join('');
+    const capTags = caps.map(id => { const cap = PILLARS.flatMap(p => p.sub).find(c => c.id === id); return cap ? `<span class="tag tag-cap">${cap.name}</span>` : ''; }).join('');
     const minTag = isMin ? `<span class="tag tag-min">minimum</span>` : '';
     const phTag = !inPhase ? `<span class="tag tag-ph">Phase ${q.phases ? q.phases[0] : 1}+</span>` : '';
-    const extraHtml = (q.id in QUEST_DEFAULT_TIME) ? `
-      <div style="display:flex;align-items:center;gap:6px;margin-top:2px;flex-wrap:wrap;">
-        <span class="extra-time-toggle" onclick="event.stopPropagation();toggleExtraTime('${q.id}')" title="Ajouter du temps">
-          <span class="plus">+</span> <span style="font-size:11px;">temps</span>
-        </span>
-      </div>
-      <div class="extra-time-field" id="extra-time-field-${q.id}">
-        <input type="number" id="extra-time-input-${q.id}" value="5" min="1" max="300" step="5"
-               oninput="updateExtraTimeDisplay('${q.id}')" onclick="event.stopPropagation();">
-        <label>min supplémentaires</label>
-        <span class="extra-xp" id="extra-xp-${q.id}"></span>
-      </div>
-    ` : '';
+    const genTag = q.category === 'generated' ? `<span class="tag tag-generated">⚡ sur mesure</span>` : '';
+    let detailsHtml = '';
+    if (q.caps_weights) {
+      const weightEntries = Object.entries(q.caps_weights).map(([id, w]) => {
+        const cap = PILLARS.flatMap(p => p.sub).find(c => c.id === id);
+        return cap ? `${cap.name} : ${Math.round(w*100)}%` : '';
+      }).filter(Boolean).join(', ');
+      detailsHtml = `<div class="q-details ${showDetails ? 'open' : ''}">Poids : ${weightEntries} — XP : ${q.xp}</div>`;
+    }
+    const extraHtml = (q.id in QUEST_DEFAULT_TIME) ? ` <div style="display:flex;align-items:center;gap:6px;margin-top:2px;flex-wrap:wrap;"><span class="extra-time-toggle" onclick="event.stopPropagation();toggleExtraTime('${q.id}')" title="Ajouter du temps"><span class="plus">+</span><span style="font-size:11px;">temps</span></span></div><div class="extra-time-field" id="extra-time-field-${q.id}"><input type="number" id="extra-time-input-${q.id}" value="5" min="1" max="300" step="5" oninput="updateExtraTimeDisplay('${q.id}')" onclick="event.stopPropagation();"><label>min supplémentaires</label><span class="extra-xp" id="extra-xp-${q.id}"></span></div> ` : '';
     let coachBtn = '';
     if (q.id === 'q5' && inPhase) {
-      coachBtn = `
-        <div style="margin-top:4px;">
-          <select class="coach-select" id="workout-type-${q.id}" onclick="event.stopPropagation();">
-            <option value="bodyweight">🧱 Poids du corps</option>
-            <option value="swim">🏊 Natation</option>
-            <option value="run">🏃 Course à pied</option>
-            <option value="auto">🎲 Choix du coach</option>
-          </select>
-          <input type="number" id="workout-time-${q.id}" placeholder="Durée (min)" style="width:60px;background:rgba(255,255,255,0.06);border:0.5px solid var(--border);border-radius:4px;padding:2px 4px;color:var(--text);font-size:12px;margin-left:4px;" value="30" min="10" max="120" onclick="event.stopPropagation();">
-          <button class="btn-coach" style="background:rgba(96,165,250,.1);border-color:rgba(96,165,250,.3);color:var(--blue);margin-left:4px;" onclick="event.stopPropagation();genererEntrainement(this, '${q.id}')">🏋️ Générer</button>
-        </div>
-      `;
+      coachBtn = ` <div style="margin-top:4px;"><select class="coach-select" id="workout-type-${q.id}" onclick="event.stopPropagation();"><option value="bodyweight">🧱 Poids du corps</option><option value="swim">🏊 Natation</option><option value="run">🏃 Course à pied</option><option value="auto">🎲 Choix du coach</option></select><input type="number" id="workout-time-${q.id}" placeholder="Durée (min)" style="width:60px;background:rgba(255,255,255,0.06);border:0.5px solid var(--border);border-radius:4px;padding:2px 4px;color:var(--text);font-size:12px;margin-left:4px;" value="30" min="10" max="120" onclick="event.stopPropagation();"><button class="btn-coach" style="background:rgba(96,165,250,.1);border-color:rgba(96,165,250,.3);color:var(--blue);margin-left:4px;" onclick="event.stopPropagation();genererEntrainement(this, '${q.id}')">🏋️ Générer</button></div> `;
     }
     if (q.id === 'q13' && inPhase) {
-      coachBtn = `
-        <div style="margin-top:4px;">
-          <select class="coach-select" id="mobility-type-${q.id}" onclick="event.stopPropagation();">
-            <option value="general">🧘 Mobilité générale</option>
-            <option value="yoga">🧘 Yoga / étirements</option>
-            <option value="dynamic">🏃 Étirements dynamiques</option>
-            <option value="articular">🦵 Mobilité articulaire</option>
-          </select>
-          <input type="number" id="mobility-time-${q.id}" placeholder="Durée (min)" style="width:60px;background:rgba(255,255,255,0.06);border:0.5px solid var(--border);border-radius:4px;padding:2px 4px;color:var(--text);font-size:12px;margin-left:4px;" value="15" min="5" max="60" onclick="event.stopPropagation();">
-          <button class="btn-coach" style="background:rgba(96,165,250,.1);border-color:rgba(96,165,250,.3);color:var(--blue);margin-left:4px;" onclick="event.stopPropagation();genererMobilite(this, '${q.id}')">🧘 Générer</button>
-        </div>
-      `;
+      coachBtn = ` <div style="margin-top:4px;"><select class="coach-select" id="mobility-type-${q.id}" onclick="event.stopPropagation();"><option value="general">🧘 Mobilité générale</option><option value="yoga">🧘 Yoga / étirements</option><option value="dynamic">🏃 Étirements dynamiques</option><option value="articular">🦵 Mobilité articulaire</option></select><input type="number" id="mobility-time-${q.id}" placeholder="Durée (min)" style="width:60px;background:rgba(255,255,255,0.06);border:0.5px solid var(--border);border-radius:4px;padding:2px 4px;color:var(--text);font-size:12px;margin-left:4px;" value="15" min="5" max="60" onclick="event.stopPropagation();"><button class="btn-coach" style="background:rgba(96,165,250,.1);border-color:rgba(96,165,250,.3);color:var(--blue);margin-left:4px;" onclick="event.stopPropagation();genererMobilite(this, '${q.id}')">🧘 Générer</button></div> `;
     }
-    return `<div class="quest${done ? ' done' : ''}${!inPhase ? ' locked' : ''}" onclick="toggleQuete('${q.id}')">
-      <div class="check">${done ? '✓' : ''}</div>
-      <div class="q-info">
-        <div class="q-name">${q.name}</div>
-        <div class="q-desc">${q.desc}</div>
-        <div class="q-tags">${minTag}${phTag}${capTags}</div>
-        ${q.time ? `<div style="font-size:11px;color:var(--muted);margin-top:2px;">⏱️ ${q.time} min</div>` : ''}
-        ${coachBtn}
-        ${extraHtml}
-      </div>
-      <div class="q-xp">+${q.xp} XP</div>
-    </div>`;
+    let detailsToggle = '';
+    if (q.category === 'generated' && q.caps_weights) {
+      detailsToggle = `<button class="q-details-toggle" onclick="event.stopPropagation();toggleQuestDetails('${q.id}')">▶ Détails</button>`;
+    }
+    let delBtn = '';
+    if (q.category === 'generated') {
+      delBtn = `<button class="del" onclick="event.stopPropagation();deleteGeneratedQuest('${q.id}')" title="Supprimer">🗑️</button>`;
+    }
+    return `<div class="quest${done ? ' done' : ''}${!inPhase ? ' locked' : ''}${q.completed ? ' completed' : ''}" data-id="${q.id}" onclick="toggleQuete('${q.id}')"><div class="check">${q.completed ? '🏆' : (done ? '✓' : '')}</div><div class="q-info"><div class="q-name">${q.name}</div><div class="q-desc">${q.desc}</div><div class="q-tags">${minTag}${phTag}${genTag}${capTags}</div> ${q.time ? `<div style="font-size:11px;color:var(--muted);margin-top:2px;">⏱️ ${q.time} min</div>` : ''} ${coachBtn} ${extraHtml} ${detailsToggle} ${detailsHtml}</div><div class="q-xp">+${q.xp} XP</div><div class="q-actions">${delBtn}</div></div>`;
   }
   document.getElementById('quetes-min').innerHTML = QUETES.min.map(q => qHTML(q, true)).join('');
   document.getElementById('quetes-opt').innerHTML = QUETES.opt.map(q => qHTML(q, false)).join('');
+  const generated = customQuests.filter(q => q.category === 'generated');
+  document.getElementById('quetes-generated').innerHTML = generated.length ? generated.map(q => qHTML(q, false, false)).join('') : '<div class="empty-state">Aucune quête sur mesure. Génère-en une ci‑dessous.</div>';
+}
+
+function toggleQuestDetails(id) {
+  const qElement = document.querySelector(`#quetes-generated .quest[data-id="${id}"]`);
+  if (!qElement) return;
+  const detailsDiv = qElement.querySelector('.q-details');
+  if (detailsDiv) { detailsDiv.classList.toggle('open'); }
 }
 
 function renderForgedQuests() {
   const container = document.getElementById('forged-quests-list');
-  const forged = customQuests.filter(q => q.is_forged === true);
-  if (!forged.length) {
-    container.innerHTML = '<div class="empty-state">Aucune quête forgée. Créez-en une avec l\'IA !</div>';
-    return;
-  }
+  const forged = customQuests.filter(q => q.category === 'forged' && q.is_forged === true);
+  if (!forged.length) { container.innerHTML = '<div class="empty-state">Aucune quête forgée.</div>'; return; }
   container.innerHTML = forged.map(q => {
     const done = !!checkedToday[q.id] && !q.completed;
     const completed = q.completed === true;
     const caps = q.caps || [];
-    const capTags = caps.map(id => {
-      const cap = PILLARS.flatMap(p => p.sub).find(c => c.id === id);
-      return cap ? `<span class="tag tag-cap">${cap.name}</span>` : '';
-    }).join('');
+    const capTags = caps.map(id => { const cap = PILLARS.flatMap(p => p.sub).find(c => c.id === id); return cap ? `<span class="tag tag-cap">${cap.name}</span>` : ''; }).join('');
     let typeTag = '';
     if (q.type === 'oneshot') typeTag = `<span class="tag tag-oneshot">One-shot</span>`;
     else if (q.type === 'recurrent') typeTag = `<span class="tag tag-recurrent">Récurrente</span>`;
-    else if (q.type === 'recurrent-until') {
-      typeTag = `<span class="tag tag-until">Récurrente jusqu'à ${q.target || 'accomplissement'}</span>`;
-    }
+    else if (q.type === 'recurrent-until') { typeTag = `<span class="tag tag-until">Récurrente jusqu'à ${q.target || 'accomplissement'}</span>`; }
     let xpDisplay = q.xp || 0;
     let bonusHtml = '';
-    if (q.type === 'recurrent-until' && q.bonus_xp) {
-      bonusHtml = `<div style="font-size:11px;color:var(--amber);margin-top:2px;">🎯 Bonus final : +${q.bonus_xp} XP</div>`;
-    }
+    if (q.type === 'recurrent-until' && q.bonus_xp) { bonusHtml = `<div style="font-size:11px;color:var(--amber);margin-top:2px;">🎯 Bonus final : +${q.bonus_xp} XP</div>`; }
     let completeBtn = '';
-    if (q.type === 'recurrent-until' && !q.completed) {
-      completeBtn = `<button class="complete-btn" onclick="event.stopPropagation();marquerAccompli('${q.id}')" style="background:rgba(52,211,153,0.15);border:0.5px solid var(--green);border-radius:4px;color:var(--green);font-size:11px;padding:2px 6px;cursor:pointer;">🏆 Accompli</button>`;
-    }
+    if (q.type === 'recurrent-until' && !q.completed) { completeBtn = `<button class="complete-btn" onclick="event.stopPropagation();marquerAccompli('${q.id}')" style="background:rgba(52,211,153,0.15);border:0.5px solid var(--green);border-radius:4px;color:var(--green);font-size:11px;padding:2px 6px;cursor:pointer;">🏆 Accompli</button>`; }
     const questClass = completed ? 'quest completed' : (done ? 'quest done' : 'quest');
-    // Bouton Modifier (✏️)
-    const editBtn = `<button class="edit" onclick="event.stopPropagation();modifierQueteForgee('${q.id}')" title="Modifier">✏️</button>`;
-    return `<div class="${questClass}" onclick="${completed ? '' : "toggleQuete('"+q.id+"')"}">
-      <div class="check">${completed ? '🏆' : (done ? '✓' : '')}</div>
-      <div class="q-info">
-        <div class="q-name">${q.name}</div>
-        <div class="q-desc">${q.desc || ''}</div>
-        <div class="q-tags">${typeTag}${capTags}</div>
-        ${q.duration ? `<div style="font-size:11px;color:var(--muted);margin-top:2px;">⏱️ ${q.duration} min</div>` : ''}
-        ${bonusHtml}
-      </div>
-      <div class="q-xp">+${xpDisplay} XP</div>
-      <div class="q-actions">
-        ${completeBtn}
-        ${editBtn}
-        <button class="del" onclick="event.stopPropagation();deleteForgedQuest('${q.id}')" title="Supprimer">🗑️</button>
-      </div>
-    </div>`;
+    let detailsHtml = '';
+    if (q.caps_weights) {
+      const weightEntries = Object.entries(q.caps_weights).map(([id, w]) => {
+        const cap = PILLARS.flatMap(p => p.sub).find(c => c.id === id);
+        return cap ? `${cap.name} : ${Math.round(w*100)}%` : '';
+      }).filter(Boolean).join(', ');
+      detailsHtml = `<div class="q-details open">Poids : ${weightEntries} — XP : ${q.xp}</div>`;
+    }
+    return `<div class="${questClass}" data-id="${q.id}" onclick="${completed ? '' : "toggleQuete('"+q.id+"')"}"><div class="check">${completed ? '🏆' : (done ? '✓' : '')}</div><div class="q-info"><div class="q-name">${q.name}</div><div class="q-desc">${q.desc || ''}</div><div class="q-tags">${typeTag}${capTags}</div> ${q.duration ? `<div style="font-size:11px;color:var(--muted);margin-top:2px;">⏱️ ${q.duration} min</div>` : ''} ${bonusHtml} ${detailsHtml}</div><div class="q-xp">+${xpDisplay} XP</div><div class="q-actions"> ${completeBtn} <button class="edit" onclick="event.stopPropagation();modifierQueteForgee('${q.id}')" title="Modifier">✏️</button><button class="del" onclick="event.stopPropagation();deleteForgedQuest('${q.id}')" title="Supprimer">🗑️</button></div></div>`;
   }).join('');
   markForgedViewed();
 }
 
+async function modifierQueteForgee(id) {
+  const q = customQuests.find(x => x.id === id);
+  if (!q) return;
+  ouvrirFormulaireForge();
+  document.getElementById('forge-name').value = q.name;
+  document.getElementById('forge-desc').value = q.desc || '';
+  document.getElementById('forge-duration').value = q.duration || '';
+  document.getElementById('forge-type').value = q.type || 'oneshot';
+  if (q.type === 'recurrent-until') {
+    document.getElementById('forge-target-group').style.display = 'block';
+    document.getElementById('forge-target').value = q.target || '';
+    document.getElementById('forge-bonus').value = q.bonus_xp || 50;
+  } else {
+    document.getElementById('forge-target-group').style.display = 'none';
+  }
+  // Pré-remplir les poids
+  if (q.caps_weights) {
+    const sliderDiv = document.getElementById('forge-weight-sliders');
+    sliderDiv.innerHTML = '';
+    Object.keys(q.caps_weights).forEach(id => {
+      const cap = PILLARS.flatMap(p => p.sub).find(c => c.id === id);
+      const label = cap ? cap.name : id;
+      const pct = Math.round(q.caps_weights[id] * 100);
+      const row = document.createElement('div');
+      row.className = 'weight-slider-row';
+      row.innerHTML = `<label>${label}</label><input type="number" min="0" max="100" value="${pct}" data-id="${id}" onchange="normalizeWeights()" style="width:50px;background:rgba(255,255,255,0.06);border:0.5px solid var(--border);border-radius:4px;padding:2px 4px;color:var(--text);font-size:12px;text-align:center;"><div class="weight-bar"><div class="fill" style="width:${pct}%"></div></div>`;
+      sliderDiv.appendChild(row);
+    });
+    document.getElementById('forge-actions').style.display = 'block';
+  }
+  forgePending = { ...q, editing: true, oldId: id };
+  const confirmBtn = document.querySelector('#forge-actions .btn-accent');
+  confirmBtn.textContent = '✅ Mettre à jour';
+  confirmBtn.onclick = function() { mettreAJourForge(); };
+  toast("✏️ Modification en cours...");
+}
+
+function mettreAJourForge() {
+  if (!forgePending) return;
+  const inputs = document.querySelectorAll('#forge-weight-sliders input[type="number"]');
+  const caps_weights = {};
+  let total = 0;
+  inputs.forEach(inp => { const id = inp.dataset.id; const val = parseInt(inp.value) || 0; caps_weights[id] = val; total += val; });
+  if (total === 0) { toast("⚠️ Les poids doivent être > 0."); return; }
+  Object.keys(caps_weights).forEach(id => caps_weights[id] = caps_weights[id] / total);
+  const caps = Object.keys(caps_weights);
+  const { name, desc, duration, xp, type, target, bonus_xp, oldId } = forgePending;
+  const index = customQuests.findIndex(q => q.id === oldId);
+  if (index === -1) { toast("⚠️ Quête introuvable."); return; }
+  customQuests[index] = { ...customQuests[index], name, desc, duration: duration || 0, xp, caps, caps_weights, type, target: target || '', bonus_xp: bonus_xp || 0 };
+  saveCustomQuests();
+  document.getElementById('forge-form').style.display = 'none';
+  forgePending = null;
+  const confirmBtn = document.querySelector('#forge-actions .btn-accent');
+  confirmBtn.textContent = '✅ Confirmer et ajouter';
+  confirmBtn.onclick = function() { confirmerForge(); };
+  updateAll();
+  toast("✅ Quête forgée mise à jour !");
+}
+
 function renderRecipes() {
   const container = document.getElementById('recipes-list');
-  if (!recipes.length) {
-    container.innerHTML = '<div class="empty-state">Aucune recette.</div>';
-    return;
-  }
+  if (!recipes.length) { container.innerHTML = '<div class="empty-state">Aucune recette.</div>'; return; }
   container.innerHTML = recipes.map(r => {
     const done = r.done || false;
     const xpInstance = Math.round(r.time / 5) + (r.people - 1) * 2;
@@ -1260,17 +517,8 @@ function renderRecipes() {
     if (r.ingredients) details.push(`Ingrédients :\n${formatIngredients(r.ingredients)}`);
     if (r.steps) details.push(`Étapes :\n${formatSteps(r.steps)}`);
     const detailHtml = details.map(d => `<div class="detail-line">${d}</div>`).join('');
-    return `<div class="recipe-item${done ? ' done' : ''}" onclick="toggleRecipe('${r.id}')">
-      <div class="check">${done ? '✓' : ''}</div>
-      <div class="recipe-info">
-        <div class="recipe-name">${r.name}</div>
-        <div class="recipe-meta">⏱️ ${r.time} min · 👥 ${r.people} pers</div>
-        <div class="recipe-details open">${detailHtml}</div>
-      </div>
-      <div class="recipe-xp">+${xpInstance} XP</div>
-    </div>`;
+    return `<div class="recipe-item${done ? ' done' : ''}" onclick="toggleRecipe('${r.id}')"><div class="check">${done ? '✓' : ''}</div><div class="recipe-info"><div class="recipe-name">${r.name}</div><div class="recipe-meta">⏱️ ${r.time} min · 👥 ${r.people} pers</div><div class="recipe-details open">${detailHtml}</div></div><div class="recipe-xp">+${xpInstance} XP</div></div>`;
   }).join('');
-  markRecipesViewed();
 }
 
 function renderPiliers() {
@@ -1282,249 +530,57 @@ function renderPiliers() {
     const subHtml = p.sub.map(sub => {
       const data = capacities[sub.id] || { xp: 0, level: 0, xp_toward_next: 0, next_level_xp: 100 };
       const pct = data.next_level_xp > 0 ? Math.min(100, (data.xp_toward_next / data.next_level_xp) * 100) : 0;
-      return `<div class="sub-pillar">
-        <span class="sub-label">${sub.name}</span>
-        <div class="sub-track"><div class="sub-fill" style="width:${pct}%;background:${p.color}"></div></div>
-        <span class="sub-value">${data.xp_toward_next}/${data.next_level_xp}</span>
-        <span style="font-size:10px;color:var(--muted);min-width:30px;">Niv.${data.level}</span>
-      </div>`;
+      return `<div class="sub-pillar"><span class="sub-label">${sub.name}</span><div class="sub-track"><div class="sub-fill" style="width:${pct}%;background:${p.color}"></div></div><span class="sub-value">${data.xp_toward_next}/${data.next_level_xp}</span><span style="font-size:10px;color:var(--muted);min-width:30px;">Niv.${data.level}</span></div>`;
     }).join('');
-    return `<div class="pillar" onclick="toggleSubPillars('${p.id}')">
-      <div class="pillar-top">
-        <div class="pillar-icon" style="background:${p.color}22">${p.icon}</div>
-        <div class="pillar-name">${p.name}</div>
-        <div class="pillar-lv">${totalXP} XP</div>
-        <span class="pillar-arrow" id="arrow-${p.id}">▼</span>
-      </div>
-      <div class="pillar-global-bar">
-        <div class="bar-wrap"><div class="bar-fill" style="width:${pctGlobal}%;background:${p.color}"></div></div>
-        <div class="bar-label"><span>Global</span><span>${Math.round(pctGlobal)}%</span></div>
-      </div>
-      <div class="sub-pillars" id="sub-${p.id}">
-        ${subHtml}
-      </div>
-    </div>`;
+    return `<div class="pillar" onclick="toggleSubPillars('${p.id}')"><div class="pillar-top"><div class="pillar-icon" style="background:${p.color}22">${p.icon}</div><div class="pillar-name">${p.name}</div><div class="pillar-lv">${totalXP} XP</div><span class="pillar-arrow" id="arrow-${p.id}">▼</span></div><div class="pillar-global-bar"><div class="bar-wrap"><div class="bar-fill" style="width:${pctGlobal}%;background:${p.color}"></div></div><div class="bar-label"><span>Global</span><span>${Math.round(pctGlobal)}%</span></div></div><div class="sub-pillars" id="sub-${p.id}"> ${subHtml} </div></div>`;
   }).join('');
 }
 
-function toggleSubPillars(pId) {
-  const sub = document.getElementById('sub-' + pId);
-  const arrow = document.getElementById('arrow-' + pId);
-  if (sub) {
-    sub.classList.toggle('open');
-    if (arrow) arrow.classList.toggle('open');
-  }
-}
+function toggleSubPillars(pId) { const sub = document.getElementById('sub-' + pId); const arrow = document.getElementById('arrow-' + pId); if (sub) { sub.classList.toggle('open'); if (arrow) arrow.classList.toggle('open'); } }
 
 function renderStats() {
   const today = todayKey();
   const activeDays = [...new Set(LOG.map(l => l.created_at && l.created_at.slice(0, 10)).filter(Boolean))];
   let hm = '';
-  for (let i = 59; i >= 0; i--) {
-    const d = new Date(); d.setDate(d.getDate() - i);
-    const key = d.toISOString().slice(0, 10);
-    const isToday = key === today;
-    const on = activeDays.includes(key);
-    hm += `<div class="hm-sq${on && !isToday ? ' on' : ''}${isToday ? ' today' : ''}"></div>`;
-  }
+  for (let i = 59; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); const key = d.toISOString().slice(0, 10); const isToday = key === today; const on = activeDays.includes(key); hm += `<div class="hm-sq${on && !isToday ? ' on' : ''}${isToday ? ' today' : ''}"></div>`; }
   document.getElementById('heatmap').innerHTML = hm;
-
   const maxXP = Math.max(...PILLARS.map(p => p.sub.reduce((sum, s) => sum + (capacities[s.id]?.xp || 0), 0)));
-  const rData = PILLARS.map(p => {
-    const total = p.sub.reduce((sum, s) => sum + (capacities[s.id]?.xp || 0), 0);
-    return maxXP > 0 ? Math.round((total / maxXP) * 100) : 0;
-  });
+  const rData = PILLARS.map(p => { const total = p.sub.reduce((sum, s) => sum + (capacities[s.id]?.xp || 0), 0); return maxXP > 0 ? Math.round((total / maxXP) * 100) : 0; });
   const rCtx = document.getElementById('chart-radar').getContext('2d');
   const rLabels = PILLARS.map(p => p.icon + ' ' + p.name.split(' ')[0]);
   if (chartRadar) chartRadar.destroy();
-  chartRadar = new Chart(rCtx, {
-    type: 'radar',
-    data: {
-      labels: rLabels,
-      datasets: [{
-        data: rData,
-        borderColor: '#a78bfa',
-        backgroundColor: 'rgba(124,58,237,0.18)',
-        borderWidth: 2,
-        pointBackgroundColor: '#a78bfa',
-        pointRadius: 4
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: function(context) {
-              const pilier = PILLARS[context.dataIndex];
-              const total = pilier.sub.reduce((sum, s) => sum + (capacities[s.id]?.xp || 0), 0);
-              return pilier.name + ' : ' + total + ' XP';
-            }
-          }
-        }
-      },
-      scales: {
-        r: {
-          min: 0,
-          max: 100,
-          ticks: { display: false },
-          grid: { color: 'rgba(255,255,255,0.07)' },
-          pointLabels: { color: '#999', font: { size: 11 } },
-          angleLines: { color: 'rgba(255,255,255,0.06)' }
-        }
-      }
-    }
-  });
-
+  chartRadar = new Chart(rCtx, { type: 'radar', data: { labels: rLabels, datasets: [{ data: rData, borderColor: '#a78bfa', backgroundColor: 'rgba(124,58,237,0.18)', borderWidth: 2, pointBackgroundColor: '#a78bfa', pointRadius: 4 }] }, options: { responsive: true, plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(context) { const pilier = PILLARS[context.dataIndex]; const total = pilier.sub.reduce((sum, s) => sum + (capacities[s.id]?.xp || 0), 0); return pilier.name + ' : ' + total + ' XP'; } } } }, scales: { r: { min: 0, max: 100, ticks: { display: false }, grid: { color: 'rgba(255,255,255,0.07)' }, pointLabels: { color: '#999', font: { size: 11 } }, angleLines: { color: 'rgba(255,255,255,0.06)' } } } } });
   renderXpChart();
-
-  const milestones = [
-    { lbl: 'Premier jour', icon: '🌱', check: s => s.days_total >= 1 },
-    { lbl: '7 jours streak', icon: '🔥', check: s => s.streak >= 7 },
-    { lbl: '500 XP', icon: '⭐', check: s => s.total_xp >= 500 },
-    { lbl: '21 jours streak', icon: '💎', check: s => s.streak >= 21 },
-    { lbl: 'Phase 2', icon: '⚡', check: s => s.current_month >= 4 },
-    { lbl: '1000 XP', icon: '🏆', check: s => s.total_xp >= 1000 },
-  ];
-  document.getElementById('milestones').innerHTML = milestones.map(m => {
-    const ok = m.check(S);
-    return `<div class="ms-item${ok ? ' reached' : ''}">
-      <div class="ms-icon">${m.icon}</div>
-      <div class="ms-label">${m.lbl}</div>
-      <div class="ms-status">${ok ? '✓ Atteint' : 'En cours'}</div>
-    </div>`;
-  }).join('');
-
+  const milestones = [ { lbl: 'Premier jour', icon: '🌱', check: s => s.days_total >= 1 }, { lbl: '7 jours streak', icon: '🔥', check: s => s.streak >= 7 }, { lbl: '500 XP', icon: '⭐', check: s => s.total_xp >= 500 }, { lbl: '21 jours streak', icon: '💎', check: s => s.streak >= 21 }, { lbl: 'Phase 2', icon: '⚡', check: s => s.current_month >= 4 }, { lbl: '1000 XP', icon: '🏆', check: s => s.total_xp >= 1000 }, ];
+  document.getElementById('milestones').innerHTML = milestones.map(m => { const ok = m.check(S); return `<div class="ms-item${ok ? ' reached' : ''}"><div class="ms-icon">${m.icon}</div><div class="ms-label">${m.lbl}</div><div class="ms-status">${ok ? '✓ Atteint' : 'En cours'}</div></div>`; }).join('');
   const logContainer = document.getElementById('log-list');
-  if (!LOG.length) {
-    logContainer.innerHTML = '<div class="empty-state">Aucune action enregistrée</div>';
-  } else {
-    const allEntries = LOG.slice(0, 20).map(l => `
-      <div class="log-entry">
-        <div class="log-dot" style="background:${l.capacity_id ? '#a78bfa' : '#888'}"></div>
-        <div class="log-text">${l.quest_name || l.quest_id}</div>
-        <span class="log-xp">+${l.xp}</span>
-        <span class="log-time">${l.created_at ? l.created_at.slice(11, 16) : ''}</span>
-      </div>
-    `).join('');
-    let html = `<div class="log-container collapsed" id="log-inner">
-      ${allEntries}
-    </div>
-    <button class="log-toggle-btn" id="log-toggle-btn" onclick="toggleLog()">Voir plus</button>`;
+  if (!LOG.length) { logContainer.innerHTML = '<div class="empty-state">Aucune action enregistrée</div>'; } else {
+    const allEntries = LOG.slice(0, 20).map(l => ` <div class="log-entry"><div class="log-dot" style="background:${l.capacity_id ? '#a78bfa' : '#888'}"></div><div class="log-text">${l.quest_name || l.quest_id}</div><span class="log-xp">+${l.xp}</span><span class="log-time">${l.created_at ? l.created_at.slice(11, 16) : ''}</span></div> `).join('');
+    let html = `<div class="log-container collapsed" id="log-inner"> ${allEntries} </div><button class="log-toggle-btn" id="log-toggle-btn" onclick="toggleLog()">Voir plus</button>`;
     logContainer.innerHTML = html;
-    if (LOG.length <= 5) {
-      document.getElementById('log-toggle-btn').style.display = 'none';
-    } else {
-      document.getElementById('log-inner').classList.add('collapsed');
-    }
+    if (LOG.length <= 5) { document.getElementById('log-toggle-btn').style.display = 'none'; } else { document.getElementById('log-inner').classList.add('collapsed'); }
   }
 }
 
-function toggleLog() {
-  const container = document.getElementById('log-inner');
-  const btn = document.getElementById('log-toggle-btn');
-  if (!container || !btn) return;
-  if (container.classList.contains('collapsed')) {
-    container.classList.remove('collapsed');
-    container.classList.add('expanded');
-    btn.textContent = 'Voir moins';
-  } else {
-    container.classList.add('collapsed');
-    container.classList.remove('expanded');
-    btn.textContent = 'Voir plus';
-  }
-}
+function toggleLog() { const container = document.getElementById('log-inner'); const btn = document.getElementById('log-toggle-btn'); if (!container || !btn) return; if (container.classList.contains('collapsed')) { container.classList.remove('collapsed'); container.classList.add('expanded'); btn.textContent = 'Voir moins'; } else { container.classList.add('collapsed'); container.classList.remove('expanded'); btn.textContent = 'Voir plus'; } }
 
 function renderXpChart() {
   const ctx = document.getElementById('chart-xp').getContext('2d');
   const today = new Date();
-  const days = [];
-  const labels = [];
-  const data = [];
-  
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(d.getDate() - i - chartOffset);
-    const key = d.toISOString().slice(0, 10);
-    days.push(key);
-    labels.push(key.slice(5, 10));
-    data.push(0);
-  }
-  
-  LOG.forEach(l => {
-    if (l.created_at) {
-      const day = l.created_at.slice(0, 10);
-      const index = days.indexOf(day);
-      if (index !== -1) {
-        data[index] += l.xp || 0;
-      }
-    }
-  });
-  
+  const days = []; const labels = []; const data = [];
+  for (let i = 6; i >= 0; i--) { const d = new Date(today); d.setDate(d.getDate() - i - chartOffset); const key = d.toISOString().slice(0, 10); days.push(key); labels.push(key.slice(5, 10)); data.push(0); }
+  LOG.forEach(l => { if (l.created_at) { const day = l.created_at.slice(0, 10); const index = days.indexOf(day); if (index !== -1) { data[index] += l.xp || 0; } } });
   document.getElementById('chart-range').textContent = `${days[0].slice(5,10)} → ${days[days.length-1].slice(5,10)}`;
-  
   if (chartXp) chartXp.destroy();
-  chartXp = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: labels,
-      datasets: [{
-        data: data,
-        backgroundColor: 'rgba(167,139,250,0.6)',
-        borderColor: '#a78bfa',
-        borderWidth: 1,
-        borderRadius: 3,
-        barPercentage: 0.7,
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: function(context) {
-              return context.raw + ' XP gagnés';
-            }
-          }
-        }
-      },
-      scales: {
-        x: {
-          ticks: { color: '#555', font: { size: 9 }, maxRotation: 45 },
-          grid: { display: false }
-        },
-        y: {
-          beginAtZero: true,
-          ticks: { color: '#555', font: { size: 9 } },
-          grid: { color: 'rgba(255,255,255,0.04)' }
-        }
-      }
-    }
-  });
-
+  chartXp = new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [{ data: data, backgroundColor: 'rgba(167,139,250,0.6)', borderColor: '#a78bfa', borderWidth: 1, borderRadius: 3, barPercentage: 0.7, }] }, options: { responsive: true, plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(context) { return context.raw + ' XP gagnés'; } } } }, scales: { x: { ticks: { color: '#555', font: { size: 9 }, maxRotation: 45 }, grid: { display: false } }, y: { beginAtZero: true, ticks: { color: '#555', font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.04)' } } } } });
   const swipeArea = document.getElementById('chart-swipe-area');
-  swipeArea.ontouchstart = function(e) {
-    touchStartX = e.changedTouches[0].screenX;
-  };
-  swipeArea.ontouchend = function(e) {
-    touchEndX = e.changedTouches[0].screenX;
-    const diff = touchStartX - touchEndX;
-    if (Math.abs(diff) > 50) {
-      const delta = diff > 0 ? -1 : 1;
-      const newOffset = Math.max(0, chartOffset + delta);
-      if (newOffset !== chartOffset) {
-        chartOffset = newOffset;
-        renderXpChart();
-      }
-    }
-  };
+  swipeArea.ontouchstart = function(e) { touchStartX = e.changedTouches[0].screenX; };
+  swipeArea.ontouchend = function(e) { touchEndX = e.changedTouches[0].screenX; const diff = touchStartX - touchEndX; if (Math.abs(diff) > 50) { const delta = diff > 0 ? -1 : 1; const newOffset = Math.max(0, chartOffset + delta); if (newOffset !== chartOffset) { chartOffset = newOffset; renderXpChart(); } } };
 }
 
 function updateSidequestUI() {
   if (!currentSidequest) {
-    console.warn('Aucune sidequest');
+    console.warn('Aucune sidequest à afficher');
     return;
   }
   const item = document.getElementById('sidequest-item');
@@ -1532,80 +588,40 @@ function updateSidequestUI() {
   document.getElementById('sidequest-text').textContent = currentSidequest.text;
   const xpTotal = currentSidequest.xp_total || 30;
   document.getElementById('sq-xp-display').textContent = '+' + xpTotal + ' XP';
-  // Afficher les capacités pondérées
   const caps = currentSidequest.caps || {};
-  const capNames = Object.keys(caps).map(id => {
-    const cap = PILLARS.flatMap(p => p.sub).find(c => c.id === id);
-    return cap ? cap.name + ' (' + Math.round(caps[id]*100) + '%)' : id;
-  }).join(', ');
+  const capNames = Object.keys(caps).map(id => { const cap = PILLARS.flatMap(p => p.sub).find(c => c.id === id); return cap ? cap.name + ' (' + Math.round(caps[id]*100) + '%)' : id; }).join(', ');
   document.getElementById('sidequest-caps').textContent = capNames ? 'Capacités : ' + capNames : '';
-  if (currentSidequest.done) {
-    item.classList.add('done');
-    chk.textContent = '✓';
-  } else {
-    item.classList.remove('done');
-    chk.textContent = '';
-  }
+  if (currentSidequest.done) { item.classList.add('done'); chk.textContent = '✓'; } else { item.classList.remove('done'); chk.textContent = ''; }
 }
 
-// ============================================================
-// LOGIQUE DES QUÊTES
-// ============================================================
-function toggleExtraTime(qId) {
-  const field = document.getElementById('extra-time-field-' + qId);
-  if (!field) return;
-  field.classList.toggle('show');
-  if (field.classList.contains('show')) {
-    const input = field.querySelector('input');
-    if (input) { input.focus(); input.value = 5; updateExtraTimeDisplay(qId); }
-  }
+function renderCustomCapCheckboxes() {
+  const container = document.getElementById('custom-cap-checkboxes');
+  if (!container) return;
+  const allCaps = PILLARS.flatMap(p => p.sub);
+  container.innerHTML = allCaps.map(c => `<label><input type="checkbox" value="${c.id}"> ${c.name}</label>`).join('');
 }
 
-function updateExtraTimeDisplay(qId) {
-  const field = document.getElementById('extra-time-field-' + qId);
-  if (!field) return;
-  const input = field.querySelector('input');
-  const display = field.querySelector('.extra-xp');
-  if (!input || !display) return;
-  const extra = parseInt(input.value) || 0;
-  const all = [...QUETES.min, ...QUETES.opt];
-  const q = all.find(x => x.id === qId);
-  if (!q) return;
-  const defaultTime = QUEST_DEFAULT_TIME[qId] || 30;
-  const totalTime = defaultTime + extra;
-  let xp = Math.round(q.xp * (totalTime / defaultTime));
-  display.textContent = '+' + xp + ' XP';
+function toggleCapsSelector() {
+  const container = document.getElementById('caps-selector');
+  if (container) container.classList.toggle('open');
 }
+
+function toggleExtraTime(qId) { const field = document.getElementById('extra-time-field-' + qId); if (!field) return; field.classList.toggle('show'); if (field.classList.contains('show')) { const input = field.querySelector('input'); if (input) { input.focus(); input.value = 5; updateExtraTimeDisplay(qId); } } }
+function updateExtraTimeDisplay(qId) { const field = document.getElementById('extra-time-field-' + qId); if (!field) return; const input = field.querySelector('input'); const display = field.querySelector('.extra-xp'); if (!input || !display) return; const extra = parseInt(input.value) || 0; const all = [...QUETES.min, ...QUETES.opt]; const q = all.find(x => x.id === qId); if (!q) return; const defaultTime = QUEST_DEFAULT_TIME[qId] || 30; const totalTime = defaultTime + extra; let xp = Math.round(q.xp * (totalTime / defaultTime)); display.textContent = '+' + xp + ' XP'; }
 
 async function toggleQuete(id) {
-  if (isDayLocked) {
-    toast("⚠️ Journée verrouillée. Utilise 'Modifier la journée' pour ajuster.");
-    return;
-  }
+  if (isDayLocked) { toast("⚠️ Journée verrouillée."); return; }
   const allQuests = [...QUETES.min, ...QUETES.opt, ...customQuests];
   const q = allQuests.find(x => x.id === id);
   if (!q) return;
-  if (q.type === 'recurrent-until' && q.completed) {
-    toast("🏆 Cette quête est déjà accomplie !");
-    return;
-  }
+  if (q.type === 'recurrent-until' && q.completed) { toast("🏆 Cette quête est déjà accomplie !"); return; }
   const today = todayKey();
   let xp = q.xp || 0;
   const extraField = document.getElementById('extra-time-field-' + id);
-  if (extraField && extraField.classList.contains('show')) {
-    const input = document.getElementById('extra-time-input-' + id);
-    if (input) {
-      const extra = parseInt(input.value) || 0;
-      const defaultTime = QUEST_DEFAULT_TIME[id] || 30;
-      const totalTime = defaultTime + extra;
-      xp = Math.round(q.xp * (totalTime / defaultTime));
-    }
-  }
-
+  if (extraField && extraField.classList.contains('show')) { const input = document.getElementById('extra-time-input-' + id); if (input) { const extra = parseInt(input.value) || 0; const defaultTime = QUEST_DEFAULT_TIME[id] || 30; const totalTime = defaultTime + extra; xp = Math.round(q.xp * (totalTime / defaultTime)); } }
   if (checkedToday[id]) {
     delete checkedToday[id];
     S.total_xp = Math.max(0, S.total_xp - xp);
-    // Retirer des capacités avec pondération
     const weights = q.caps_weights || {};
     const caps = q.caps || [];
     if (caps.length > 0) {
@@ -1613,10 +629,7 @@ async function toggleQuete(id) {
       caps.forEach(capId => {
         const weight = weights[capId] || (totalWeight > 0 ? 0 : 1/caps.length);
         const part = Math.round(xp * weight);
-        if (capacities[capId]) {
-          capacities[capId].xp = Math.max(0, capacities[capId].xp - part);
-          updateCapLevel(capId);
-        }
+        if (capacities[capId]) { capacities[capId].xp = Math.max(0, capacities[capId].xp - part); updateCapLevel(capId); }
       });
     }
     LOG = LOG.filter(l => !(l.quest_id === id && l.created_at && l.created_at.slice(0, 10) === today));
@@ -1626,7 +639,6 @@ async function toggleQuete(id) {
   } else {
     checkedToday[id] = true;
     S.total_xp += xp;
-    // Ajouter avec pondération
     const weights = q.caps_weights || {};
     const caps = q.caps || [];
     if (caps.length > 0) {
@@ -1634,21 +646,10 @@ async function toggleQuete(id) {
       caps.forEach(capId => {
         const weight = weights[capId] || (totalWeight > 0 ? 0 : 1/caps.length);
         const part = Math.round(xp * weight);
-        if (capacities[capId]) {
-          capacities[capId].xp += part;
-          updateCapLevel(capId);
-        }
+        if (capacities[capId]) { capacities[capId].xp += part; updateCapLevel(capId); }
       });
     }
-    const entry = {
-      user_id: UID,
-      quest_id: id,
-      quest_name: q.name || id,
-      xp: xp,
-      capacity_id: q.caps ? q.caps[0] : null,
-      sub_capacities: q.caps || [],
-      created_at: new Date().toISOString()
-    };
+    const entry = { user_id: UID, quest_id: id, quest_name: q.name || id, xp: xp, capacity_id: q.caps ? q.caps[0] : null, sub_capacities: q.caps || [], created_at: new Date().toISOString() };
     LOG.unshift(entry);
     await sbInsert('sys_log', entry);
     await saveProgress();
@@ -1660,23 +661,9 @@ async function toggleQuete(id) {
 function updateCapLevel(capId) {
   const data = capacities[capId];
   if (!data) return;
-  const levels = [
-    { level: 0, xp: 0, label: 'Débutant' },
-    { level: 1, xp: 50, label: 'Novice' },
-    { level: 2, xp: 150, label: 'Apprenti' },
-    { level: 3, xp: 300, label: 'Intermédiaire' },
-    { level: 4, xp: 500, label: 'Confirmé' },
-    { level: 5, xp: 800, label: 'Avancé' },
-    { level: 6, xp: 1200, label: 'Expert' },
-    { level: 7, xp: 1800, label: 'Maître' },
-    { level: 8, xp: 2500, label: 'Grand Maître' },
-    { level: 9, xp: 3500, label: 'Légende' },
-    { level: 10, xp: 5000, label: '★ Infini' }
-  ];
+  const levels = [ { level: 0, xp: 0, label: 'Débutant' }, { level: 1, xp: 50, label: 'Novice' }, { level: 2, xp: 150, label: 'Apprenti' }, { level: 3, xp: 300, label: 'Intermédiaire' }, { level: 4, xp: 500, label: 'Confirmé' }, { level: 5, xp: 800, label: 'Avancé' }, { level: 6, xp: 1200, label: 'Expert' }, { level: 7, xp: 1800, label: 'Maître' }, { level: 8, xp: 2500, label: 'Grand Maître' }, { level: 9, xp: 3500, label: 'Légende' }, { level: 10, xp: 5000, label: '★ Infini' } ];
   let currentLevel = 0;
-  for (let i = levels.length - 1; i >= 0; i--) {
-    if (data.xp >= levels[i].xp) { currentLevel = i; break; }
-  }
+  for (let i = levels.length - 1; i >= 0; i--) { if (data.xp >= levels[i].xp) { currentLevel = i; break; } }
   const nextLevel = levels[Math.min(currentLevel + 1, levels.length - 1)];
   const current = levels[currentLevel];
   data.level = currentLevel;
@@ -1685,9 +672,6 @@ function updateCapLevel(capId) {
   if (data.next_level_xp <= 0) data.next_level_xp = 1;
 }
 
-// ============================================================
-// SIDEQUEST
-// ============================================================
 async function toggleSidequest() {
   if (isDayLocked) { toast("⚠️ Journée verrouillée."); return; }
   if (!currentSidequest) { toast("⚠️ Aucune sidequest disponible."); return; }
@@ -1702,10 +686,7 @@ async function toggleSidequest() {
     capIds.forEach(id => {
       const weight = caps[id] || 0;
       const part = Math.round(finalXp * weight);
-      if (capacities[id]) {
-        capacities[id].xp = Math.max(0, capacities[id].xp - part);
-        updateCapLevel(id);
-      }
+      if (capacities[id]) { capacities[id].xp = Math.max(0, capacities[id].xp - part); updateCapLevel(id); }
     });
     LOG = LOG.filter(l => !(l.quest_id === 'sidequest' && l.created_at && l.created_at.slice(0, 10) === today));
     await sbDelete('sys_log', UID, 'sidequest', today);
@@ -1718,20 +699,9 @@ async function toggleSidequest() {
     capIds.forEach(id => {
       const weight = caps[id] || 0;
       const part = Math.round(finalXp * weight);
-      if (capacities[id]) {
-        capacities[id].xp += part;
-        updateCapLevel(id);
-      }
+      if (capacities[id]) { capacities[id].xp += part; updateCapLevel(id); }
     });
-    const entry = {
-      user_id: UID,
-      quest_id: 'sidequest',
-      quest_name: '[Sidequest] ' + currentSidequest.text.slice(0, 40),
-      xp: finalXp,
-      capacity_id: capIds[0] || null,
-      sub_capacities: capIds,
-      created_at: new Date().toISOString()
-    };
+    const entry = { user_id: UID, quest_id: 'sidequest', quest_name: '[Sidequest] ' + currentSidequest.text.slice(0, 40), xp: finalXp, capacity_id: capIds[0] || null, sub_capacities: capIds, created_at: new Date().toISOString() };
     LOG.unshift(entry);
     await sbInsert('sys_log', entry);
     await saveProgress();
@@ -1744,7 +714,7 @@ async function toggleSidequest() {
 async function rerollSidequestIA() {
   if (isDayLocked) { toast("⚠️ Journée verrouillée."); return; }
   const btn = document.getElementById('btn-reroll');
-  btn.textContent = "Création en cours par l'IA...";
+  btn.textContent = "Création en cours...";
   btn.disabled = true;
   const ctx = buildCtx();
   const prompt = `Génère une sidequest courte, concrète et rapide (max 15 min) pour un étudiant en médecine. Contexte: ${ctx}. Donne uniquement l'énoncé direct en 2 lignes max. Sans markdown.`;
@@ -1756,34 +726,19 @@ async function rerollSidequestIA() {
     return;
   }
   const today = todayKey();
-  // On attribue des capacités par défaut (on pourrait demander à l'IA mais on simplifie)
   const defaultCaps = { raisonnement: 0.6, observation: 0.4 };
-  currentSidequest = {
-    date: today,
-    text: res || 'Défi : observe 3 personnes et décris leur posture.',
-    caps: defaultCaps,
-    xp_total: 30,
-    pid: 'p1',
-    done: false,
-    isIA: true
-  };
+  currentSidequest = { date: today, text: res || 'Défi : observe 3 personnes et décris leur posture.', caps: defaultCaps, xp_total: 30, pid: 'p1', done: false, isIA: true };
   await sbUpsert('sys_sidequests', { user_id: UID, ...currentSidequest });
   await saveProgress();
   updateSidequestUI();
   btn.textContent = "🎲 Relancer via le Coach (IA)";
   btn.disabled = false;
-  toast("🔄 Nouvelle sidequest générée par l'IA !");
+  toast("🔄 Nouvelle sidequest générée !");
 }
 
-// ============================================================
-// QUÊTES FORGÉES (création, édition, suppression)
-// ============================================================
 function ouvrirFormulaireForge() {
   const form = document.getElementById('forge-form');
-  if (form.style.display === 'block') {
-    form.style.display = 'none';
-    return;
-  }
+  if (form.style.display === 'block') { form.style.display = 'none'; return; }
   form.style.display = 'block';
   document.getElementById('forge-name').value = '';
   document.getElementById('forge-desc').value = '';
@@ -1792,30 +747,17 @@ function ouvrirFormulaireForge() {
   document.getElementById('forge-bonus').value = '50';
   document.getElementById('forge-target-group').style.display = 'none';
   document.getElementById('forge-analysis-result').style.display = 'none';
-  document.getElementById('forge-weight-sliders').style.display = 'none';
   document.getElementById('forge-actions').style.display = 'none';
-  // Réinitialiser le bouton confirmer
-  const confirmBtn = document.getElementById('forge-confirm-btn');
-  confirmBtn.textContent = '✅ Confirmer et ajouter';
-  confirmBtn.onclick = confirmerForge;
+  document.getElementById('forge-weight-sliders').innerHTML = '';
   forgePending = null;
-}
-
-function annulerForge() {
-  document.getElementById('forge-form').style.display = 'none';
-  forgePending = null;
-}
-
-document.addEventListener('change', function(e) {
-  if (e.target.id === 'forge-type') {
-    const targetGroup = document.getElementById('forge-target-group');
-    if (e.target.value === 'recurrent-until') {
-      targetGroup.style.display = 'block';
-    } else {
-      targetGroup.style.display = 'none';
-    }
+  const confirmBtn = document.querySelector('#forge-actions .btn-accent');
+  if (confirmBtn) {
+    confirmBtn.textContent = '✅ Confirmer et ajouter';
+    confirmBtn.onclick = function() { confirmerForge(); };
   }
-});
+}
+function annulerForge() { document.getElementById('forge-form').style.display = 'none'; forgePending = null; }
+document.addEventListener('change', function(e) { if (e.target.id === 'forge-type') { const targetGroup = document.getElementById('forge-target-group'); if (e.target.value === 'recurrent-until') { targetGroup.style.display = 'block'; } else { targetGroup.style.display = 'none'; } } });
 
 function creerManuellement(name, desc, duration) {
   const type = document.getElementById('forge-type').value;
@@ -1825,21 +767,12 @@ function creerManuellement(name, desc, duration) {
   const capChoice = prompt(`Choisis les capacités (numéros séparés par des virgules) :\n${capList}`);
   const caps = capChoice ? capChoice.split(',').map(n => parseInt(n.trim())).filter(n => n > 0 && n <= PILLARS.flatMap(p => p.sub).length).map(n => PILLARS.flatMap(p => p.sub)[n-1].id) : ['raisonnement'];
   const xp = parseInt(prompt("XP par session :", "20")) || 20;
-  // Poids uniformes
   const caps_weights = {};
   const w = 1 / caps.length;
   caps.forEach(id => caps_weights[id] = w);
   const id = 'forge_' + Date.now();
-  const quest = {
-    id, name, desc, duration: duration || 0, xp, caps, caps_weights, type,
-    is_forged: true,
-    done: false,
-    completed: false
-  };
-  if (type === 'recurrent-until') {
-    quest.target = target || 'Accomplissement';
-    quest.bonus_xp = bonus;
-  }
+  const quest = { id, name, desc, duration: duration || 0, xp, caps, caps_weights, type, is_forged: true, category: 'forged', done: false, completed: false };
+  if (type === 'recurrent-until') { quest.target = target || 'Accomplissement'; quest.bonus_xp = bonus; }
   customQuests.push(quest);
   saveCustomQuests();
   newForgedCount++;
@@ -1855,59 +788,28 @@ async function analyserForgeIA() {
   const desc = document.getElementById('forge-desc').value.trim();
   const duration = parseInt(document.getElementById('forge-duration').value) || 0;
   if (!name) { toast("⚠️ Donne un nom à la quête."); return; }
-  if (!desc) { toast("⚠️ Décris la quête pour que l'IA puisse l'analyser."); return; }
-
-  toast("🤖 Analyse par l'IA en cours (cela peut prendre jusqu'à 15 secondes)...");
+  if (!desc) { toast("⚠️ Décris la quête."); return; }
+  toast("🤖 Analyse en cours...");
   const resultDiv = document.getElementById('forge-analysis-result');
   resultDiv.style.display = 'block';
-  resultDiv.innerHTML = `<div class="ai-card" style="border-color:var(--amber);"><div class="ai-header"><span style="font-size:16px">⏳</span><span class="ai-label">Analyse en cours...</span></div><div class="ai-body">L'IA analyse ta quête. Cela peut prendre quelques secondes.</div></div>`;
-
+  resultDiv.innerHTML = `<div class="ai-card" style="border-color:var(--amber);"><div class="ai-header"><span>⏳</span><span class="ai-label">Analyse en cours...</span></div><div class="ai-body">L'IA analyse ta quête. Cela peut prendre quelques secondes.</div></div>`;
   try {
     const analysisPromise = analyzeForgedQuest(name, desc, duration);
-    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 15000));
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 20000));
     const analysis = await Promise.race([analysisPromise, timeoutPromise]);
-
     if (analysis.needs_clarification) {
-      resultDiv.innerHTML = `
-        <div class="ai-card" style="border-color:var(--amber);">
-          <div class="ai-header"><span style="font-size:16px">🤔</span><span class="ai-label">Précision nécessaire</span></div>
-          <div class="ai-body">${analysis.clarification_question}</div>
-          <div style="margin-top:8px;display:flex;gap:6px;">
-            <input type="text" id="clarification-input" class="form-input" placeholder="Ta réponse..." style="flex:1;">
-            <button class="btn-sm btn-accent" onclick="repondreClarification('${name}', '${desc}', ${duration})">Envoyer</button>
-          </div>
-        </div>
-      `;
+      resultDiv.innerHTML = ` <div class="ai-card" style="border-color:var(--amber);"><div class="ai-header"><span>🤔</span><span class="ai-label">Précision nécessaire</span></div><div class="ai-body">${analysis.clarification_question}</div><div style="margin-top:8px;display:flex;gap:6px;"><input type="text" id="clarification-input" class="form-input" placeholder="Ta réponse..." style="flex:1;"><button class="btn-sm btn-accent" onclick="repondreClarification('${name}', '${desc}', ${duration})">Envoyer</button></div></div> `;
       document.getElementById('forge-actions').style.display = 'none';
       forgePending = { name, desc, duration, step: 'clarification' };
       return;
     }
-
     const caps = analysis.caps;
-    const capNames = Object.keys(caps).map(id => {
-      const cap = PILLARS.flatMap(p => p.sub).find(c => c.id === id);
-      return cap ? cap.name : id;
-    }).join(', ');
+    const capNames = Object.keys(caps).map(id => { const cap = PILLARS.flatMap(p => p.sub).find(c => c.id === id); return cap ? cap.name : id; }).join(', ');
     const type = document.getElementById('forge-type').value;
     let bonusInfo = '';
-    if (type === 'recurrent-until') {
-      bonusInfo = `<br>🎯 Objectif final : ${document.getElementById('forge-target').value || 'non défini'}<br>🏆 Bonus final : ${document.getElementById('forge-bonus').value || 50} XP`;
-    }
-    resultDiv.innerHTML = `
-      <div class="ai-card" style="border-color:var(--green);">
-        <div class="ai-header"><span style="font-size:16px">✅</span><span class="ai-label">Analyse IA</span></div>
-        <div class="ai-body">
-          Capacités : ${capNames}<br>
-          XP par session : ${analysis.xp}<br>
-          ${duration > 0 ? 'Durée : '+duration+' min' : 'Sans durée définie'}
-          ${bonusInfo}
-        </div>
-      </div>
-    `;
-
-    // Afficher les sliders de poids
+    if (type === 'recurrent-until') { bonusInfo = `<br>🎯 Objectif final : ${document.getElementById('forge-target').value || 'non défini'}<br>🏆 Bonus final : ${document.getElementById('forge-bonus').value || 50} XP`; }
+    resultDiv.innerHTML = ` <div class="ai-card" style="border-color:var(--green);"><div class="ai-header"><span>✅</span><span class="ai-label">Analyse IA</span></div><div class="ai-body"> Capacités : ${capNames}<br> XP par session : ${analysis.xp}<br> ${duration > 0 ? 'Durée : '+duration+' min' : 'Sans durée définie'} ${bonusInfo} </div></div> `;
     const sliderDiv = document.getElementById('forge-weight-sliders');
-    sliderDiv.style.display = 'block';
     sliderDiv.innerHTML = '';
     Object.keys(caps).forEach(id => {
       const cap = PILLARS.flatMap(p => p.sub).find(c => c.id === id);
@@ -1915,47 +817,22 @@ async function analyserForgeIA() {
       const pct = Math.round(caps[id] * 100);
       const row = document.createElement('div');
       row.className = 'weight-slider-row';
-      row.innerHTML = `
-        <label>${label}</label>
-        <input type="number" min="0" max="100" value="${pct}" data-id="${id}" onchange="normalizeWeights()" style="width:50px;background:rgba(255,255,255,0.06);border:0.5px solid var(--border);border-radius:4px;padding:2px 4px;color:var(--text);font-size:12px;text-align:center;">
-        <div class="weight-bar"><div class="fill" style="width:${pct}%"></div></div>
-      `;
+      row.innerHTML = `<label>${label}</label><input type="number" min="0" max="100" value="${pct}" data-id="${id}" onchange="normalizeWeights()" style="width:50px;background:rgba(255,255,255,0.06);border:0.5px solid var(--border);border-radius:4px;padding:2px 4px;color:var(--text);font-size:12px;text-align:center;"><div class="weight-bar"><div class="fill" style="width:${pct}%"></div></div>`;
       sliderDiv.appendChild(row);
     });
-
     document.getElementById('forge-actions').style.display = 'block';
     const target = document.getElementById('forge-target').value.trim();
     const bonus = parseInt(document.getElementById('forge-bonus').value) || 50;
-    forgePending = {
-      name, desc, duration,
-      caps: caps,  // objet {id: poids}
-      xp: analysis.xp,
-      type: type,
-      target: target,
-      bonus_xp: bonus
-    };
-
+    forgePending = { name, desc, duration, caps: caps, xp: analysis.xp, type: type, target: target, bonus_xp: bonus };
   } catch (error) {
     if (error.message === 'timeout') {
-      toast("⏱️ L'analyse a pris trop de temps. Utilise la création manuelle.");
-      resultDiv.innerHTML = `
-        <div class="ai-card" style="border-color:var(--coral);">
-          <div class="ai-header"><span style="font-size:16px">⏱️</span><span class="ai-label">Délai dépassé</span></div>
-          <div class="ai-body">L'IA n'a pas répondu assez vite. Tu peux créer la quête manuellement.</div>
-          <button class="btn-sm btn-accent" onclick="creerManuellement('${name}', '${desc}', ${duration})" style="margin-top:8px;">✏️ Créer manuellement</button>
-        </div>
-      `;
+      toast("⏱️ Temps dépassé, création manuelle.");
+      resultDiv.innerHTML = ` <div class="ai-card" style="border-color:var(--coral);"><div class="ai-header"><span>⏱️</span><span class="ai-label">Délai dépassé</span></div><div class="ai-body">L'IA n'a pas répondu assez vite. Tu peux créer la quête manuellement.</div><button class="btn-sm btn-accent" onclick="creerManuellement('${name}', '${desc}', ${duration})" style="margin-top:8px;">✏️ Créer manuellement</button></div> `;
       document.getElementById('forge-actions').style.display = 'none';
     } else {
       console.error('Erreur analyse:', error);
-      toast("⚠️ Erreur lors de l'analyse. Réessaie ou crée manuellement.");
-      resultDiv.innerHTML = `
-        <div class="ai-card" style="border-color:var(--coral);">
-          <div class="ai-header"><span style="font-size:16px">❌</span><span class="ai-label">Erreur</span></div>
-          <div class="ai-body">L'analyse a échoué. Tu peux créer la quête manuellement.</div>
-          <button class="btn-sm btn-accent" onclick="creerManuellement('${name}', '${desc}', ${duration})" style="margin-top:8px;">✏️ Créer manuellement</button>
-        </div>
-      `;
+      toast("⚠️ Erreur, création manuelle.");
+      resultDiv.innerHTML = ` <div class="ai-card" style="border-color:var(--coral);"><div class="ai-header"><span>❌</span><span class="ai-label">Erreur</span></div><div class="ai-body">L'analyse a échoué. Crée manuellement.</div><button class="btn-sm btn-accent" onclick="creerManuellement('${name}', '${desc}', ${duration})" style="margin-top:8px;">✏️ Créer manuellement</button></div> `;
       document.getElementById('forge-actions').style.display = 'none';
     }
   }
@@ -1979,59 +856,26 @@ async function repondreClarification(name, desc, duration) {
   const input = document.getElementById('clarification-input');
   const reponse = input.value.trim();
   if (!reponse) { toast("⚠️ Réponds à la question."); return; }
-  toast("🤖 Analyse en cours avec les précisions...");
+  toast("🤖 Analyse en cours...");
   const newDesc = desc + "\nPrécision : " + reponse;
   try {
     const analysis = await analyzeForgedQuest(name, newDesc, duration);
     const resultDiv = document.getElementById('forge-analysis-result');
     if (analysis.needs_clarification) {
-      resultDiv.innerHTML = `
-        <div class="ai-card" style="border-color:var(--amber);">
-          <div class="ai-header"><span style="font-size:16px">🤔</span><span class="ai-label">Encore une précision</span></div>
-          <div class="ai-body">${analysis.clarification_question}</div>
-          <div style="margin-top:8px;display:flex;gap:6px;">
-            <input type="text" id="clarification-input-2" class="form-input" placeholder="Ta réponse..." style="flex:1;">
-            <button class="btn-sm btn-accent" onclick="repondreClarification2('${name}', '${newDesc}', ${duration})">Envoyer</button>
-          </div>
-        </div>
-      `;
+      resultDiv.innerHTML = ` <div class="ai-card" style="border-color:var(--amber);"><div class="ai-header"><span>🤔</span><span class="ai-label">Encore une précision</span></div><div class="ai-body">${analysis.clarification_question}</div><div style="margin-top:8px;display:flex;gap:6px;"><input type="text" id="clarification-input-2" class="form-input" placeholder="Ta réponse..." style="flex:1;"><button class="btn-sm btn-accent" onclick="repondreClarification2('${name}', '${newDesc}', ${duration})">Envoyer</button></div></div> `;
       return;
     }
     const caps = analysis.caps;
-    const capNames = Object.keys(caps).map(id => {
-      const cap = PILLARS.flatMap(p => p.sub).find(c => c.id === id);
-      return cap ? cap.name : id;
-    }).join(', ');
+    const capNames = Object.keys(caps).map(id => { const cap = PILLARS.flatMap(p => p.sub).find(c => c.id === id); return cap ? cap.name : id; }).join(', ');
     const type = document.getElementById('forge-type').value;
     let bonusInfo = '';
-    if (type === 'recurrent-until') {
-      bonusInfo = `<br>🎯 Objectif final : ${document.getElementById('forge-target').value || 'non défini'}<br>🏆 Bonus final : ${document.getElementById('forge-bonus').value || 50} XP`;
-    }
-    resultDiv.innerHTML = `
-      <div class="ai-card" style="border-color:var(--green);">
-        <div class="ai-header"><span style="font-size:16px">✅</span><span class="ai-label">Analyse IA (finale)</span></div>
-        <div class="ai-body">
-          Capacités : ${capNames}<br>
-          XP par session : ${analysis.xp}<br>
-          ${duration > 0 ? 'Durée : '+duration+' min' : 'Sans durée définie'}
-          ${bonusInfo}
-        </div>
-      </div>
-    `;
+    if (type === 'recurrent-until') { bonusInfo = `<br>🎯 Objectif final : ${document.getElementById('forge-target').value || 'non défini'}<br>🏆 Bonus final : ${document.getElementById('forge-bonus').value || 50} XP`; }
+    resultDiv.innerHTML = ` <div class="ai-card" style="border-color:var(--green);"><div class="ai-header"><span>✅</span><span class="ai-label">Analyse IA (finale)</span></div><div class="ai-body"> Capacités : ${capNames}<br> XP : ${analysis.xp}<br> ${duration > 0 ? 'Durée : '+duration+' min' : ''} ${bonusInfo} </div></div> `;
     document.getElementById('forge-actions').style.display = 'block';
     const target = document.getElementById('forge-target').value.trim();
     const bonus = parseInt(document.getElementById('forge-bonus').value) || 50;
-    forgePending = {
-      name, desc: newDesc, duration,
-      caps: caps,
-      xp: analysis.xp,
-      type: type,
-      target: target,
-      bonus_xp: bonus
-    };
-    // Afficher les sliders
+    forgePending = { name, desc: newDesc, duration, caps: caps, xp: analysis.xp, type: type, target: target, bonus_xp: bonus };
     const sliderDiv = document.getElementById('forge-weight-sliders');
-    sliderDiv.style.display = 'block';
     sliderDiv.innerHTML = '';
     Object.keys(caps).forEach(id => {
       const cap = PILLARS.flatMap(p => p.sub).find(c => c.id === id);
@@ -2039,15 +883,11 @@ async function repondreClarification(name, desc, duration) {
       const pct = Math.round(caps[id] * 100);
       const row = document.createElement('div');
       row.className = 'weight-slider-row';
-      row.innerHTML = `
-        <label>${label}</label>
-        <input type="number" min="0" max="100" value="${pct}" data-id="${id}" onchange="normalizeWeights()" style="width:50px;background:rgba(255,255,255,0.06);border:0.5px solid var(--border);border-radius:4px;padding:2px 4px;color:var(--text);font-size:12px;text-align:center;">
-        <div class="weight-bar"><div class="fill" style="width:${pct}%"></div></div>
-      `;
+      row.innerHTML = `<label>${label}</label><input type="number" min="0" max="100" value="${pct}" data-id="${id}" onchange="normalizeWeights()" style="width:50px;background:rgba(255,255,255,0.06);border:0.5px solid var(--border);border-radius:4px;padding:2px 4px;color:var(--text);font-size:12px;text-align:center;"><div class="weight-bar"><div class="fill" style="width:${pct}%"></div></div>`;
       sliderDiv.appendChild(row);
     });
   } catch (error) {
-    toast("⚠️ Erreur. Création manuelle.");
+    toast("⚠️ Erreur, création manuelle.");
     creerManuellement(name, desc, duration);
   }
 }
@@ -2060,45 +900,18 @@ async function repondreClarification2(name, desc, duration) {
   try {
     const analysis = await analyzeForgedQuest(name, newDesc, duration);
     const resultDiv = document.getElementById('forge-analysis-result');
-    if (analysis.needs_clarification) {
-      toast("⚠️ L'IA n'arrive pas à cerner. Utilisation de valeurs par défaut.");
-      analysis.caps = { raisonnement: 1 };
-      analysis.xp = 20;
-    }
+    if (analysis.needs_clarification) { toast("⚠️ L'IA n'arrive pas, utilisation de valeurs par défaut."); analysis.caps = { raisonnement: 1 }; analysis.xp = 20; }
     const caps = analysis.caps;
-    const capNames = Object.keys(caps).map(id => {
-      const cap = PILLARS.flatMap(p => p.sub).find(c => c.id === id);
-      return cap ? cap.name : id;
-    }).join(', ');
+    const capNames = Object.keys(caps).map(id => { const cap = PILLARS.flatMap(p => p.sub).find(c => c.id === id); return cap ? cap.name : id; }).join(', ');
     const type = document.getElementById('forge-type').value;
     let bonusInfo = '';
-    if (type === 'recurrent-until') {
-      bonusInfo = `<br>🎯 Objectif final : ${document.getElementById('forge-target').value || 'non défini'}<br>🏆 Bonus final : ${document.getElementById('forge-bonus').value || 50} XP`;
-    }
-    resultDiv.innerHTML = `
-      <div class="ai-card" style="border-color:var(--green);">
-        <div class="ai-header"><span style="font-size:16px">✅</span><span class="ai-label">Analyse IA (finale)</span></div>
-        <div class="ai-body">
-          Capacités : ${capNames}<br>
-          XP par session : ${analysis.xp}<br>
-          ${duration > 0 ? 'Durée : '+duration+' min' : 'Sans durée définie'}
-          ${bonusInfo}
-        </div>
-      </div>
-    `;
+    if (type === 'recurrent-until') { bonusInfo = `<br>🎯 Objectif final : ${document.getElementById('forge-target').value || 'non défini'}<br>🏆 Bonus final : ${document.getElementById('forge-bonus').value || 50} XP`; }
+    resultDiv.innerHTML = ` <div class="ai-card" style="border-color:var(--green);"><div class="ai-header"><span>✅</span><span class="ai-label">Analyse IA (finale)</span></div><div class="ai-body"> Capacités : ${capNames}<br> XP : ${analysis.xp}<br> ${duration > 0 ? 'Durée : '+duration+' min' : ''} ${bonusInfo} </div></div> `;
     document.getElementById('forge-actions').style.display = 'block';
     const target = document.getElementById('forge-target').value.trim();
     const bonus = parseInt(document.getElementById('forge-bonus').value) || 50;
-    forgePending = {
-      name, desc: newDesc, duration,
-      caps: caps,
-      xp: analysis.xp,
-      type: type,
-      target: target,
-      bonus_xp: bonus
-    };
+    forgePending = { name, desc: newDesc, duration, caps: caps, xp: analysis.xp, type: type, target: target, bonus_xp: bonus };
     const sliderDiv = document.getElementById('forge-weight-sliders');
-    sliderDiv.style.display = 'block';
     sliderDiv.innerHTML = '';
     Object.keys(caps).forEach(id => {
       const cap = PILLARS.flatMap(p => p.sub).find(c => c.id === id);
@@ -2106,52 +919,28 @@ async function repondreClarification2(name, desc, duration) {
       const pct = Math.round(caps[id] * 100);
       const row = document.createElement('div');
       row.className = 'weight-slider-row';
-      row.innerHTML = `
-        <label>${label}</label>
-        <input type="number" min="0" max="100" value="${pct}" data-id="${id}" onchange="normalizeWeights()" style="width:50px;background:rgba(255,255,255,0.06);border:0.5px solid var(--border);border-radius:4px;padding:2px 4px;color:var(--text);font-size:12px;text-align:center;">
-        <div class="weight-bar"><div class="fill" style="width:${pct}%"></div></div>
-      `;
+      row.innerHTML = `<label>${label}</label><input type="number" min="0" max="100" value="${pct}" data-id="${id}" onchange="normalizeWeights()" style="width:50px;background:rgba(255,255,255,0.06);border:0.5px solid var(--border);border-radius:4px;padding:2px 4px;color:var(--text);font-size:12px;text-align:center;"><div class="weight-bar"><div class="fill" style="width:${pct}%"></div></div>`;
       sliderDiv.appendChild(row);
     });
   } catch (error) {
-    toast("⚠️ Erreur. Création manuelle.");
+    toast("⚠️ Erreur, création manuelle.");
     creerManuellement(name, desc, duration);
   }
 }
 
 function confirmerForge() {
   if (!forgePending) return;
-  // Récupérer les poids depuis les sliders
   const inputs = document.querySelectorAll('#forge-weight-sliders input[type="number"]');
   const caps_weights = {};
   let total = 0;
-  inputs.forEach(inp => {
-    const id = inp.dataset.id;
-    const val = parseInt(inp.value) || 0;
-    caps_weights[id] = val;
-    total += val;
-  });
+  inputs.forEach(inp => { const id = inp.dataset.id; const val = parseInt(inp.value) || 0; caps_weights[id] = val; total += val; });
   if (total === 0) { toast("⚠️ Les poids doivent être > 0."); return; }
-  // Normaliser
   Object.keys(caps_weights).forEach(id => caps_weights[id] = caps_weights[id] / total);
   const caps = Object.keys(caps_weights);
   const { name, desc, duration, xp, type, target, bonus_xp } = forgePending;
   const id = 'forge_' + Date.now();
-  const quest = {
-    id, name, desc,
-    duration: duration || 0,
-    xp,
-    caps,
-    caps_weights,
-    type,
-    is_forged: true,
-    done: false,
-    completed: false
-  };
-  if (type === 'recurrent-until') {
-    quest.target = target || 'Accomplissement';
-    quest.bonus_xp = bonus_xp || 50;
-  }
+  const quest = { id, name, desc, duration: duration || 0, xp, caps, caps_weights, type, is_forged: true, category: 'forged', done: false, completed: false };
+  if (type === 'recurrent-until') { quest.target = target || 'Accomplissement'; quest.bonus_xp = bonus_xp || 50; }
   customQuests.push(quest);
   saveCustomQuests();
   newForgedCount++;
@@ -2160,96 +949,6 @@ function confirmerForge() {
   forgePending = null;
   updateAll();
   toast("⚔️ Quête forgée ajoutée !");
-}
-
-// ---- MODIFICATION D'UNE QUÊTE FORGÉE ----
-async function modifierQueteForgee(id) {
-  const q = customQuests.find(x => x.id === id);
-  if (!q) { toast("⚠️ Quête introuvable."); return; }
-  // Ouvrir le formulaire et pré-remplir
-  ouvrirFormulaireForge();
-  document.getElementById('forge-name').value = q.name;
-  document.getElementById('forge-desc').value = q.desc || '';
-  document.getElementById('forge-duration').value = q.duration || '';
-  document.getElementById('forge-type').value = q.type || 'oneshot';
-  if (q.type === 'recurrent-until') {
-    document.getElementById('forge-target-group').style.display = 'block';
-    document.getElementById('forge-target').value = q.target || '';
-    document.getElementById('forge-bonus').value = q.bonus_xp || 50;
-  } else {
-    document.getElementById('forge-target-group').style.display = 'none';
-  }
-  // Pré-remplir les sliders de poids
-  const sliderDiv = document.getElementById('forge-weight-sliders');
-  sliderDiv.style.display = 'block';
-  sliderDiv.innerHTML = '';
-  if (q.caps_weights) {
-    Object.keys(q.caps_weights).forEach(id => {
-      const cap = PILLARS.flatMap(p => p.sub).find(c => c.id === id);
-      const label = cap ? cap.name : id;
-      const pct = Math.round(q.caps_weights[id] * 100);
-      const row = document.createElement('div');
-      row.className = 'weight-slider-row';
-      row.innerHTML = `
-        <label>${label}</label>
-        <input type="number" min="0" max="100" value="${pct}" data-id="${id}" onchange="normalizeWeights()" style="width:50px;background:rgba(255,255,255,0.06);border:0.5px solid var(--border);border-radius:4px;padding:2px 4px;color:var(--text);font-size:12px;text-align:center;">
-        <div class="weight-bar"><div class="fill" style="width:${pct}%"></div></div>
-      `;
-      sliderDiv.appendChild(row);
-    });
-  }
-  // Passer en mode "mise à jour"
-  document.getElementById('forge-actions').style.display = 'block';
-  const confirmBtn = document.getElementById('forge-confirm-btn');
-  confirmBtn.textContent = '✅ Mettre à jour';
-  confirmBtn.onclick = function() {
-    // Fonction de mise à jour
-    mettreAJourForge(id);
-  };
-  forgePending = { ...q, editing: true, oldId: id };
-  toast("✏️ Modification en cours...");
-}
-
-function mettreAJourForge(oldId) {
-  if (!forgePending || forgePending.oldId !== oldId) { toast("⚠️ Erreur, quête modifiée non trouvée."); return; }
-  // Récupérer les poids
-  const inputs = document.querySelectorAll('#forge-weight-sliders input[type="number"]');
-  const caps_weights = {};
-  let total = 0;
-  inputs.forEach(inp => {
-    const id = inp.dataset.id;
-    const val = parseInt(inp.value) || 0;
-    caps_weights[id] = val;
-    total += val;
-  });
-  if (total === 0) { toast("⚠️ Les poids doivent être > 0."); return; }
-  Object.keys(caps_weights).forEach(id => caps_weights[id] = caps_weights[id] / total);
-  const caps = Object.keys(caps_weights);
-  const { name, desc, duration, xp, type, target, bonus_xp } = forgePending;
-  // Remplacer la quête existante
-  const index = customQuests.findIndex(q => q.id === oldId);
-  if (index === -1) { toast("⚠️ Quête introuvable."); return; }
-  customQuests[index] = {
-    ...customQuests[index],
-    name,
-    desc: desc || '',
-    duration: duration || 0,
-    xp,
-    caps,
-    caps_weights,
-    type,
-    target: target || '',
-    bonus_xp: bonus_xp || 0
-  };
-  saveCustomQuests();
-  document.getElementById('forge-form').style.display = 'none';
-  forgePending = null;
-  // Remettre le bouton en mode "ajout"
-  const confirmBtn = document.getElementById('forge-confirm-btn');
-  confirmBtn.textContent = '✅ Confirmer et ajouter';
-  confirmBtn.onclick = confirmerForge;
-  updateAll();
-  toast("✅ Quête forgée mise à jour !");
 }
 
 async function marquerAccompli(id) {
@@ -2267,21 +966,10 @@ async function marquerAccompli(id) {
     caps.forEach(capId => {
       const weight = weights[capId] || (totalWeight > 0 ? 0 : 1/caps.length);
       const part = Math.round(bonus * weight);
-      if (capacities[capId]) {
-        capacities[capId].xp += part;
-        updateCapLevel(capId);
-      }
+      if (capacities[capId]) { capacities[capId].xp += part; updateCapLevel(capId); }
     });
   }
-  const entry = {
-    user_id: UID,
-    quest_id: id,
-    quest_name: '[Accompli] ' + q.name,
-    xp: bonus,
-    capacity_id: q.caps ? q.caps[0] : null,
-    sub_capacities: q.caps || [],
-    created_at: new Date().toISOString()
-  };
+  const entry = { user_id: UID, quest_id: id, quest_name: '[Accompli] ' + q.name, xp: bonus, capacity_id: q.caps ? q.caps[0] : null, sub_capacities: q.caps || [], created_at: new Date().toISOString() };
   LOG.unshift(entry);
   await sbInsert('sys_log', entry);
   saveCustomQuests();
@@ -2307,14 +995,25 @@ async function deleteForgedQuest(id) {
   toast("🗑️ Quête forgée supprimée.");
 }
 
-function saveCustomQuests() {
-  localStorage.setItem('sys12_custom_quests', JSON.stringify(customQuests));
-  sbUpsert('sys_custom_quests', { user_id: UID, quests: JSON.stringify(customQuests) });
+async function deleteGeneratedQuest(id) {
+  if (!confirm("Supprimer cette quête sur mesure ?")) return;
+  const q = customQuests.find(x => x.id === id);
+  if (q && checkedToday[id]) {
+    const xp = q.xp || 0;
+    S.total_xp = Math.max(0, S.total_xp - xp);
+    LOG = LOG.filter(l => !(l.quest_id === id && l.created_at && l.created_at.slice(0, 10) === todayKey()));
+    await sbDelete('sys_log', UID, id, todayKey());
+    delete checkedToday[id];
+  }
+  customQuests = customQuests.filter(x => x.id !== id);
+  saveCustomQuests();
+  await saveProgress();
+  updateAll();
+  toast("🗑️ Quête sur mesure supprimée.");
 }
 
-// ============================================================
-// RECETTES
-// ============================================================
+function saveCustomQuests() { localStorage.setItem('sys12_custom_quests', JSON.stringify(customQuests)); sbUpsert('sys_custom_quests', { user_id: UID, quests: JSON.stringify(customQuests) }); }
+
 function ajouterRecette() {
   const name = document.getElementById('recipe-name').value.trim();
   if (!name) { toast("⚠️ Donne un nom à ta recette."); return; }
@@ -2322,12 +1021,7 @@ function ajouterRecette() {
   const people = parseInt(document.getElementById('recipe-people').value) || 2;
   const steps = document.getElementById('recipe-steps').value.trim();
   const ingredients = document.getElementById('recipe-ingredients').value.trim();
-  const r = {
-    id: 'rec_' + Date.now(),
-    name, time, people, steps, ingredients,
-    done: false, total_xp: 0,
-    created_at: new Date().toISOString()
-  };
+  const r = { id: 'rec_' + Date.now(), name, time, people, steps, ingredients, done: false, total_xp: 0, created_at: new Date().toISOString() };
   recipes.unshift(r);
   document.getElementById('recipe-name').value = '';
   document.getElementById('recipe-time').value = '30';
@@ -2338,7 +1032,7 @@ function ajouterRecette() {
   localStorage.setItem('sys12_new_recipes', String(newRecipes));
   saveRecipes();
   updateAll();
-  toast("🍳 Recette ajoutée : '" + name + "'");
+  toast("🍳 Recette ajoutée !");
 }
 
 async function toggleRecipe(id) {
@@ -2352,39 +1046,25 @@ async function toggleRecipe(id) {
     r.total_xp = Math.max(0, r.total_xp - xp);
     LOG = LOG.filter(l => !(l.quest_id === id && l.created_at && l.created_at.slice(0, 10) === todayKey()));
     await sbDelete('sys_log', UID, id, todayKey());
-    await saveProgress();
-    toast("↩️ Recette décochée — XP retirés");
+    toast("↩️ Recette décochée");
   } else {
     r.done = true;
     S.total_xp += xp;
     r.total_xp = (r.total_xp || 0) + xp;
-    const entry = {
-      user_id: UID,
-      quest_id: id,
-      quest_name: '[Recette] ' + r.name,
-      xp: xp,
-      capacity_id: null,
-      sub_capacities: [],
-      created_at: new Date().toISOString()
-    };
+    const entry = { user_id: UID, quest_id: id, quest_name: '[Recette] ' + r.name, xp: xp, capacity_id: null, sub_capacities: [], created_at: new Date().toISOString() };
     LOG.unshift(entry);
     await sbInsert('sys_log', entry);
-    await saveProgress();
-    toast("✅ +" + xp + " XP pour la recette '" + r.name + "'");
+    toast("✅ +" + xp + " XP pour la recette");
   }
+  await saveProgress();
   updateAll();
 }
 
 function saveRecipes() {
   localStorage.setItem('sys12_recipes', JSON.stringify(recipes));
-  for (const r of recipes) {
-    sbUpsert('sys_recipes', { user_id: UID, id: r.id, name: r.name, time: r.time, people: r.people, steps: r.steps, ingredients: r.ingredients || '', done: r.done, total_xp: r.total_xp, created_at: r.created_at });
-  }
+  for (const r of recipes) { sbUpsert('sys_recipes', { user_id: UID, id: r.id, name: r.name, time: r.time, people: r.people, steps: r.steps, ingredients: r.ingredients || '', done: r.done, total_xp: r.total_xp, created_at: r.created_at }); }
 }
 
-// ============================================================
-// GÉNÉRATEUR D'ENTRAÎNEMENT (IA)
-// ============================================================
 async function genererEntrainement(btn, qId) {
   const existingId = 'workout-generated-' + qId;
   const existing = document.getElementById(existingId);
@@ -2399,18 +1079,9 @@ async function genererEntrainement(btn, qId) {
   card.style.marginTop = '6px';
   card.style.border = '0.5px solid rgba(96,165,250,.3)';
   card.style.background = 'linear-gradient(135deg,rgba(96,165,250,.12),rgba(14,14,16,.08))';
-  card.innerHTML = '<div class="ai-header"><span style="font-size:16px">🏋️</span><span class="ai-label" style="color:var(--blue)">Séance sur-mesure</span></div><div class="ai-body" id="txt-' + qId + '">Analyse du domaine choisi...</div>';
+  card.innerHTML = '<div class="ai-header"><span>🏋️</span><span class="ai-label" style="color:var(--blue)">Séance sur-mesure</span></div><div class="ai-body" id="txt-' + qId + '">Analyse...</div>';
   btn.closest('.q-info').after(card);
-  const prompt = buildCtx() + `
-  En tant que coach sportif, génère un entraînement physique précis de ${duree} minutes.
-  Domaine : ${domain}. 
-  Format (très concis) : 
-  1. Objectif
-  2. Échauffement
-  3. Corps de séance (exercices, séries, temps)
-  4. Récupération
-  Maximum 7 lignes. Pas de markdown.
-  `;
+  const prompt = buildCtx() + ` En tant que coach sportif, génère un entraînement physique précis de ${duree} minutes. Domaine : ${domain}. Format (très concis) : 1. Objectif 2. Échauffement 3. Corps de séance (exercices, séries, temps) 4. Récupération Maximum 7 lignes. Pas de markdown. `;
   const response = await callGemini(prompt);
   document.getElementById('txt-' + qId).textContent = response;
 }
@@ -2429,32 +1100,17 @@ async function genererMobilite(btn, qId) {
   card.style.marginTop = '6px';
   card.style.border = '0.5px solid rgba(52,211,153,.3)';
   card.style.background = 'linear-gradient(135deg,rgba(52,211,153,.12),rgba(14,14,16,.08))';
-  card.innerHTML = '<div class="ai-header"><span style="font-size:16px">🧘</span><span class="ai-label" style="color:var(--green)">Mobilité sur-mesure</span></div><div class="ai-body" id="txtmob-' + qId + '">Analyse du domaine choisi...</div>';
+  card.innerHTML = '<div class="ai-header"><span>🧘</span><span class="ai-label" style="color:var(--green)">Mobilité sur-mesure</span></div><div class="ai-body" id="txtmob-' + qId + '">Analyse...</div>';
   btn.closest('.q-info').after(card);
-  const prompt = buildCtx() + `
-  Génère une séance de mobilité/souplesse de ${duree} minutes.
-  Type : ${domain}.
-  Format : 
-  1. Objectif
-  2. Échauffement
-  3. 4-5 exercices avec consignes
-  4. Récupération
-  Maximum 8 lignes. Pas de markdown.
-  `;
+  const prompt = buildCtx() + ` Génère une séance de mobilité/souplesse de ${duree} minutes. Type : ${domain}. Format : 1. Objectif 2. Échauffement 3. 4-5 exercices avec consignes 4. Récupération Maximum 8 lignes. Pas de markdown. `;
   const response = await callGemini(prompt);
   document.getElementById('txtmob-' + qId).textContent = response;
 }
 
-// ============================================================
-// COACH IA (Chat)
-// ============================================================
 function toggleCoachPanel() {
   const panel = document.getElementById('coach-panel');
   panel.classList.toggle('open');
-  if (panel.classList.contains('open')) {
-    document.getElementById('coach-input').focus();
-    document.getElementById('coach-badge').style.display = 'none';
-  }
+  if (panel.classList.contains('open')) { document.getElementById('coach-input').focus(); document.getElementById('coach-badge').style.display = 'none'; }
 }
 
 async function envoyerMessageCoach() {
@@ -2468,13 +1124,11 @@ async function envoyerMessageCoach() {
   messagesContainer.appendChild(userDiv);
   input.value = '';
   messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
   const coachDiv = document.createElement('div');
   coachDiv.className = 'msg coach';
   coachDiv.textContent = '🤖 Réflexion...';
   messagesContainer.appendChild(coachDiv);
   messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
   const ctx = buildCtx();
   const prompt = ctx + '\n\nL\'utilisateur te demande : "' + msg + '". Réponds de manière directe, analytique et motivante, en lien avec sa progression. Sans markdown.';
   const response = await callGemini(prompt);
@@ -2482,18 +1136,10 @@ async function envoyerMessageCoach() {
   messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
-// ============================================================
-// VALIDATION DE JOURNÉE
-// ============================================================
 async function validerJour() {
   const today = todayKey();
   if (isDayLocked) { toast("⚠️ Journée déjà verrouillée."); return; }
-  if (S.last_day !== today) {
-    const diff = S.last_day ? (new Date(today) - new Date(S.last_day)) / 86400000 : 1;
-    S.streak = diff <= 1 ? S.streak + 1 : 1;
-    S.last_day = today;
-    S.days_total++;
-  }
+  if (S.last_day !== today) { const diff = S.last_day ? (new Date(today) - new Date(S.last_day)) / 86400000 : 1; S.streak = diff <= 1 ? S.streak + 1 : 1; S.last_day = today; S.days_total++; }
   customQuests = customQuests.filter(q => (q.type === 'recurrent' || q.type === 'recurrent-until') || !checkedToday[q.id]);
   recipes.forEach(r => { r.done = false; });
   isDayLocked = true;
@@ -2515,46 +1161,15 @@ function modifierJour() {
 function updateValidationButton() {
   const btn = document.getElementById('btn-valider');
   if (!btn) return;
-  if (isDayLocked) {
-    btn.textContent = "✏️ Modifier la journée";
-    btn.onclick = modifierJour;
-    btn.style.background = "linear-gradient(135deg, #4b5563, #374151)";
-  } else {
-    btn.textContent = "✓ Valider la journée";
-    btn.onclick = validerJour;
-    btn.style.background = "linear-gradient(135deg,var(--accent2),var(--accent))";
-  }
+  if (isDayLocked) { btn.textContent = "✏️ Modifier la journée"; btn.onclick = modifierJour; btn.style.background = "linear-gradient(135deg, #4b5563, #374151)"; } else { btn.textContent = "✓ Valider la journée"; btn.onclick = validerJour; btn.style.background = "linear-gradient(135deg,var(--accent2),var(--accent))"; }
 }
 
-function toggleSection(id) {
-  const el = document.getElementById(id);
-  if (el) el.style.display = el.style.display === 'block' ? 'none' : 'block';
-}
+function toggleSection(id) { const el = document.getElementById(id); if (el) el.style.display = el.style.display === 'block' ? 'none' : 'block'; }
+function toggleAccordion(id) { const body = document.getElementById(id); if (body) { body.classList.toggle('open'); body.style.display = body.classList.contains('open') ? 'block' : 'none'; } }
+function getLv(xp) { let l = 0; for (let i = 0; i < LEVELS.length; i++) { if (xp >= LEVELS[i].min) l = i; } return l; }
+function getCurrentPhase() { const m = S.current_month || 1; return PHASES.find(p => p.months.includes(m)) || PHASES[0]; }
+function setSyncState(st) { const dot = document.getElementById('sync-dot'); dot.className = 'sync-dot' + (st === 'syncing' ? ' syncing' : st === 'error' ? ' error' : ''); }
 
-function toggleAccordion(id) {
-  const body = document.getElementById(id);
-  if (body) {
-    body.classList.toggle('open');
-    body.style.display = body.classList.contains('open') ? 'block' : 'none';
-  }
-}
-
-// ============================================================
-// UTILITAIRES
-// ============================================================
-function getLv(xp) {
-  let l = 0;
-  for (let i = 0; i < LEVELS.length; i++) { if (xp >= LEVELS[i].min) l = i; }
-  return l;
-}
-function getCurrentPhase() {
-  const m = S.current_month || 1;
-  return PHASES.find(p => p.months.includes(m)) || PHASES[0];
-}
-function setSyncState(st) {
-  const dot = document.getElementById('sync-dot');
-  dot.className = 'sync-dot' + (st === 'syncing' ? ' syncing' : st === 'error' ? ' error' : '');
-}
 function toast(msg) {
   const el = document.getElementById('toast');
   el.textContent = msg;
@@ -2562,14 +1177,10 @@ function toast(msg) {
   clearTimeout(el._timeout);
   el._timeout = setTimeout(() => el.classList.remove('show'), 3000);
 }
-function formatSteps(text) {
-  if (!text) return '';
-  return text.split('\n').filter(l => l.trim()).map((l, i) => (i+1) + '. ' + l.trim()).join('\n');
-}
-function formatIngredients(text) {
-  if (!text) return '';
-  return text.split('\n').filter(l => l.trim()).map(l => '• ' + l.trim()).join('\n');
-}
+
+function formatSteps(text) { if (!text) return ''; return text.split('\n').filter(l => l.trim()).map((l, i) => (i+1) + '. ' + l.trim()).join('\n'); }
+function formatIngredients(text) { if (!text) return ''; return text.split('\n').filter(l => l.trim()).map(l => '• ' + l.trim()).join('\n'); }
+
 function goTab(id, btn) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-' + id).classList.add('active');
@@ -2580,9 +1191,6 @@ function goTab(id, btn) {
   if (id === 'today' || id === 'journal') updateAll();
 }
 
-// ============================================================
-// INITIALISATION
-// ============================================================
 function setupUser() {
   const name = document.getElementById('setup-name').value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
   const errEl = document.getElementById('setup-err');
@@ -2597,14 +1205,8 @@ function setupUser() {
 async function init() {
   await loadFromSupabase();
   updateAll();
-  updateSidequestUI(); // s'assurer que la sidequest s'affiche
+  updateSidequestUI();
 }
 
-if (!UID) {
-  document.getElementById('setup-overlay').style.display = 'flex';
-} else {
-  init();
-}
-</script>
-</body>
-</html>
+if (!UID) { document.getElementById('setup-overlay').style.display = 'flex'; } else { init(); }
+</script></body></html>
