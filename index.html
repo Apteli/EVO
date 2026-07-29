@@ -6,12 +6,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Évolution">
-<title>Évolution v2.8.0</title>
+<title>Évolution v2.8.1</title>
 <link rel="icon" type="image/jpeg" href="favicon.jpg?v=3">
 <link rel="apple-touch-icon" href="favicon.jpg?v=3">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-/* ===== STYLES (identiques à v2.7.5, avec ajouts pour la nouvelle barre XP) ===== */
+/* ===== STYLES (v2.8.1) ===== */
 :root{--bg:#0e0e10;--card:#18181c;--card2:#222228;--border:rgba(255,255,255,0.07);--text:#f0f0f0;--muted:#777;--accent:#a78bfa;--accent2:#7c3aed;--green:#34d399;--amber:#fbbf24;--coral:#f87171;--blue:#60a5fa;--orange:#fb923c;--r:14px;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;font-size:15px;min-height:100dvh;padding-bottom:calc(76px + env(safe-area-inset-bottom));}
@@ -37,15 +37,6 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .ph1 .phase-prog{color:var(--green);}
 .ph2 .phase-prog{color:var(--blue);}
 .ph3 .phase-prog{color:var(--accent);}
-.xp-bars-container{display:flex;flex-direction:column;gap:4px;background:var(--card);border:0.5px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:12px;}
-.xp-bar-row{display:flex;align-items:center;gap:8px;}
-.xp-bar-label{font-size:10px;font-weight:600;color:var(--muted);min-width:32px;text-transform:uppercase;letter-spacing:0.05em;}
-.xp-bar-track{flex:1;background:rgba(255,255,255,0.06);border-radius:4px;height:6px;overflow:hidden;}
-.xp-bar-fill{height:100%;border-radius:4px;transition:width .5s ease;}
-.xp-bar-value{font-size:10px;font-weight:600;color:var(--muted);min-width:50px;text-align:right;}
-.xp-bar-fill.global{background:linear-gradient(90deg,var(--accent2),var(--accent));}
-.xp-bar-fill.pilliers{background:linear-gradient(90deg,#34d399,#60a5fa);}
-.xp-bar-fill.forges{background:linear-gradient(90deg,#fbbf24,#fb923c);}
 .xp-hero{background:var(--card);border:0.5px solid var(--border);border-radius:var(--r);padding:18px 16px 14px;margin-bottom:12px;text-align:center;}
 .xp-big{font-size:54px;font-weight:800;letter-spacing:-2px;background:linear-gradient(135deg,var(--accent),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;}
 .xp-level{font-size:14px;color:var(--muted);margin-top:4px;}
@@ -53,7 +44,6 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .bar-wrap{background:rgba(255,255,255,0.06);border-radius:6px;height:6px;overflow:hidden;margin-top:12px;}
 .bar-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--accent2),var(--accent));transition:width .5s ease;}
 .bar-label{display:flex;justify-content:space-between;margin-top:5px;font-size:11px;color:var(--muted);}
-/* Barre XP du Journal (couleur différente) */
 .journal-xp-hero{background:var(--card);border:0.5px solid var(--border);border-radius:var(--r);padding:18px 16px 14px;margin-bottom:12px;text-align:center;}
 .journal-xp-big{font-size:42px;font-weight:800;letter-spacing:-2px;background:linear-gradient(135deg,var(--amber),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;}
 .journal-xp-level{font-size:14px;color:var(--muted);margin-top:4px;}
@@ -73,7 +63,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .quest.locked{opacity:.25;cursor:default;pointer-events:none;}
 .quest.completed{opacity:.6;border-color:var(--green);}
 .quest.completed .q-name{text-decoration:line-through;color:var(--green);}
-.quest .progress-indicator{font-size:11px;color:var(--muted);margin-left:auto;background:rgba(255,255,255,0.05);padding:2px 6px;border-radius:4px;}
+.quest.objective{background:rgba(251,191,36,0.08);border-color:rgba(251,191,36,0.3);}
 .check{width:22px;height:22px;border-radius:7px;border:1.5px solid rgba(255,255,255,0.2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .2s;}
 .quest.done .check{background:var(--green);border-color:var(--green);}
 .quest.completed .check{background:var(--amber);border-color:var(--amber);}
@@ -89,6 +79,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .tag-recurrent{background:rgba(52,211,153,.15);color:var(--green);}
 .tag-until{background:rgba(251,191,36,.2);color:var(--amber);}
 .tag-oneshot{background:rgba(96,165,250,.15);color:var(--blue);}
+.tag-objective{background:rgba(251,191,36,.25);color:var(--amber);}
 .tag-generated{background:rgba(167,139,250,.15);color:var(--accent);}
 .q-xp{font-size:13px;font-weight:700;color:var(--accent);flex-shrink:0;cursor:default;}
 .q-actions{display:flex;gap:4px;flex-shrink:0;}
@@ -133,12 +124,6 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .chart-nav span{font-size:12px;color:var(--muted);}
 .chart-swipe-area{width:100%;touch-action:none;cursor:grab;}
 .chart-swipe-area:active{cursor:grabbing;}
-.cap-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
-.cap-item{background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:10px 12px;}
-.cap-name{font-size:11px;color:var(--muted);margin-bottom:4px;}
-.cap-count{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;}
-.cap-bar{height:4px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden;}
-.cap-fill{height:100%;border-radius:2px;transition:width .4s;}
 .heatmap{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px;}
 .hm-sq{width:12px;height:12px;border-radius:2px;background:rgba(255,255,255,0.05);}
 .hm-sq.on{background:var(--accent2);}
@@ -179,16 +164,6 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 .ai-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
 .ai-label{font-size:11px;font-weight:700;color:var(--accent);letter-spacing:.05em;text-transform:uppercase;}
 .ai-body{font-size:13px;color:var(--text);line-height:1.65;white-space:pre-wrap;}
-.chat-messages-box{max-height:220px;overflow-y:auto;margin-top:10px;padding-top:10px;border-top:0.5px solid var(--border);display:flex;flex-direction:column;gap:10px;}
-.chat-msg{font-size:13px;line-height:1.5;white-space:pre-wrap;padding:4px 0;}
-.chat-msg.user{color:var(--blue);font-weight:500;}
-.chat-msg.coach{color:var(--text);}
-.coach-chat-wrap{margin-top:12px;display:flex;gap:8px;}
-.coach-input{flex:1;background:rgba(255,255,255,0.06);border:0.5px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:inherit;font-size:13px;outline:none;}
-.coach-input:focus{border-color:rgba(167,139,250,0.5);}
-.coach-send{background:var(--accent2);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;}
-.coach-send:active{opacity:0.8;}
-.btn-coach{background:rgba(167,139,250,.1);border:0.5px solid rgba(167,139,250,.3);border-radius:8px;padding:5px 11px;font-size:11px;font-weight:600;color:var(--accent);cursor:pointer;font-family:inherit;display:inline-block;margin-top:6px;}
 .coach-select{background:rgba(24,24,28,0.9);border:0.5px solid rgba(255,255,255,0.15);color:var(--text);border-radius:6px;padding:4px 8px;font-size:11px;font-family:inherit;outline:none;margin-top:6px;vertical-align:middle;}
 .form-group{margin-bottom:12px;}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
@@ -198,7 +173,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 .sidequest-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
 .sidequest-title{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--amber);letter-spacing:0.05em;}
 .sidequest-xp{font-size:12px;font-weight:700;color:var(--amber);}
-.sidequest-caps{font-size:11px;color:var(--muted);margin-top:2px;}
+.sidequest-caps{font-size:11px;color:var(--muted);margin-top:2px;display:none;} /* Caché par défaut */
 .accordion{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
 .accordion-item{background:var(--card);border:0.5px solid var(--border);border-radius:12px;overflow:hidden;}
 .accordion-header{width:100%;background:transparent;border:none;padding:14px 16px;text-align:left;font-size:15px;font-weight:600;color:var(--text);cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-family:inherit;}
@@ -207,8 +182,6 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 .accordion-header .badge.show{display:inline-block;}
 .accordion-body{padding:0 16px 16px;display:none;}
 .accordion-body.open{display:block;}
-.accordion-body .btn-group{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
-.accordion-body .btn-group .btn-sm{flex:1;min-width:100px;}
 .recipe-item{display:flex;align-items:center;gap:12px;background:var(--card2);border:0.5px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:6px;cursor:pointer;}
 .recipe-item .recipe-info{flex:1;}
 .recipe-item .recipe-name{font-weight:500;}
@@ -219,18 +192,6 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 .recipe-item .recipe-details .detail-line{padding:2px 0;white-space:pre-wrap;}
 .recipe-item.done{opacity:0.4;}
 .recipe-item.done .recipe-name{text-decoration:line-through;}
-.rating-popup{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:400;display:none;align-items:center;justify-content:center;padding:20px;}
-.rating-popup.show{display:flex;}
-.rating-box{background:var(--card);border:0.5px solid var(--border);border-radius:16px;padding:24px;width:100%;max-width:380px;}
-.rating-box .rating-title{font-size:16px;font-weight:700;margin-bottom:16px;text-align:center;}
-.rating-box .rating-stars{display:flex;justify-content:center;gap:8px;margin-bottom:12px;}
-.rating-box .rating-stars .star{font-size:32px;cursor:pointer;opacity:0.3;transition:opacity .2s;}
-.rating-box .rating-stars .star.active{opacity:1;color:#fbbf24;}
-.rating-box .rating-sub{font-size:13px;color:var(--muted);text-align:center;margin-bottom:16px;}
-.rating-box .rating-actions{display:flex;gap:10px;}
-.rating-box .rating-actions button{flex:1;padding:10px;border-radius:10px;border:none;font-weight:600;cursor:pointer;font-family:inherit;}
-.rating-box .rating-actions .btn-confirm{background:var(--accent2);color:#fff;}
-.rating-box .rating-actions .btn-skip{background:rgba(255,255,255,0.06);color:var(--text);border:0.5px solid var(--border);}
 .extra-time-toggle { display: inline-block; margin-left: 6px; cursor: pointer; color: var(--muted); font-size: 12px; transition: color 0.2s; user-select: none; }
 .extra-time-toggle:hover { color: var(--accent); }
 .extra-time-toggle .plus { font-weight: 700; font-size: 16px; }
@@ -247,7 +208,6 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 .version-footer { text-align: center; font-size: 11px; color: var(--muted); padding: 20px 0 10px; border-top: 0.5px solid var(--border); margin-top: 20px; }
 .reset-link { color: var(--muted); text-decoration: underline; cursor: pointer; font-size: 11px; margin-top: 4px; display: inline-block; }
 .reset-link:hover { color: var(--coral); }
-
 .coach-fab { position: fixed; bottom: 80px; right: 16px; background: var(--accent2); color: #fff; border: none; border-radius: 50%; width: 56px; height: 56px; font-size: 28px; cursor: pointer; box-shadow: 0 4px 12px rgba(124,58,237,0.4); z-index: 90; display: flex; align-items: center; justify-content: center; transition: transform .2s;}
 .coach-fab:active { transform: scale(0.9); }
 .coach-fab .badge { position:absolute; top:-4px; right:-4px; width:16px; height:16px; background:var(--coral); border-radius:50%; font-size:9px; display:flex; align-items:center; justify-content:center; }
@@ -271,12 +231,6 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 .forge-form .form-group { margin-bottom:8px; }
 .forge-form textarea { min-height:60px; }
 .forge-form .form-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-.weight-slider-group { margin-top:8px; padding:8px; background:rgba(255,255,255,0.03); border-radius:6px; }
-.weight-slider-row { display:flex; align-items:center; gap:6px; margin-bottom:4px; }
-.weight-slider-row label { font-size:12px; min-width:80px; color:var(--muted); }
-.weight-slider-row input[type="number"] { width:50px; background:rgba(255,255,255,0.06); border:0.5px solid var(--border); border-radius:4px; padding:2px 4px; color:var(--text); font-size:12px; text-align:center; }
-.weight-slider-row .weight-bar { flex:1; height:4px; background:rgba(255,255,255,0.1); border-radius:2px; overflow:hidden; }
-.weight-slider-row .weight-bar .fill { height:100%; background:var(--accent); transition:width .2s; }
 .custom-quest-generator { background:var(--card); border:0.5px solid var(--border); border-radius:12px; padding:14px; margin-top:12px; }
 .custom-quest-generator .cap-checkboxes { display:grid; grid-template-columns:1fr 1fr; gap:4px 8px; margin:8px 0; }
 .custom-quest-generator .cap-checkboxes label { font-size:12px; color:var(--text); display:flex; align-items:center; gap:4px; }
@@ -284,20 +238,6 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 .toggle-caps-btn:hover{background:rgba(255,255,255,0.05);}
 .caps-container{display:none;}
 .caps-container.open{display:block;}
-
-/* Popup de progression */
-.progress-popup{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:500;display:none;align-items:center;justify-content:center;padding:20px;}
-.progress-popup.show{display:flex;}
-.progress-box{background:var(--card);border:0.5px solid var(--border);border-radius:16px;padding:24px;width:100%;max-width:380px;}
-.progress-box .progress-title{font-size:16px;font-weight:700;margin-bottom:12px;text-align:center;}
-.progress-box .progress-field{margin-bottom:12px;}
-.progress-box .progress-field label{font-size:13px;color:var(--muted);display:block;margin-bottom:4px;}
-.progress-box .progress-field input,.progress-box .progress-field textarea{width:100%;background:rgba(255,255,255,0.06);border:0.5px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-family:inherit;font-size:13px;outline:none;}
-.progress-box .progress-field textarea{min-height:50px;resize:vertical;}
-.progress-box .progress-actions{display:flex;gap:10px;margin-top:12px;}
-.progress-box .progress-actions button{flex:1;padding:10px;border-radius:10px;border:none;font-weight:600;cursor:pointer;font-family:inherit;}
-.progress-box .progress-actions .btn-confirm{background:var(--accent2);color:#fff;}
-.progress-box .progress-actions .btn-cancel{background:rgba(255,255,255,0.06);color:var(--text);border:0.5px solid var(--border);}
 </style>
 </head>
 <body>
@@ -317,7 +257,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
 
 <!-- Top Bar -->
 <div class="topbar">
-  <div class="topbar-title">Évolution v2.8.0</div>
+  <div class="topbar-title">Évolution v2.8.1</div>
   <div class="topbar-right">
     <div class="sync-dot" id="sync-dot"></div>
     <div class="top-xp" id="top-xp">0 XP</div>
@@ -405,7 +345,7 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
             <div class="q-info">
               <div class="q-name" id="sidequest-text">Chargement du défi...</div>
               <div class="q-desc" id="sidequest-sub">Zone de confort, sociabilité et observation de terrain.</div>
-              <div class="sidequest-caps" id="sidequest-caps"></div>
+              <!-- sidequest-caps masqué -->
             </div>
           </div>
           <button class="btn-sm btn-muted" id="btn-reroll" onclick="rerollSidequestIA()" style="width:100%;">🎲 Relancer via le Coach (IA)</button>
@@ -450,7 +390,6 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
               <button class="btn-sm btn-accent" onclick="confirmerForge()" style="flex:1;">✅ Ajouter la quête</button>
               <button class="btn-sm btn-muted" onclick="annulerForge()" style="flex:0.5;">Annuler</button>
             </div>
-            <div id="forge-analysis-result" style="margin-top:8px;display:none;"></div>
           </div>
         </div>
       </div>
@@ -552,33 +491,14 @@ textarea:focus{border-color:rgba(167,139,250,.5);}
   </div>
 </div>
 
-<!-- Popup progression -->
-<div class="progress-popup" id="progress-popup">
-  <div class="progress-box">
-    <div class="progress-title" id="progress-title">Progression de la quête</div>
-    <div class="progress-field">
-      <label>Pourcentage d'avancement (%)</label>
-      <input type="number" id="progress-percent" min="0" max="100" value="100">
-    </div>
-    <div class="progress-field">
-      <label>Commentaire (optionnel)</label>
-      <textarea id="progress-comment" placeholder="Ajoute une note..."></textarea>
-    </div>
-    <div class="progress-actions">
-      <button class="btn-confirm" id="progress-confirm">Valider</button>
-      <button class="btn-cancel" id="progress-cancel">Annuler</button>
-    </div>
-  </div>
-</div>
-
 <div class="toast" id="toast"></div>
-<div class="version-footer">v2.8.0 – 2026-07-28</div>
+<div class="version-footer">v2.8.1 – 2026-07-29</div>
 
 <script>
 // ============================================================
 // CONFIGURATION
 // ============================================================
-const VERSION = '2.8.0';
+const VERSION = '2.8.1';
 const SB_URL = 'https://nlicstxewcrzjliyslkm.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5saWNzdHhld2NyempsaXlzbGttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1ODg1NzUsImV4cCI6MjA5ODE2NDU3NX0.CTHaV_iM50Q_sA1l8_5rVL7b4nU8XonYRcds8Z702GI';
 const HDR = {
@@ -589,7 +509,7 @@ const HDR = {
 };
 
 // ============================================================
-// DONNÉES STATIQUES (LEVELS, PHASES, PILLARS, QUETES)
+// DONNÉES STATIQUES
 // ============================================================
 const LEVELS = [
   { min: 0, name: 'Initié' }, { min: 500, name: 'Apprenti' }, { min: 1200, name: 'Praticien' },
@@ -710,8 +630,8 @@ const SIDEQUESTS_POOL = [
 // ============================================================
 let UID = localStorage.getItem('sys12_uid') || null;
 let S = {
-  total_xp: 0,          // XP principal (min/opt)
-  journal_xp: 0,        // XP du Journal (sidequest, forged, recettes)
+  total_xp: 0,
+  journal_xp: 0,
   streak: 0, last_day: null, days_total: 0,
   start_date: new Date().toISOString().slice(0, 10),
   current_month: 1,
@@ -721,7 +641,7 @@ let LOG = [];
 let capacities = {};
 let customQuests = [];
 let recipes = [];
-let checkedToday = {};   // { quest_id: true } pour les quêtes faites (100%)
+let checkedToday = {};
 let currentSidequest = null;
 let isDayLocked = false;
 let chartXp = null;
@@ -732,10 +652,6 @@ let newForgedCount = 0;
 let newGeneratedCount = 0;
 let touchStartX = 0;
 let touchEndX = 0;
-
-// Variables pour la popup progression
-let progressPendingQuest = null;
-let progressCallback = null;
 
 // ============================================================
 // FONCTIONS SUPABASE
@@ -874,12 +790,11 @@ async function genererQueteSurMesure() {
       is_forged: false,
       category: 'generated',
       done: false,
-      completed: false,
-      progress: 0,
-      comment: ''
+      completed: false
     };
     customQuests.push(quest);
     saveCustomQuests();
+    await saveProgress(); // Sauvegarde immédiate
     updateAll();
     toast("✅ Quête générée et ajoutée !");
     const resultDiv = document.getElementById('custom-quest-result');
@@ -909,7 +824,6 @@ async function loadFromSupabase() {
     
     if (prog) {
       S = { ...S, ...prog };
-      // Si journal_xp n'existe pas encore, on le met à 0
       if (S.journal_xp === undefined) S.journal_xp = 0;
       const start = new Date(S.start_date);
       const now = new Date();
@@ -924,7 +838,6 @@ async function loadFromSupabase() {
     
     if (Array.isArray(logRaw)) LOG = logRaw;
     
-    // Capacités
     const capsData = await sbGetMany('sys_capacities', UID, 50);
     if (capsData && capsData.length) {
       capsData.forEach(c => {
@@ -946,12 +859,9 @@ async function loadFromSupabase() {
       customQuests = JSON.parse(cq.quests);
       customQuests.forEach(q => {
         if (!q.is_personal && !q.is_forged) q.is_forged = false;
-        if (q.type === 'recurrent-until') q.type = 'objective'; // unifier
+        if (q.type === 'recurrent-until') q.type = 'objective';
         if (!q.category) q.category = q.is_forged ? 'forged' : 'generated';
-        if (q.progress === undefined) q.progress = 0;
-        if (q.comment === undefined) q.comment = '';
         if (q.completed === undefined) q.completed = false;
-        // Pour les quêtes forgées, on garde caps_weights vide (pas utilisé)
         if (!q.caps_weights) q.caps_weights = {};
       });
       console.log('✅ Quêtes personnalisées chargées:', customQuests.length);
@@ -1022,17 +932,16 @@ async function loadFromSupabase() {
       }
     }
 
-    // Restaurer checkedToday à partir des quêtes forgées à 100% et des recettes
+    // Restaurer checkedToday à partir des quêtes forgées cochées et des recettes
     checkedToday = {};
     LOG.forEach(l => {
       if (l.quest_id && l.created_at && l.created_at.slice(0, 10) === todayStr) {
         checkedToday[l.quest_id] = true;
       }
     });
-    // Pour les quêtes forgées, on ajoute aussi celles qui sont à 100% et non terminées (pour l'affichage)
     customQuests.forEach(q => {
-      if (q.category === 'forged' && q.progress === 100 && !q.completed) {
-        checkedToday[q.id] = true;
+      if (q.category === 'forged' && checkedToday[q.id]) {
+        // déjà présent
       }
     });
 
@@ -1340,53 +1249,51 @@ function toggleQuestDetails(id) {
 
 function renderForgedQuests() {
   const container = document.getElementById('forged-quests-list');
-  // On n'affiche que les quêtes forgées non complétées (completed=false)
+  // Afficher toutes les quêtes forgées non complétées
   const forged = customQuests.filter(q => q.category === 'forged' && q.is_forged === true && !q.completed);
   if (!forged.length) {
     container.innerHTML = '<div class="empty-state">Aucune quête forgée active.</div>';
     return;
   }
   container.innerHTML = forged.map(q => {
-    const done = !!checkedToday[q.id] && q.progress === 100;
-    const completed = q.completed === true;
+    const done = !!checkedToday[q.id];
     const caps = q.caps || [];
     const capTags = caps.map(id => {
       const cap = PILLARS.flatMap(p => p.sub).find(c => c.id === id);
       return cap ? `<span class="tag tag-cap">${cap.name}</span>` : '';
     }).join('');
     let typeTag = '';
+    let objectiveClass = '';
     if (q.type === 'oneshot') typeTag = `<span class="tag tag-oneshot">One-shot</span>`;
     else if (q.type === 'recurrent') typeTag = `<span class="tag tag-recurrent">Récurrente</span>`;
     else if (q.type === 'objective') {
-      typeTag = `<span class="tag tag-until">Objectif : ${q.target || 'accomplissement'}</span>`;
+      typeTag = `<span class="tag tag-objective">🎯 Objectif</span>`;
+      objectiveClass = 'objective';
     }
     let xpDisplay = q.xp || 0;
     let bonusHtml = '';
     if (q.type === 'objective' && q.bonus_xp) {
-      bonusHtml = `<div style="font-size:11px;color:var(--amber);margin-top:2px;">🎯 Bonus final : +${q.bonus_xp} XP</div>`;
+      bonusHtml = `<div style="font-size:11px;color:var(--amber);margin-top:2px;">🏆 Bonus final : +${q.bonus_xp} XP</div>`;
     }
     let completeBtn = '';
     if (q.type === 'objective' && !q.completed) {
-      completeBtn = `<button class="complete-btn" onclick="event.stopPropagation();accomplirObjectif('${q.id}')" style="background:rgba(52,211,153,0.15);border:0.5px solid var(--green);border-radius:4px;color:var(--green);font-size:11px;padding:2px 6px;cursor:pointer;">🏆 Accomplir l'objectif</button>`;
+      completeBtn = `<button class="complete-btn" onclick="event.stopPropagation();accomplirObjectif('${q.id}')" style="background:rgba(52,211,153,0.2);border:1px solid var(--green);border-radius:4px;color:var(--green);font-size:11px;padding:2px 8px;cursor:pointer;font-weight:600;">🏆 Accomplir</button>`;
     }
-    const questClass = completed ? 'quest completed' : (done ? 'quest done' : 'quest');
+    const questClass = done ? 'quest done' : 'quest ' + objectiveClass;
     let detailsHtml = '';
-    if (q.progress !== undefined && q.progress > 0 && q.progress < 100) {
-      detailsHtml += `<div class="q-details open">Progression : ${q.progress}% ${q.comment ? '— ' + q.comment : ''}</div>`;
-    } else if (q.progress === 100 && done) {
-      detailsHtml += `<div class="q-details open">✅ Terminée</div>`;
+    if (q.desc) {
+      detailsHtml = `<div class="q-details open">${q.desc}</div>`;
     }
     const editBtn = `<button class="edit" onclick="event.stopPropagation();modifierQueteForgee('${q.id}')" title="Modifier">✏️</button>`;
-    return `<div class="${questClass}" data-id="${q.id}" onclick="${!completed && q.progress !== 100 ? "demanderProgression('"+q.id+"')" : ''}">
-      <div class="check">${completed ? '🏆' : (done ? '✓' : '')}</div>
+    return `<div class="${questClass}" data-id="${q.id}" onclick="toggleForgedQuest('${q.id}')">
+      <div class="check">${done ? '✓' : ''}</div>
       <div class="q-info">
         <div class="q-name">${q.name}</div>
-        <div class="q-desc">${q.desc || ''}</div>
         <div class="q-tags">${typeTag}${capTags}</div>
         ${q.duration ? `<div style="font-size:11px;color:var(--muted);margin-top:2px;">⏱️ ${q.duration} min</div>` : ''}
         ${bonusHtml}
         ${detailsHtml}
-        ${q.progress !== undefined && q.progress > 0 && q.progress < 100 ? `<div class="progress-indicator">${q.progress}%</div>` : ''}
+        ${q.type === 'objective' && q.target ? `<div style="font-size:11px;color:var(--amber);margin-top:2px;">🎯 ${q.target}</div>` : ''}
       </div>
       <div class="q-xp">+${xpDisplay} XP</div>
       <div class="q-actions">
@@ -1399,76 +1306,43 @@ function renderForgedQuests() {
   markForgedViewed();
 }
 
-// Fonction pour demander la progression
-function demanderProgression(id) {
+// Fonction pour toggle une quête forgée (coché/décoché)
+async function toggleForgedQuest(id) {
+  if (isDayLocked) {
+    toast("⚠️ Journée verrouillée. Utilise 'Modifier la journée' pour ajuster.");
+    return;
+  }
   const q = customQuests.find(x => x.id === id);
   if (!q) return;
-  // Ouvrir la popup
-  progressPendingQuest = q;
-  document.getElementById('progress-title').textContent = 'Avancement de "' + q.name + '"';
-  document.getElementById('progress-percent').value = q.progress || 0;
-  document.getElementById('progress-comment').value = q.comment || '';
-  document.getElementById('progress-popup').classList.add('show');
-  progressCallback = function(percent, comment) {
-    if (percent === 100) {
-      // Marquer comme faite, ajouter l'XP au journal
-      q.progress = 100;
-      q.comment = comment;
-      // Ajouter l'XP au journal
-      S.journal_xp = (S.journal_xp || 0) + (q.xp || 0);
-      // Ajouter dans checkedToday pour l'affichage
-      checkedToday[q.id] = true;
-      // Enregistrer dans le log
-      const entry = {
-        user_id: UID,
-        quest_id: q.id,
-        quest_name: '[Forgée] ' + q.name,
-        xp: q.xp || 0,
-        capacity_id: null,
-        sub_capacities: [],
-        created_at: new Date().toISOString()
-      };
-      LOG.unshift(entry);
-      sbInsert('sys_log', entry);
-      toast("✅ Quête forgée terminée ! +" + (q.xp || 0) + " XP journal.");
-    } else {
-      // Mise à jour de la progression (ne pas cocher)
-      q.progress = percent;
-      q.comment = comment;
-      // On retire de checkedToday si présent
-      delete checkedToday[q.id];
-      toast("📝 Progression enregistrée : " + percent + "%");
-    }
-    saveCustomQuests();
-    saveProgress();
-    updateAll();
-  };
-}
-
-// Accomplir l'objectif (pour type objective)
-async function accomplirObjectif(id) {
-  const q = customQuests.find(x => x.id === id);
-  if (!q) return;
-  if (q.completed) { toast("🏆 Déjà accompli !"); return; }
-  if (!confirm(`Marquer l'objectif "${q.name}" comme accompli ?\nVous recevrez ${q.bonus_xp || 0} XP bonus.`)) return;
-  q.completed = true;
-  const bonus = q.bonus_xp || 0;
-  if (bonus > 0) {
-    S.journal_xp = (S.journal_xp || 0) + bonus;
+  if (q.completed) { toast("🏆 Cette quête est déjà accomplie !"); return; }
+  
+  const today = todayKey();
+  const xp = q.xp || 0;
+  
+  if (checkedToday[id]) {
+    // Décoché
+    delete checkedToday[id];
+    S.journal_xp = Math.max(0, (S.journal_xp || 0) - xp);
+    LOG = LOG.filter(l => !(l.quest_id === id && l.created_at && l.created_at.slice(0, 10) === today));
+    await sbDelete('sys_log', UID, id, today);
+    toast("↩️ Quête forgée décochée — XP retirés du Journal");
+  } else {
+    // Cochage
+    checkedToday[id] = true;
+    S.journal_xp = (S.journal_xp || 0) + xp;
     const entry = {
       user_id: UID,
       quest_id: id,
-      quest_name: '[Objectif] ' + q.name,
-      xp: bonus,
+      quest_name: '[Forgée] ' + q.name,
+      xp: xp,
       capacity_id: null,
       sub_capacities: [],
       created_at: new Date().toISOString()
     };
     LOG.unshift(entry);
     await sbInsert('sys_log', entry);
-    toast("🏆 Objectif accompli ! +" + bonus + " XP journal !");
+    toast("✅ Quête forgée validée ! +" + xp + " XP journal.");
   }
-  // Marquer comme complétée (disparaîtra)
   saveCustomQuests();
   await saveProgress();
   updateAll();
@@ -1562,7 +1436,8 @@ function renderStats() {
     return maxXP > 0 ? Math.round((total / maxXP) * 100) : 0;
   });
   const rCtx = document.getElementById('chart-radar').getContext('2d');
-  const rLabels = PILLARS.map(p => p.icon + ' ' + p.name.split(' ')[0]);
+  // === CORRECTION 1 : remplacer les noms par des emojis ===
+  const rLabels = PILLARS.map(p => p.icon);
   if (chartRadar) chartRadar.destroy();
   chartRadar = new Chart(rCtx, {
     type: 'radar',
@@ -1750,21 +1625,13 @@ function renderXpChart() {
 }
 
 function updateSidequestUI() {
-  if (!currentSidequest) {
-    console.warn('Aucune sidequest');
-    return;
-  }
+  if (!currentSidequest) return;
   const item = document.getElementById('sidequest-item');
   const chk = document.getElementById('sq-check');
   document.getElementById('sidequest-text').textContent = currentSidequest.text;
   const xpTotal = currentSidequest.xp_total || 30;
   document.getElementById('sq-xp-display').textContent = '+' + xpTotal + ' XP';
-  const caps = currentSidequest.caps || {};
-  const capNames = Object.keys(caps).map(id => {
-    const cap = PILLARS.flatMap(p => p.sub).find(c => c.id === id);
-    return cap ? cap.name + ' (' + Math.round(caps[id]*100) + '%)' : id;
-  }).join(', ');
-  document.getElementById('sidequest-caps').textContent = capNames ? 'Capacités : ' + capNames : '';
+  // On n'affiche plus les capacités
   if (currentSidequest.done) {
     item.classList.add('done');
     chk.textContent = '✓';
@@ -1820,13 +1687,9 @@ async function toggleQuete(id) {
     toast("⚠️ Journée verrouillée. Utilise 'Modifier la journée' pour ajuster.");
     return;
   }
-  // On cherche seulement les quêtes min/opt et générées (pas forgées)
   const allQuests = [...QUETES.min, ...QUETES.opt, ...customQuests.filter(q => q.category === 'generated')];
   const q = allQuests.find(x => x.id === id);
-  if (!q) {
-    // Pour les quêtes forgées, le déclenchement se fait via demanderProgression
-    return;
-  }
+  if (!q) return;
   if (q.type === 'recurrent-until' && q.completed) {
     toast("🏆 Cette quête est déjà accomplie !");
     return;
@@ -1847,7 +1710,6 @@ async function toggleQuete(id) {
   if (checkedToday[id]) {
     delete checkedToday[id];
     S.total_xp = Math.max(0, S.total_xp - xp);
-    // Retirer des capacités
     const weights = q.caps_weights || {};
     const caps = q.caps || [];
     if (caps.length > 0) {
@@ -1935,16 +1797,9 @@ async function toggleSidequest() {
   const today = todayKey();
   if (currentSidequest.date !== today) { await loadFromSupabase(); updateSidequestUI(); return; }
   const finalXp = currentSidequest.xp_total || 30;
-  const caps = currentSidequest.caps || {};
   if (currentSidequest.done) {
     currentSidequest.done = false;
     S.journal_xp = Math.max(0, (S.journal_xp || 0) - finalXp);
-    const capIds = Object.keys(caps);
-    capIds.forEach(id => {
-      const weight = caps[id] || 0;
-      const part = Math.round(finalXp * weight);
-      // On ne retire pas des capacités principales car la sidequest n'affecte pas le système principal
-    });
     LOG = LOG.filter(l => !(l.quest_id === 'sidequest' && l.created_at && l.created_at.slice(0, 10) === today));
     await sbDelete('sys_log', UID, 'sidequest', today);
     await saveProgress();
@@ -1952,15 +1807,13 @@ async function toggleSidequest() {
   } else {
     currentSidequest.done = true;
     S.journal_xp = (S.journal_xp || 0) + finalXp;
-    const capIds = Object.keys(caps);
-    // On pourrait ajouter aux capacités si souhaité, mais pour l'instant on ne le fait pas
     const entry = {
       user_id: UID,
       quest_id: 'sidequest',
       quest_name: '[Sidequest] ' + currentSidequest.text.slice(0, 40),
       xp: finalXp,
-      capacity_id: capIds[0] || null,
-      sub_capacities: capIds,
+      capacity_id: null,
+      sub_capacities: [],
       created_at: new Date().toISOString()
     };
     LOG.unshift(entry);
@@ -1987,11 +1840,10 @@ async function rerollSidequestIA() {
     return;
   }
   const today = todayKey();
-  const defaultCaps = { rhetorique: 0.5, ecoute: 0.5 };
   currentSidequest = {
     date: today,
     text: res || 'Défi : engage une conversation avec un inconnu.',
-    caps: defaultCaps,
+    caps: {rhetorique:0.5, ecoute:0.5},
     xp_total: 30,
     pid: 'p4',
     done: false,
@@ -2069,8 +1921,6 @@ function confirmerForge() {
     category: 'forged',
     done: false,
     completed: false,
-    progress: 0,
-    comment: '',
     target: target,
     bonus_xp: bonus_xp
   };
@@ -2080,6 +1930,8 @@ function confirmerForge() {
   updateBadges();
   document.getElementById('forge-form').style.display = 'none';
   forgePending = null;
+  // Sauvegarde immédiate pour persister la quête
+  saveProgress();
   updateAll();
   toast("⚔️ Quête forgée ajoutée !");
 }
@@ -2101,7 +1953,6 @@ async function modifierQueteForgee(id) {
     document.getElementById('forge-target-group').style.display = 'none';
   }
   forgePending = { ...q, editing: true, oldId: id };
-  // Changer le bouton confirmer en "Mettre à jour"
   const confirmBtn = document.querySelector('#forge-form .btn-accent');
   confirmBtn.textContent = '✅ Mettre à jour';
   confirmBtn.onclick = function() {
@@ -2138,19 +1989,46 @@ function mettreAJourForge(oldId) {
   saveCustomQuests();
   document.getElementById('forge-form').style.display = 'none';
   forgePending = null;
-  // Restaurer le bouton
   const confirmBtn = document.querySelector('#forge-form .btn-accent');
   confirmBtn.textContent = '✅ Ajouter la quête';
   confirmBtn.onclick = confirmerForge;
+  saveProgress();
   updateAll();
   toast("✅ Quête forgée mise à jour !");
+}
+
+async function accomplirObjectif(id) {
+  const q = customQuests.find(x => x.id === id);
+  if (!q) return;
+  if (q.completed) { toast("🏆 Déjà accompli !"); return; }
+  if (!confirm(`Marquer l'objectif "${q.name}" comme accompli ?\nVous recevrez ${q.bonus_xp || 0} XP bonus.`)) return;
+  q.completed = true;
+  const bonus = q.bonus_xp || 0;
+  if (bonus > 0) {
+    S.journal_xp = (S.journal_xp || 0) + bonus;
+    const entry = {
+      user_id: UID,
+      quest_id: id,
+      quest_name: '[Objectif] ' + q.name,
+      xp: bonus,
+      capacity_id: null,
+      sub_capacities: [],
+      created_at: new Date().toISOString()
+    };
+    LOG.unshift(entry);
+    await sbInsert('sys_log', entry);
+    toast("🏆 Objectif accompli ! +" + bonus + " XP journal !");
+  }
+  // Retirer la quête de la liste active
+  saveCustomQuests();
+  await saveProgress();
+  updateAll();
 }
 
 async function deleteForgedQuest(id) {
   if (!confirm("Supprimer cette quête forgée ?")) return;
   const q = customQuests.find(x => x.id === id);
   if (q && checkedToday[id]) {
-    // Si elle était cochée, retirer l'XP du journal
     const xp = q.xp || 0;
     S.journal_xp = Math.max(0, (S.journal_xp || 0) - xp);
     LOG = LOG.filter(l => !(l.quest_id === id && l.created_at && l.created_at.slice(0, 10) === todayKey()));
@@ -2164,7 +2042,6 @@ async function deleteForgedQuest(id) {
   toast("🗑️ Quête forgée supprimée.");
 }
 
-// Suppression des quêtes générées (sur mesure)
 async function deleteGeneratedQuest(id) {
   if (!confirm("Supprimer cette quête sur mesure ?")) return;
   const q = customQuests.find(x => x.id === id);
@@ -2275,7 +2152,6 @@ async function genererEntrainement(btn, qId) {
   card.style.border = '0.5px solid rgba(96,165,250,.3)';
   card.style.background = 'linear-gradient(135deg,rgba(96,165,250,.12),rgba(14,14,16,.08))';
   card.innerHTML = '<div class="ai-header"><span style="font-size:16px">🏋️</span><span class="ai-label" style="color:var(--blue)">Séance sur-mesure</span></div><div class="ai-body" id="txt-' + qId + '">Analyse...</div>';
-  // Insérer après le bouton, dans la même zone q-info
   const qInfo = btn.closest('.q-info');
   qInfo.appendChild(card);
   const prompt = buildCtx() + ` En tant que coach sportif, génère un entraînement physique précis de ${duree} minutes. Domaine : ${domain}. Format (très concis) : 1. Objectif 2. Échauffement 3. Corps de séance (exercices, séries, temps) 4. Récupération Maximum 7 lignes. Pas de markdown. `;
@@ -2354,7 +2230,7 @@ async function validerJour() {
     S.last_day = today;
     S.days_total++;
   }
-  // On ne réinitialise pas les quêtes forgées, on laisse les progress
+  // On ne réinitialise pas les quêtes forgées
   // On réinitialise les quêtes min/opt et générées
   customQuests = customQuests.filter(q => (q.type === 'recurrent' || q.type === 'objective') || !checkedToday[q.id]);
   recipes.forEach(r => { r.done = false; });
@@ -2400,26 +2276,6 @@ function toggleAccordion(id) {
     body.style.display = body.classList.contains('open') ? 'block' : 'none';
   }
 }
-
-// ============================================================
-// POPUP PROGRESSION
-// ============================================================
-document.addEventListener('DOMContentLoaded', function() {
-  document.getElementById('progress-confirm').addEventListener('click', function() {
-    const percent = parseInt(document.getElementById('progress-percent').value) || 0;
-    if (percent < 0 || percent > 100) { toast("⚠️ Pourcentage entre 0 et 100."); return; }
-    const comment = document.getElementById('progress-comment').value.trim();
-    if (progressCallback) {
-      progressCallback(percent, comment);
-      progressCallback = null;
-    }
-    document.getElementById('progress-popup').classList.remove('show');
-  });
-  document.getElementById('progress-cancel').addEventListener('click', function() {
-    document.getElementById('progress-popup').classList.remove('show');
-    progressCallback = null;
-  });
-});
 
 // ============================================================
 // UTILITAIRES
@@ -2480,7 +2336,6 @@ async function init() {
   await loadFromSupabase();
   updateAll();
   updateSidequestUI();
-  // Écouter les changements de type pour afficher/masquer le champ objectif
   document.getElementById('forge-type').addEventListener('change', function(e) {
     const targetGroup = document.getElementById('forge-target-group');
     if (e.target.value === 'objective') {
